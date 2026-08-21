@@ -94,7 +94,7 @@ Reversa's own installation (`.claude/`, `.agents/`, `.reversa/`) is excluded fro
 | Path | Note |
 |------|------|
 | `CLAUDE.md`, `.claude/`, `.agents/`, `.reversa/` | Reversa framework install (untracked) |
-| `npx` | A stray **0-byte** untracked file at the repo root. Not part of WordPress. Reversa did not touch it. 🔴 GAP — confirm whether this is accidental. |
+| ~~`npx`~~ | A stray **0-byte** untracked file at the repo root, not part of WordPress. ✅ **Confirmed accidental and deleted** on 2026-08-21 by explicit user instruction (question Q2). |
 
 ---
 
@@ -344,6 +344,6 @@ The routing signal is real but **scoped to a single subsystem**. WordPress's pri
 |---|---------|-----------|
 | 1 | This is the distributed build, not `wordpress-develop`. Build, test and CI processes are unobservable from here. | 🟢 |
 | 2 | Zero automated tests in the tree. Any spec claim about verification behavior is unverifiable. | 🟢 |
-| 3 | A stray 0-byte `npx` file sits at the repo root, untracked. Purpose unknown; Reversa left it untouched. | 🔴 GAP |
+| 3 | ~~A stray 0-byte `npx` file sits at the repo root.~~ ✅ **Resolved** — confirmed accidental and deleted (Q2). | 🟢 |
 | 4 | ~14% of `wp-includes` PHP files are vendored third-party libraries (`php-ai-client`, `sodium_compat`, `SimplePie`, `Requests`, `ID3`, `PHPMailer`, `IXR`, `Text`, `pomo`). These should be documented as dependencies, not reverse-engineered as WordPress domain logic. | 🟢 |
 | 5 | The AI surface (`abilities-api/`, `ai-client/`, `php-ai-client/`, `connectors.php`) is new and large (156 PHP files). It has no counterpart in older WordPress documentation. | 🟢 |

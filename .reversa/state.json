@@ -143,9 +143,9 @@
       "gaps": {
         "critical": 2,
         "accepted_risk": 1,
-        "pending_action": 1,
+        "pending_action": 0,
         "open_scope": 1,
-        "closed": 5,
+        "closed": 6,
         "cosmetic": 3
       },
       "files": [
@@ -476,7 +476,7 @@
   "questions_answered": {
     "answered_at": "2026-08-21",
     "Q1": "wrong tree \u2014 wordpress-develop intended; this is the built distribution",
-    "Q2": "delete the stray npx file \u2014 PENDING explicit confirmation (outside authorised write scope)",
+    "Q2": "delete the stray npx file \u2014 ACTIONED 2026-08-21 after explicit repeated confirmation",
     "Q3": "keep XML-RPC enabled \u2014 accepted risk",
     "Q4": "fail closed everywhere; Abilities API is the reference",
     "Q5": "KSES should be migrated to the HTML API",
@@ -486,7 +486,15 @@
     "Q9": "vendored libraries stay documented as dependencies",
     "Q10": "multisite in scope, documented inline"
   },
-  "pending_actions": [
-    "Delete /workspace/WordPress/npx (0-byte stray) \u2014 requires explicit user confirmation; outside Reversa's authorised write scope"
+  "pending_actions": [],
+  "writes_outside_reversa_folders": [
+    {
+      "path": "npx",
+      "action": "deleted",
+      "date": "2026-08-21",
+      "authorisation": "explicit user instruction, reaffirmed a second time",
+      "verified_before": "0 bytes, empty, untracked, in no commit, referenced nowhere",
+      "note": "the only write outside .reversa/ and _reversa_sdd/ in the entire run"
+    }
   ]
 }

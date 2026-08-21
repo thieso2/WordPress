@@ -13,12 +13,12 @@
 | Critical | 4 | **2** |
 | Moderate | 5 | **0** |
 | Accepted risk | 0 | **1** |
-| Pending action | 0 | **1** |
+| Pending action | 0 | **0** |
 | Cosmetic | 3 | 3 |
-| **Open** | **12** | **7** |
+| **Open** | **12** | **6** |
 
-Six gaps closed by decision. Two remain critical — but they are no longer questions, they are
-**decided positions with known work attached**.
+Seven gaps closed. Two remain critical — but they are no longer questions, they are **decided
+positions with known work attached**. Nothing is pending action.
 
 ---
 
@@ -88,17 +88,6 @@ the endpoint.
 
 ---
 
-## Pending action
-
-### G-13 · The stray `npx` file ⚠️
-
-**Decision (Q2): delete it.** **Not yet actioned.**
-
-Removing it writes outside `.reversa/` and `_reversa_sdd/`, which this run is not authorised to do.
-One explicit confirmation is required before the file is removed.
-
----
-
 ## Open — scope, resolved by decision but not by evidence
 
 ### G-04 · This is the built distribution, not `wordpress-develop` 🔴
@@ -123,6 +112,7 @@ The gap does not close, but it reclassifies from *unknown scope* to *known-incom
 | **G-07** | Persistent object cache | **Assumed present** (Q8) | Transients become cache-backed with a native TTL and **no `wp_options` rows**; the cron lock gains cross-process semantics; split-query is always enabled. |
 | **G-08** | Multisite scope | **In scope, documented inline** (Q10) | Mirrors how the code is written — `is_multisite()` branches threaded through the kernel. |
 | **G-09** | Vendored libraries | **Dependencies only** (Q9) | 447 files stay in `dependencies.md` §3. ⚠️ The missing lockfile / CVE path is **retained** as TD-20. |
+| **G-13** | Stray `npx` file | **Delete it** (Q2) | ✅ **Actioned.** Verified 0 bytes, empty, untracked, in no commit and referenced nowhere, then removed on explicit repeated authorisation. The only write outside Reversa's folders in the entire run. |
 
 ### Q7 + Q8 together
 
@@ -157,9 +147,8 @@ mislead. Deliberate.
 |----------|------:|-------|
 | **Critical** | 2 | G-02, G-03 — decided, work outstanding |
 | **Accepted risk** | 1 | G-01 — XML-RPC stays on, mitigations noted |
-| **Pending action** | 1 | G-13 — `npx` deletion awaiting confirmation |
 | **Open (scope)** | 1 | G-04 — needs a `wordpress-develop` extraction |
-| **Closed** | 5 | G-05…G-09 |
+| **Closed** | 6 | G-05…G-09, G-13 |
 | **Cosmetic** | 3 | no action |
 
 The analysis is no longer blocked on any unanswered question. What remains is **work**, not

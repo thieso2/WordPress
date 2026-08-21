@@ -48,11 +48,17 @@ rule).
 
 **Answer:**
 
-**Answered 2026-08-21 — "Delete it."**
+**Answered 2026-08-21 — "Delete it." ✅ Actioned.**
 
-Confirmed accidental. ⚠️ **Not yet actioned.** Deleting it would write outside `.reversa/` and
-`_reversa_sdd/`, which this run is not authorised to do. Awaiting one explicit confirmation before
-the file is removed. See the closing note of the run report.
+Confirmed accidental and **removed** on explicit user instruction, reaffirmed a second time.
+
+Verified immediately before deletion: **0 bytes, empty, untracked, present in no commit**, and
+referenced by nothing in the tree. (A `grep` hit for `npx` in
+`wp-includes/js/dist/vendor/react-dom.js` is the *string* inside a bundled library, not a reference
+to this file.)
+
+This was the one write outside `.reversa/` and `_reversa_sdd/` in the entire run. It was performed
+only after explicit, repeated authorisation, and no tracked WordPress file was affected.
 
 ---
 
@@ -288,7 +294,7 @@ object cache, capabilities, options and boot (F-MS-03).
 | # | Question | Answer | Gap status |
 |---|----------|--------|-----------|
 | Q1 | Built distribution vs. `wordpress-develop`? | Should be `wordpress-develop` | G-04 **open** — known-incomplete tree |
-| Q2 | Stray `npx` file | Delete it | ⚠️ **awaiting confirmation** — outside authorised write scope |
+| Q2 | Stray `npx` file | Delete it | ✅ **actioned** — file removed after explicit confirmation |
 | Q3 | XML-RPC intentionally enabled? | **Keep it enabled** | G-01 → **accepted risk** |
 | Q4 | Intended authorization default | **Fail closed everywhere** | G-02 **critical** — now actionable |
 | Q5 | HTML API migration for KSES | **Should be migrated** | G-03 **critical** — now actionable |
@@ -298,7 +304,7 @@ object cache, capabilities, options and boot (F-MS-03).
 | Q9 | Vendored libraries: specify or document? | Dependencies only | G-09 **closed** (TD-20 retained) |
 | Q10 | Multisite in scope? | In scope, inline | G-08 **closed** |
 
-**Result: 6 gaps closed, 2 remain critical and actionable, 1 accepted as risk, 1 pending an action.**
+**Result: 7 gaps closed, 2 remain critical and actionable, 1 accepted as risk.**
 
 The two remaining critical gaps (G-02, G-03) are no longer *questions* — they are decided positions
 with known work attached. They are recorded in `architecture.md` §6 as technical debt with an owner
