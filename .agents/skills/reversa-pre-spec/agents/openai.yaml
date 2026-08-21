@@ -1,0 +1,5 @@
+interface:
+  display_name: "Reversa Pre-Spec"
+  short_description: "Pre-Spec agent of the Ideation Team, bridge from decision to the next pipeline"
+policy:
+  allow_implicit_invocation: false

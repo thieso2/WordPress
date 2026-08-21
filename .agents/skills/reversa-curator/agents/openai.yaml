@@ -1,0 +1,5 @@
+interface:
+  display_name: "Reversa Curator"
+  short_description: "Second agent of the Migration Team"
+policy:
+  allow_implicit_invocation: false

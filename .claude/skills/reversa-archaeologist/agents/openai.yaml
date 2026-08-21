@@ -1,0 +1,5 @@
+interface:
+  display_name: "Reversa Archaeologist"
+  short_description: "Deeply analyzes the legacy project code module by…"
+policy:
+  allow_implicit_invocation: false

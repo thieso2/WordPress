@@ -1,0 +1,5 @@
+interface:
+  display_name: "Reversa Coding"
+  short_description: "Turns actions.md into code: ticks checkboxes [X], writes…"
+policy:
+  allow_implicit_invocation: false

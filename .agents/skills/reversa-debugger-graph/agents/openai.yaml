@@ -1,0 +1,5 @@
+interface:
+  display_name: "Reversa Debugger Graph"
+  short_description: "View generator of the Bugs team: scans the bug.md files, validates…"
+policy:
+  allow_implicit_invocation: false

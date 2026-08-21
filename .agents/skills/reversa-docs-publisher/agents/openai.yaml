@@ -1,0 +1,5 @@
+interface:
+  display_name: "Reversa Docs Publisher"
+  short_description: "Editor-in-chief of the Reversa Docs Team"
+policy:
+  allow_implicit_invocation: false

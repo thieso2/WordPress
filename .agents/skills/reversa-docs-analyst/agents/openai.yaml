@@ -1,0 +1,5 @@
+interface:
+  display_name: "Reversa Docs Analyst"
+  short_description: "Analyst of the Reversa Docs Team"
+policy:
+  allow_implicit_invocation: false

@@ -1,0 +1,5 @@
+interface:
+  display_name: "Reversa Visor"
+  short_description: "Documents the legacy system interface from…"
+policy:
+  allow_implicit_invocation: false

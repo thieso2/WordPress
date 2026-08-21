@@ -1,0 +1,5 @@
+interface:
+  display_name: "Reversa Docs Storyteller"
+  short_description: "Storyteller of the Reversa Docs Team"
+policy:
+  allow_implicit_invocation: false

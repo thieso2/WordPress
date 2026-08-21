@@ -1,0 +1,5 @@
+interface:
+  display_name: "Reversa Explorer"
+  short_description: "Explorer agent of the Ideation Team, diverges into possible paths"
+policy:
+  allow_implicit_invocation: false

@@ -1,0 +1,5 @@
+interface:
+  display_name: "Reversa Architect"
+  short_description: "Synthesizes the legacy project analysis into architectural…"
+policy:
+  allow_implicit_invocation: false

@@ -1,0 +1,5 @@
+interface:
+  display_name: "Reversa Docs Mapper"
+  short_description: "Mapper of the Reversa Docs Team"
+policy:
+  allow_implicit_invocation: false

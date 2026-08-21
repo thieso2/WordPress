@@ -1,0 +1,5 @@
+interface:
+  display_name: "Reversa Highcharts Visualizer"
+  short_description: "Creates interactive data visualizations with Highcharts.js,…"
+policy:
+  allow_implicit_invocation: false

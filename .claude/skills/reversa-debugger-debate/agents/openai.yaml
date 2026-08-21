@@ -1,0 +1,5 @@
+interface:
+  display_name: "Reversa Debugger Debate"
+  short_description: "Multi-agent debate of the Bugs team: N solvers over R rounds with…"
+policy:
+  allow_implicit_invocation: false

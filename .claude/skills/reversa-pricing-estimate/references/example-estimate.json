@@ -1,0 +1,74 @@
+{
+  "schema_version": "1.1",
+  "formula_versions": {
+    "effort": "2.0",
+    "value": "2.0",
+    "market": "2.0"
+  },
+  "created_at": "2026-05-06T16:42:00Z",
+  "feature_dir": "_reversa_sdd/forward/042-pix-payment",
+  "profile_ref": "_reversa_sdd/_pricing/profile.json",
+  "size_ref": "_reversa_sdd/_pricing/042-pix-payment/size.json",
+  "currency": "BRL",
+  "billing_currency": null,
+  "exchange_rate_to_local": null,
+  "scenarios": {
+    "effort": {
+      "available": true,
+      "hours_min": 32,
+      "hours_max": 80,
+      "hours_estimated": 56,
+      "seniority_factor": 1.0,
+      "direct_cost_min": 3200.0,
+      "direct_cost_max": 8000.0,
+      "direct_cost": 5600.0,
+      "approx_tax_min": 480.0,
+      "approx_tax_max": 1200.0,
+      "approx_tax": 840.0,
+      "markup_applied_min": 1120.0,
+      "markup_applied_max": 2800.0,
+      "markup_applied": 1960.0,
+      "price_min": 4800.0,
+      "price_max": 12000.0,
+      "price_total": 8400.0,
+      "explanation": "Range based on 32 to 80h for complexity class L, senior seniority, direct cost, a 15% tax reserve and a 35% project markup."
+    },
+    "value": {
+      "available": true,
+      "monthly_return_declared": 2000.0,
+      "users_impacted": 500,
+      "cost_of_not_doing": 5000.0,
+      "annual_value": 24000.0,
+      "value_capture_min": 0.1,
+      "value_capture_recommended": 0.2,
+      "value_capture_max": 0.3,
+      "price_min": 2400.0,
+      "price_recommended": 4800.0,
+      "price_max": 7200.0,
+      "payback_months_min": 1.2,
+      "payback_months_max": 3.6,
+      "explanation": "Range based on capturing 10% to 30% of the declared annual value, with a payback of roughly 1.2 to 3.6 months."
+    },
+    "market": {
+      "available": true,
+      "country": "BR",
+      "seniority": "senior",
+      "primary_pricing_model": "fixed_scope",
+      "primary_client_profile": "small_business",
+      "complexity_class": "L",
+      "market_hourly_min": 100.0,
+      "market_hourly_max": 200.0,
+      "source_kind": "salary_derived_freelance_estimate",
+      "source_year": "2025-2026",
+      "sources": [
+        "Portal Salario CAGED",
+        "Glassdoor Brasil"
+      ],
+      "price_min": 3200.0,
+      "price_max": 16000.0,
+      "fallback_applied": false,
+      "explanation": "Range derived from the BR senior hourly benchmark and 32 to 80h for complexity class L."
+    }
+  },
+  "guidance": "The declared Value produces a lower range than the average Effort. Use Effort as the defensible floor and Market as an external reference. For this client, charge below 4800 BRL only if there is a clear strategic reason."
+}

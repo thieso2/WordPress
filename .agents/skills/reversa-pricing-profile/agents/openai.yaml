@@ -1,0 +1,5 @@
+interface:
+  display_name: "Reversa Pricing Profile"
+  short_description: "Runs a guided interview of up to ten questions and generates the…"
+policy:
+  allow_implicit_invocation: false

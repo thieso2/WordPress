@@ -1,0 +1,5 @@
+interface:
+  display_name: "Reversa Ideator"
+  short_description: "Ideator agent of the Code New Project Agents team"
+policy:
+  allow_implicit_invocation: false

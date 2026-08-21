@@ -1,0 +1,5 @@
+interface:
+  display_name: "Reversa Add"
+  short_description: "Short amendment to the active feature of the forward cycle: records the…"
+policy:
+  allow_implicit_invocation: false

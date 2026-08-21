@@ -1,0 +1,5 @@
+interface:
+  display_name: "Reversa Drafter"
+  short_description: "Drafter agent of the Code New Project Agents team"
+policy:
+  allow_implicit_invocation: false

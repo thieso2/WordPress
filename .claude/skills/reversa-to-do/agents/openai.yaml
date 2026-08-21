@@ -1,0 +1,5 @@
+interface:
+  display_name: "Reversa To Do"
+  short_description: "Decomposes the roadmap into atomic actions with sequential IDs,…"
+policy:
+  allow_implicit_invocation: false

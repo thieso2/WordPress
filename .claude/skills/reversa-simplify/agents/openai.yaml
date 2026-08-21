@@ -1,0 +1,5 @@
+interface:
+  display_name: "Reversa Simplify"
+  short_description: "Algorithmic simplification: swaps complex logic for a simpler…"
+policy:
+  allow_implicit_invocation: false

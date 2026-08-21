@@ -1,0 +1,5 @@
+interface:
+  display_name: "Reversa Standardize"
+  short_description: "Standardization: applies naming, formatting and…"
+policy:
+  allow_implicit_invocation: false

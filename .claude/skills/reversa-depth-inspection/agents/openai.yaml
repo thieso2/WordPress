@@ -1,0 +1,5 @@
+interface:
+  display_name: "Reversa Depth Inspection"
+  short_description: "Fine-tooth comb of the Bugs team: maps spec→code→tests→data of…"
+policy:
+  allow_implicit_invocation: false

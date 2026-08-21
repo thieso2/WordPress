@@ -1,0 +1,5 @@
+interface:
+  display_name: "Reversa Design System"
+  short_description: "Extracts and documents the legacy project design system —…"
+policy:
+  allow_implicit_invocation: false

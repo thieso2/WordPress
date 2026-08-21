@@ -1,0 +1,132 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://reversa.dev/schemas/screens/inventory.json",
+  "title": "Screen Translator Internal Inventory",
+  "description": "The Screen Translator's internal inventory. It lists every visual unit detected in the legacy system, with a stable identity and traceability back to the source code. Saved to _reversa_sdd/screens/inventory.json. Overwritten on every run.",
+  "type": "object",
+  "required": ["schemaVersion", "generatedAt", "sourcePlatform", "screens"],
+  "properties": {
+    "schemaVersion": {
+      "type": "integer",
+      "const": 1
+    },
+    "generatedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "producedBy": {
+      "type": "string",
+      "const": "screen-translator"
+    },
+    "sourcePlatform": {
+      "type": "string",
+      "description": "The slug of the detected source platform (e.g. cobol-ansi-tui, delphi-vcl, asp-classic, android-xml, ios-xib)."
+    },
+    "detectionConfidence": {
+      "type": "string",
+      "enum": ["confirmed", "inferred", "gap", "ambiguous"]
+    },
+    "screens": {
+      "type": "array",
+      "description": "The list of screens detected in the legacy system.",
+      "items": {
+        "type": "object",
+        "required": ["id", "canonicalName", "legacyOrigin"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "A unique, stable identifier within this inventory (e.g. SCR-0001)."
+          },
+          "canonicalName": {
+            "type": "string",
+            "description": "The screen's canonical name, as used in target_screens.md."
+          },
+          "legacyOrigin": {
+            "type": "object",
+            "required": ["file"],
+            "properties": {
+              "file": { "type": "string", "description": "The relative path of the legacy file." },
+              "line": { "type": ["integer", "null"], "description": "The line in the file, where applicable." },
+              "paragraph": { "type": ["string", "null"], "description": "The name of the COBOL paragraph, the Delphi/VB6 form, the Android Activity, etc." }
+            }
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "tui-screen",
+              "form",
+              "page",
+              "activity",
+              "fragment",
+              "view-controller",
+              "modal",
+              "dialog",
+              "wizard-step",
+              "menu",
+              "list",
+              "detail",
+              "report",
+              "raw"
+            ],
+            "description": "The screen's structural type. Use 'raw' when no adapter covers the type."
+          },
+          "isCritical": {
+            "type": "boolean",
+            "description": "Marks critical vs. auxiliary screens (fed by reversa-detective when available). In hybrid mode, critical screens tend to go literal."
+          },
+          "matchesUiInventory": {
+            "type": "boolean",
+            "description": "true if the screen appears in _reversa_sdd/ui/inventory.md."
+          },
+          "uiInventoryRef": {
+            "type": ["string", "null"],
+            "description": "The corresponding line or anchor in _reversa_sdd/ui/inventory.md."
+          },
+          "interpolations": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "The dynamic variables detected (e.g. '{{holder}}', '{{balance}}')."
+          },
+          "transitions": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "The next screens or the events triggered from this one."
+          },
+          "tokens": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "The design-system tokens referenced (e.g. 'color.cyan', 'typography.h1')."
+          },
+          "i18n": {
+            "type": "object",
+            "description": "When the screen has an external string catalog.",
+            "properties": {
+              "catalog": { "type": "string", "description": "The catalog's path (e.g. 'res/values/strings.xml', 'locale/en_US.po')." },
+              "keysReferenced": { "type": "array", "items": { "type": "string" } }
+            }
+          }
+        }
+      }
+    },
+    "skipped": {
+      "type": "object",
+      "description": "When the legacy system has no UI, this field is filled in and screens[] stays empty.",
+      "properties": {
+        "reason": { "type": "string" },
+        "emittedAt": { "type": "string", "format": "date-time" }
+      }
+    },
+    "divergenceFromUiInventory": {
+      "type": "object",
+      "description": "A comparison against _reversa_sdd/ui/inventory.md. If divergencePercent > 10, the agent stops and asks for a review (FR-05).",
+      "properties": {
+        "totalInUiInventory": { "type": "integer" },
+        "totalInThisInventory": { "type": "integer" },
+        "matched": { "type": "integer" },
+        "missingInUiInventory": { "type": "array", "items": { "type": "string" } },
+        "extraInUiInventory": { "type": "array", "items": { "type": "string" } },
+        "divergencePercent": { "type": "number" }
+      }
+    }
+  }
+}

@@ -1,0 +1,5 @@
+interface:
+  display_name: "Reversa Reconstructor"
+  short_description: "Generates a bottom-up rebuild plan from the specs of…"
+policy:
+  allow_implicit_invocation: false

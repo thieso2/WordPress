@@ -1,0 +1,5 @@
+interface:
+  display_name: "Reversa Writer"
+  short_description: "Generates executable specifications of the legacy system as…"
+policy:
+  allow_implicit_invocation: false

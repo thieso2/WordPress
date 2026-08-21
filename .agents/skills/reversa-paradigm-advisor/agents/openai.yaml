@@ -1,0 +1,5 @@
+interface:
+  display_name: "Reversa Paradigm Advisor"
+  short_description: "First agent of the Migration Team"
+policy:
+  allow_implicit_invocation: false

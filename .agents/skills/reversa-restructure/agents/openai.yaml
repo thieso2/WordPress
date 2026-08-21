@@ -1,0 +1,5 @@
+interface:
+  display_name: "Reversa Restructure"
+  short_description: "Internal structure refactoring (method/class) via a catalog…"
+policy:
+  allow_implicit_invocation: false

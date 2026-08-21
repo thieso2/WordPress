@@ -1,0 +1,41 @@
+{
+  "schema_version": "1.1",
+  "formula_version": "2.0",
+  "created_at": "2026-05-06T15:14:00Z",
+  "feature_dir": "_reversa_sdd/forward/042-pix-payment",
+  "metrics": {
+    "requirements": {
+      "total": 8,
+      "functional": 5,
+      "non_functional": 2,
+      "constraint": 1
+    },
+    "doubts": {
+      "total": 3,
+      "high": 1,
+      "medium": 2,
+      "low": 0
+    },
+    "tasks": {
+      "total": 7,
+      "new": 4,
+      "modify": 2,
+      "delete": 0,
+      "test": 1,
+      "infra": 0
+    },
+    "plan_depth": 3,
+    "principles_touched": [
+      "non_destructive",
+      "multi_engine",
+      "handoff_pattern"
+    ]
+  },
+  "sizing_method": "task_tshirt_with_risk_adjustment",
+  "base_complexity_class": "M",
+  "risk_points": 5,
+  "risk_adjustment_classes": 1,
+  "size_score": 60,
+  "complexity_class": "L",
+  "notes": "Large feature due to risk adjustment: base class M was raised to L by 5 risk points, including 1 high-severity doubt."
+}

@@ -1,0 +1,3 @@
+interface:
+  display_name: "Reversa Debugger"
+  short_description: "Reversa bug recorder: intake, triage, dedupe,…"

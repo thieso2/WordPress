@@ -1,0 +1,60 @@
+# Sources expected by the Reversa Docs Team
+# Each item declares a Reversa core artifact that, when present, feeds one or more pages of the mini-site.
+# A missing source never blocks: pages depending on it are gracefully omitted.
+
+sources:
+  - id: soul
+    path: ".reversa/soul.md"
+    producer: "reversa-extract-soul"
+    consumed_by:
+      - "Storyteller (glossary.html, deck.html)"
+      - "Publisher (seed sha256, hero)"
+    required_for:
+      - "glossary.html"
+      - "deck.html (partially)"
+    description: "Executive synthesis of the project. Source of the glossary and the hero title."
+
+  - id: chronicle
+    path: ".reversa/chronicle.md"
+    producer: "reversa-chronicler"
+    consumed_by:
+      - "Analyst (timeline.html)"
+    required_for:
+      - "timeline.html"
+    description: "History of events, releases and incidents. Source of the interactive timeline."
+
+  - id: topology
+    path: "_reversa_sdd/architecture.md"
+    producer: "reversa-architect"
+    consumed_by:
+      - "Mapper (topology.html)"
+    required_for:
+      - "topology.html"
+    description: "Detected topology (legacy vs modern vs hybrid). Source of the side-by-side page."
+    optional: true
+
+  - id: sdd_specs
+    path: "_reversa_sdd/"
+    pattern: "*/requirements.md"
+    producer: "reversa-writer"
+    consumed_by:
+      - "Storyteller (features/*.html)"
+    required_for:
+      - "features/<spec>.html (one page per spec)"
+    description: "SDD specs per feature. Every subfolder with a requirements.md becomes a detail page."
+
+  - id: source_code
+    path: "."
+    pattern: "(files of the legacy project)"
+    producer: "(human + git)"
+    consumed_by:
+      - "Mapper (architecture.html, modules.html, modules.json, deps.json)"
+      - "Analyst (metrics.html via modules.json)"
+    required_for:
+      - "architecture.html"
+      - "modules.html"
+      - "metrics.html"
+    description: "Source code of the legacy project. Source of the LOC, complexity and dependency metrics."
+    extraction_scripts:
+      - "extract_modules.py"
+      - "extract_deps.py"

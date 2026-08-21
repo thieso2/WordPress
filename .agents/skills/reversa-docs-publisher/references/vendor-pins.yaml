@@ -1,0 +1,149 @@
+# vendor-pins.yaml
+#
+# The official matrix of third-party libraries used by the pages the Reversa Docs
+# Team generates. The Publisher consumes this file in the "Local vendor bundle"
+# step to download each lib into assets/vendor/ before rendering any page,
+# guaranteeing the mini-site works 100% offline and via file://.
+#
+# Rules:
+#  - "version" is the canonical pin. Do not change the major/minor without reviewing
+#    every skill that depends on the combination (Code City, force-directed, dashboards).
+#  - "format" can be "iife" (compatible with <script src>) or "esm" (which needs
+#    an importmap + <script type=module>). For now everything is pinned to IIFE so that
+#    double-clicking on Windows works with no bundler dependency.
+#  - "compatible_with" declares dependencies between libs. Use it to detect
+#    invalid combinations (e.g. OrbitControls from r158 does not run as IIFE).
+#  - "files[].url" is the first attempt. If it fails (HEAD != 200), the
+#    Publisher walks the "fallbacks" in order. Always prefer at least 2
+#    CDNs per file: unpkg + jsdelivr cover 99% of the failures observed.
+#  - "local" is the relative path inside _reversa_docs/. The
+#    HTML templates reference exactly that path via <script src>.
+
+schema_version: 1
+
+libs:
+
+  three:
+    version: "0.147.0"
+    format: iife
+    notes: >
+      Pinned at 0.147 because it is the last release that still ships OrbitControls
+      in IIFE format (examples/js/controls/). From 0.150 onwards only the
+      ES module version in examples/jsm/ exists, which requires an importmap. Migrating to 0.158+
+      with an importmap is future work and is documented under Error 3 of the field
+      report (specs/erros_em_docs.md).
+    files:
+      - url: "https://unpkg.com/three@0.147.0/build/three.min.js"
+        local: "assets/vendor/three.min.js"
+        fallbacks:
+          - "https://cdn.jsdelivr.net/npm/three@0.147.0/build/three.min.js"
+          - "https://cdnjs.cloudflare.com/ajax/libs/three.js/0.147.0/three.min.js"
+
+  orbit_controls:
+    version: "0.147.0"
+    format: iife
+    compatible_with: ["three@0.147.0"]
+    notes: >
+      The IIFE version of OrbitControls, discontinued from three@0.150 onwards.
+      Kept via raw.githubusercontent (more stable than CDN mirrors for
+      files that are not part of the official npm bundle).
+    files:
+      - url: "https://raw.githubusercontent.com/mrdoob/three.js/r147/examples/js/controls/OrbitControls.js"
+        local: "assets/vendor/OrbitControls.js"
+        fallbacks:
+          - "https://cdn.jsdelivr.net/gh/mrdoob/three.js@r147/examples/js/controls/OrbitControls.js"
+
+  d3:
+    version: "7.8.5"
+    format: iife
+    files:
+      - url: "https://cdn.jsdelivr.net/npm/d3@7.8.5/dist/d3.min.js"
+        local: "assets/vendor/d3.v7.min.js"
+        fallbacks:
+          - "https://unpkg.com/d3@7.8.5/dist/d3.min.js"
+          - "https://d3js.org/d3.v7.min.js"
+
+  highcharts:
+    version: "11.4.8"
+    format: iife
+    notes: >
+      The Highcharts core. The modules (treemap, sankey, etc.) must be from the SAME
+      version, to avoid a compatibility warning in the console.
+    files:
+      - url: "https://code.highcharts.com/11.4.8/highcharts.js"
+        local: "assets/vendor/highcharts.js"
+        fallbacks:
+          - "https://cdn.jsdelivr.net/npm/highcharts@11.4.8/highcharts.js"
+          - "https://unpkg.com/highcharts@11.4.8/highcharts.js"
+
+  highcharts_accessibility:
+    version: "11.4.8"
+    format: iife
+    compatible_with: ["highcharts@11.4.8"]
+    files:
+      - url: "https://code.highcharts.com/11.4.8/modules/accessibility.js"
+        local: "assets/vendor/highcharts-accessibility.js"
+        fallbacks:
+          - "https://cdn.jsdelivr.net/npm/highcharts@11.4.8/modules/accessibility.js"
+
+  highcharts_exporting:
+    version: "11.4.8"
+    format: iife
+    compatible_with: ["highcharts@11.4.8"]
+    files:
+      - url: "https://code.highcharts.com/11.4.8/modules/exporting.js"
+        local: "assets/vendor/highcharts-exporting.js"
+        fallbacks:
+          - "https://cdn.jsdelivr.net/npm/highcharts@11.4.8/modules/exporting.js"
+
+  highcharts_treemap:
+    version: "11.4.8"
+    format: iife
+    compatible_with: ["highcharts@11.4.8"]
+    files:
+      - url: "https://code.highcharts.com/11.4.8/modules/treemap.js"
+        local: "assets/vendor/highcharts-treemap.js"
+        fallbacks:
+          - "https://cdn.jsdelivr.net/npm/highcharts@11.4.8/modules/treemap.js"
+
+  highcharts_sankey:
+    version: "11.4.8"
+    format: iife
+    compatible_with: ["highcharts@11.4.8"]
+    files:
+      - url: "https://code.highcharts.com/11.4.8/modules/sankey.js"
+        local: "assets/vendor/highcharts-sankey.js"
+        fallbacks:
+          - "https://cdn.jsdelivr.net/npm/highcharts@11.4.8/modules/sankey.js"
+
+  highcharts_timeline:
+    version: "11.4.8"
+    format: iife
+    compatible_with: ["highcharts@11.4.8"]
+    notes: >
+      Used by the Analyst when there is a chronicle.md, to generate timeline.html.
+    files:
+      - url: "https://code.highcharts.com/11.4.8/modules/timeline.js"
+        local: "assets/vendor/highcharts-timeline.js"
+        fallbacks:
+          - "https://cdn.jsdelivr.net/npm/highcharts@11.4.8/modules/timeline.js"
+
+# Combinations declared invalid. The Publisher rejects these combinations
+# if someone tries to change them via an override.
+invalid_combinations:
+  - three: "0.158.0"
+    orbit_controls: "0.147.0"
+    reason: "The OrbitControls IIFE build was removed in three@0.150+. Use three@0.147 with OrbitControls r147, or migrate everything to ESM with an importmap."
+  - three: "0.147.0"
+    orbit_controls: "0.158.0"
+    reason: "The OrbitControls API changed on the ESM-only track; r158 does not run as IIFE."
+
+# Usage table: which skill uses which lib. Keep it in sync when
+# adding/removing skills or libs. The Publisher uses it to decide what to
+# download even when a specific page is regenerated on its own.
+usage:
+  reversa-architecture-3d: [three, orbit_controls]
+  reversa-d3-specialist: [d3]
+  reversa-highcharts-visualizer:
+    [highcharts, highcharts_accessibility, highcharts_exporting,
+     highcharts_treemap, highcharts_sankey, highcharts_timeline]

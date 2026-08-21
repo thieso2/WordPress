@@ -1,0 +1,5 @@
+interface:
+  display_name: "Reversa Plan"
+  short_description: "Sketches the technical approach as a delta over the legacy system, producing…"
+policy:
+  allow_implicit_invocation: false

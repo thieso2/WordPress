@@ -1,0 +1,5 @@
+interface:
+  display_name: "Reversa Screen Translator"
+  short_description: "Fifth agent of the Migration Team, in two phases"
+policy:
+  allow_implicit_invocation: false

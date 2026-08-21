@@ -1,0 +1,5 @@
+interface:
+  display_name: "Reversa Quality"
+  short_description: "Textual clarity audit of the requirements"
+policy:
+  allow_implicit_invocation: false

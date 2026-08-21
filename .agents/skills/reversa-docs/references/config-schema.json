@@ -1,0 +1,108 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Reversa Docs Config",
+  "description": "Configuration persisted in _reversa_docs/.config.json after the /reversa-docs interview. Reused by subsequent runs and by standalone agents.",
+  "type": "object",
+  "required": ["schemaVersion", "generatedAt", "projectName", "interview", "seed", "knowledgeSources"],
+  "properties": {
+    "schemaVersion": {
+      "type": "integer",
+      "const": 1,
+      "description": "Schema version. Increment it on a breaking change."
+    },
+    "generatedAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO-8601 timestamp of when the interview was conducted."
+    },
+    "reversa": {
+      "type": "object",
+      "properties": {
+        "version": { "type": "string" }
+      }
+    },
+    "projectName": {
+      "type": "string",
+      "description": "Project name. Taken from soul.md when present, otherwise from the root folder name."
+    },
+    "interview": {
+      "type": "object",
+      "required": ["readerProfile", "depth", "visualStyle"],
+      "properties": {
+        "readerProfile": {
+          "type": "string",
+          "enum": ["novo_dev", "stakeholder", "auditor", "other"]
+        },
+        "readerProfileFreeform": {
+          "type": "string",
+          "description": "Free text when readerProfile = other."
+        },
+        "depth": {
+          "type": "string",
+          "enum": ["overview", "full", "features_selection", "other"]
+        },
+        "depthFreeform": {
+          "type": "string"
+        },
+        "selectedFeatures": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "IDs of the specs chosen when depth = features_selection."
+        },
+        "visualStyle": {
+          "type": "string",
+          "enum": ["sober", "premium", "dense", "exploratory", "other"]
+        },
+        "visualStyleFreeform": {
+          "type": "string"
+        }
+      }
+    },
+    "seed": {
+      "type": "object",
+      "required": ["hash", "source"],
+      "properties": {
+        "hash": {
+          "type": "string",
+          "pattern": "^sha256:[a-f0-9]{64}$"
+        },
+        "source": {
+          "type": "string",
+          "enum": ["soul.md", "project_name"]
+        },
+        "explicitOverride": {
+          "type": ["string", "null"],
+          "description": "Value passed via --seed=<value>; it overrides the computed hash."
+        }
+      }
+    },
+    "knowledgeSources": {
+      "type": "object",
+      "properties": {
+        "soul": { "type": "boolean" },
+        "chronicle": { "type": "boolean" },
+        "topology": { "type": "boolean" },
+        "sddSpecs": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "sourceCode": { "type": "boolean" }
+      }
+    },
+    "pagesPlanned": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Relative paths of the pages that will be generated, decided after the interview."
+    },
+    "pagesOmitted": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "page": { "type": "string" },
+          "reason": { "type": "string" }
+        }
+      }
+    }
+  }
+}

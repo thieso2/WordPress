@@ -1,0 +1,5 @@
+interface:
+  display_name: "Reversa Modularize"
+  short_description: "Modularization: splits a large chunk into cohesive modules with…"
+policy:
+  allow_implicit_invocation: false

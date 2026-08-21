@@ -1,0 +1,5 @@
+interface:
+  display_name: "Reversa Resume"
+  short_description: "Resumes a paused feature (listed under paused-features in…"
+policy:
+  allow_implicit_invocation: false

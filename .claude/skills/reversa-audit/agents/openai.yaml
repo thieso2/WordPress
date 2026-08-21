@@ -1,0 +1,5 @@
+interface:
+  display_name: "Reversa Audit"
+  short_description: "Strict read-only audit"
+policy:
+  allow_implicit_invocation: false

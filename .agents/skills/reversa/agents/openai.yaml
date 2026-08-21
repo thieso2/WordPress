@@ -1,0 +1,3 @@
+interface:
+  display_name: "Reversa"
+  short_description: "Main entry point of Reversa"

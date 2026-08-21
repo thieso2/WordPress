@@ -1,0 +1,5 @@
+interface:
+  display_name: "Reversa Data Master"
+  short_description: "Fully documents the legacy project database —…"
+policy:
+  allow_implicit_invocation: false

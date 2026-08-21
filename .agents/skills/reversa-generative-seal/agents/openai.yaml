@@ -1,0 +1,5 @@
+interface:
+  display_name: "Reversa Generative Seal"
+  short_description: "Creates seeded generative visual seals with p5.js, producing HTML…"
+policy:
+  allow_implicit_invocation: false

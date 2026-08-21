@@ -1,0 +1,5 @@
+interface:
+  display_name: "Reversa Clarify"
+  short_description: "Generates up to five targeted questions to resolve open…"
+policy:
+  allow_implicit_invocation: false

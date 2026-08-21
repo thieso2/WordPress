@@ -1,0 +1,5 @@
+interface:
+  display_name: "Reversa Framer"
+  short_description: "Framer agent of the Ideation Team, separates problem from solution"
+policy:
+  allow_implicit_invocation: false
