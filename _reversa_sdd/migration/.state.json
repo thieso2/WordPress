@@ -1,0 +1,120 @@
+{
+  "schemaVersion": 2,
+  "startedAt": "2026-08-21T00:00:00Z",
+  "lastCheckpoint": "2026-08-21T00:00:00Z",
+  "completedAgents": [
+    "paradigm_advisor",
+    "curator",
+    "strategist",
+    "designer",
+    "screen_translator",
+    "inspector"
+  ],
+  "pendingAgents": [],
+  "currentAgent": {
+    "agent": null,
+    "phase": null,
+    "status": "complete",
+    "topologyApproved": true,
+    "screenModeApproved": true
+  },
+  "pendingDecisions": [],
+  "artifacts": {
+    "migration_brief.md": {
+      "sha256": "2bec430dab7af3b05b9d8a500a0c60d9418ecb187f480df2b988fdb635f70334",
+      "producedBy": "orchestrator",
+      "at": "2026-08-21T00:00:00Z"
+    },
+    "paradigm_decision.md": {
+      "sha256": "304c8eeb6cbcbbdf91b5de96060d78f7b2d1640754542b5716386137b022824f",
+      "producedBy": "paradigm_advisor",
+      "at": "2026-08-21T00:00:00Z",
+      "amended": true
+    },
+    "target_business_rules.md": {
+      "sha256": "2dad2e05d56524ae6346676cba23b157cfcd7abfe4f048f05829b2800c259165",
+      "producedBy": "curator",
+      "at": "2026-08-21T00:00:00Z"
+    },
+    "discard_log.md": {
+      "sha256": "0b04b2c56e5520a9ad3061cd1fbf0e4e4939af3ab9df8804489d0b954d07baa7",
+      "producedBy": "curator",
+      "at": "2026-08-21T00:00:00Z"
+    },
+    "ambiguity_log.md": {
+      "sha256": "82e23d845af354f7f3af698e8d6011c4019387b4909e31da600cccdd4165d695",
+      "producedBy": "orchestrator",
+      "at": "2026-08-21T00:00:00Z"
+    },
+    "migration_strategy.md": {
+      "sha256": "200de109fadc566d6b8748affc9a95c2182d031fc282d9d1dfd0913e4873e6cc",
+      "producedBy": "strategist",
+      "at": "2026-08-21T00:00:00Z"
+    },
+    "risk_register.md": {
+      "sha256": "6148309516a13d1b813e54a038e7903896457e9fa6eb6da5ea6e7924a64c9dd0",
+      "producedBy": "strategist",
+      "at": "2026-08-21T00:00:00Z"
+    },
+    "cutover_plan.md": {
+      "sha256": "06e2482e2927380567b617f004bd8212ae8c3fc83efae2df37cf5d2ad56d15ef",
+      "producedBy": "strategist",
+      "at": "2026-08-21T00:00:00Z"
+    },
+    "topology_decision.md": {
+      "sha256": "22f7850c57bcda4bfdd9e5fcfe343fe84de3bc3ff67236671fa6293c5d41b6ad",
+      "producedBy": "designer",
+      "at": "2026-08-21T00:00:00Z"
+    },
+    "target_architecture.md": {
+      "sha256": "2a9a47683fe5cfa492047a3cff86e086d885dac64333669cefebb5e2ad0cefb8",
+      "producedBy": "designer",
+      "at": "2026-08-21T00:00:00Z"
+    },
+    "target_domain_model.md": {
+      "sha256": "3a18a1b49cc97f52833a19e62494abdd6a86616d3a9768901d80b0d5e5d270af",
+      "producedBy": "designer",
+      "at": "2026-08-21T00:00:00Z"
+    },
+    "target_data_model.md": {
+      "sha256": "2325df9a6281156fc47fd641d403a474e8358c6206fb3b570704b62bde069ca4",
+      "producedBy": "designer",
+      "at": "2026-08-21T00:00:00Z"
+    },
+    "data_migration_plan.md": {
+      "sha256": "3c3f077f0dd6950c98eaf9d0872335ae6ad796bde99bb255d5e4dde4074e2469",
+      "producedBy": "designer",
+      "at": "2026-08-21T00:00:00Z"
+    },
+    "screen_modernization_decision.md": {
+      "sha256": "c343683f661784f93b72de9a331f8e2d4021f54a00f287f1876991b81deefc6d",
+      "producedBy": "screen-translator",
+      "at": "2026-08-21T00:00:00Z"
+    },
+    "target_screens.md": {
+      "sha256": "480843b87ed97086fc6a1e0e4464325419e42cd014958f0efad6624c9955fcd6",
+      "producedBy": "screen-translator",
+      "at": "2026-08-21T00:00:00Z"
+    },
+    "screen_deviation_log.md": {
+      "sha256": "ebbd27476bcc021f034fae17cf02241e4cd925d97e93c00d92af6de8e6870c37",
+      "producedBy": "screen-translator",
+      "at": "2026-08-21T00:00:00Z"
+    },
+    "parity_specs.md": {
+      "sha256": "cb6dc239726aa289548da64dec0b483cbdf557113b44ed441b827a5e49d11c07",
+      "producedBy": "inspector",
+      "at": "2026-08-21T00:00:00Z"
+    },
+    "handoff.md": {
+      "sha256": "bbce06af292db47ee09d47c8be14bba2465ad61eb28d20e2e76653989aed9571",
+      "producedBy": "orchestrator",
+      "at": "2026-08-21T00:00:00Z"
+    }
+  },
+  "auto": false,
+  "engine": "claude-code",
+  "reversaVersion": "1.2.58",
+  "briefPath": "_reversa_sdd/migration/migration_brief.md",
+  "expectedLegacyArtifacts": "references/expected_legacy_artifacts.yaml"
+}

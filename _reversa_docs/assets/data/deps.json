@@ -1,0 +1,1374 @@
+{
+ "nodes": [
+  {
+   "id": "bootstrap-and-load"
+  },
+  {
+   "id": "hooks-plugin-api"
+  },
+  {
+   "id": "database-wpdb"
+  },
+  {
+   "id": "options-and-transients"
+  },
+  {
+   "id": "cache-and-object-cache"
+  },
+  {
+   "id": "metadata"
+  },
+  {
+   "id": "posts-and-post-types"
+  },
+  {
+   "id": "query-and-loop"
+  },
+  {
+   "id": "taxonomy-and-terms"
+  },
+  {
+   "id": "comments"
+  },
+  {
+   "id": "media-and-attachments"
+  },
+  {
+   "id": "embeds-oembed"
+  },
+  {
+   "id": "users-roles-capabilities"
+  },
+  {
+   "id": "authentication-and-sessions"
+  },
+  {
+   "id": "themes-and-templates"
+  },
+  {
+   "id": "rewrite-and-permalinks"
+  },
+  {
+   "id": "script-modules-and-assets"
+  },
+  {
+   "id": "widgets-and-nav-menus"
+  },
+  {
+   "id": "customizer"
+  },
+  {
+   "id": "block-editor"
+  },
+  {
+   "id": "blocks-library"
+  },
+  {
+   "id": "block-supports"
+  },
+  {
+   "id": "global-styles-theme-json"
+  },
+  {
+   "id": "style-engine"
+  },
+  {
+   "id": "html-api"
+  },
+  {
+   "id": "interactivity-api"
+  },
+  {
+   "id": "rest-api"
+  },
+  {
+   "id": "http-api"
+  },
+  {
+   "id": "xmlrpc"
+  },
+  {
+   "id": "feeds"
+  },
+  {
+   "id": "sitemaps"
+  },
+  {
+   "id": "ai-abilities-connectors"
+  },
+  {
+   "id": "cron"
+  },
+  {
+   "id": "internationalization"
+  },
+  {
+   "id": "formatting-and-sanitization"
+  },
+  {
+   "id": "kses-security"
+  },
+  {
+   "id": "error-handling-and-recovery-mode"
+  },
+  {
+   "id": "performance-speculation-view-transitions"
+  },
+  {
+   "id": "admin-application"
+  },
+  {
+   "id": "filesystem-api"
+  },
+  {
+   "id": "updates-and-upgrader"
+  },
+  {
+   "id": "site-health"
+  },
+  {
+   "id": "multisite"
+  },
+  {
+   "id": "deprecated-compat"
+  }
+ ],
+ "edges": [
+  {
+   "from": "bootstrap-and-load",
+   "to": "database-wpdb",
+   "weight": 1,
+   "inCycle": false
+  },
+  {
+   "from": "bootstrap-and-load",
+   "to": "cache-and-object-cache",
+   "weight": 1,
+   "inCycle": false
+  },
+  {
+   "from": "bootstrap-and-load",
+   "to": "hooks-plugin-api",
+   "weight": 1,
+   "inCycle": false
+  },
+  {
+   "from": "bootstrap-and-load",
+   "to": "error-handling-and-recovery-mode",
+   "weight": 1,
+   "inCycle": true
+  },
+  {
+   "from": "bootstrap-and-load",
+   "to": "options-and-transients",
+   "weight": 1,
+   "inCycle": true
+  },
+  {
+   "from": "database-wpdb",
+   "to": "hooks-plugin-api",
+   "weight": 1,
+   "inCycle": false
+  },
+  {
+   "from": "options-and-transients",
+   "to": "database-wpdb",
+   "weight": 1,
+   "inCycle": false
+  },
+  {
+   "from": "options-and-transients",
+   "to": "cache-and-object-cache",
+   "weight": 1,
+   "inCycle": false
+  },
+  {
+   "from": "options-and-transients",
+   "to": "hooks-plugin-api",
+   "weight": 1,
+   "inCycle": false
+  },
+  {
+   "from": "options-and-transients",
+   "to": "formatting-and-sanitization",
+   "weight": 1,
+   "inCycle": true
+  },
+  {
+   "from": "metadata",
+   "to": "database-wpdb",
+   "weight": 1,
+   "inCycle": false
+  },
+  {
+   "from": "metadata",
+   "to": "cache-and-object-cache",
+   "weight": 1,
+   "inCycle": false
+  },
+  {
+   "from": "metadata",
+   "to": "hooks-plugin-api",
+   "weight": 1,
+   "inCycle": false
+  },
+  {
+   "from": "posts-and-post-types",
+   "to": "database-wpdb",
+   "weight": 1,
+   "inCycle": false
+  },
+  {
+   "from": "posts-and-post-types",
+   "to": "metadata",
+   "weight": 1,
+   "inCycle": false
+  },
+  {
+   "from": "posts-and-post-types",
+   "to": "cache-and-object-cache",
+   "weight": 1,
+   "inCycle": false
+  },
+  {
+   "from": "posts-and-post-types",
+   "to": "hooks-plugin-api",
+   "weight": 1,
+   "inCycle": false
+  },
+  {
+   "from": "posts-and-post-types",
+   "to": "taxonomy-and-terms",
+   "weight": 1,
+   "inCycle": true
+  },
+  {
+   "from": "posts-and-post-types",
+   "to": "users-roles-capabilities",
+   "weight": 1,
+   "inCycle": true
+  },
+  {
+   "from": "posts-and-post-types",
+   "to": "rewrite-and-permalinks",
+   "weight": 1,
+   "inCycle": true
+  },
+  {
+   "from": "posts-and-post-types",
+   "to": "cron",
+   "weight": 1,
+   "inCycle": true
+  },
+  {
+   "from": "posts-and-post-types",
+   "to": "formatting-and-sanitization",
+   "weight": 1,
+   "inCycle": true
+  },
+  {
+   "from": "query-and-loop",
+   "to": "database-wpdb",
+   "weight": 1,
+   "inCycle": false
+  },
+  {
+   "from": "query-and-loop",
+   "to": "posts-and-post-types",
+   "weight": 1,
+   "inCycle": true
+  },
+  {
+   "from": "query-and-loop",
+   "to": "taxonomy-and-terms",
+   "weight": 1,
+   "inCycle": true
+  },
+  {
+   "from": "query-and-loop",
+   "to": "metadata",
+   "weight": 1,
+   "inCycle": false
+  },
+  {
+   "from": "query-and-loop",
+   "to": "cache-and-object-cache",
+   "weight": 1,
+   "inCycle": false
+  },
+  {
+   "from": "query-and-loop",
+   "to": "rewrite-and-permalinks",
+   "weight": 1,
+   "inCycle": true
+  },
+  {
+   "from": "query-and-loop",
+   "to": "users-roles-capabilities",
+   "weight": 1,
+   "inCycle": true
+  },
+  {
+   "from": "query-and-loop",
+   "to": "hooks-plugin-api",
+   "weight": 1,
+   "inCycle": false
+  },
+  {
+   "from": "taxonomy-and-terms",
+   "to": "database-wpdb",
+   "weight": 1,
+   "inCycle": false
+  },
+  {
+   "from": "taxonomy-and-terms",
+   "to": "metadata",
+   "weight": 1,
+   "inCycle": false
+  },
+  {
+   "from": "taxonomy-and-terms",
+   "to": "cache-and-object-cache",
+   "weight": 1,
+   "inCycle": false
+  },
+  {
+   "from": "taxonomy-and-terms",
+   "to": "hooks-plugin-api",
+   "weight": 1,
+   "inCycle": false
+  },
+  {
+   "from": "taxonomy-and-terms",
+   "to": "posts-and-post-types",
+   "weight": 1,
+   "inCycle": true
+  },
+  {
+   "from": "taxonomy-and-terms",
+   "to": "formatting-and-sanitization",
+   "weight": 1,
+   "inCycle": true
+  },
+  {
+   "from": "comments",
+   "to": "database-wpdb",
+   "weight": 1,
+   "inCycle": false
+  },
+  {
+   "from": "comments",
+   "to": "posts-and-post-types",
+   "weight": 1,
+   "inCycle": false
+  },
+  {
+   "from": "comments",
+   "to": "users-roles-capabilities",
+   "weight": 1,
+   "inCycle": false
+  },
+  {
+   "from": "comments",
+   "to": "metadata",
+   "weight": 1,
+   "inCycle": false
+  },
+  {
+   "from": "comments",
+   "to": "cache-and-object-cache",
+   "weight": 1,
+   "inCycle": false
+  },
+  {
+   "from": "comments",
+   "to": "hooks-plugin-api",
+   "weight": 1,
+   "inCycle": false
+  },
+  {
+   "from": "comments",
+   "to": "formatting-and-sanitization",
+   "weight": 1,
+   "inCycle": false
+  },
+  {
+   "from": "comments",
+   "to": "kses-security",
+   "weight": 1,
+   "inCycle": false
+  },
+  {
+   "from": "media-and-attachments",
+   "to": "posts-and-post-types",
+   "weight": 1,
+   "inCycle": false
+  },
+  {
+   "from": "media-and-attachments",
+   "to": "metadata",
+   "weight": 1,
+   "inCycle": false
+  },
+  {
+   "from": "media-and-attachments",
+   "to": "cache-and-object-cache",
+   "weight": 1,
+   "inCycle": false
+  },
+  {
+   "from": "media-and-attachments",
+   "to": "filesystem-api",
+   "weight": 1,
+   "inCycle": false
+  },
+  {
+   "from": "media-and-attachments",
+   "to": "hooks-plugin-api",
+   "weight": 1,
+   "inCycle": false
+  },
+  {
+   "from": "media-and-attachments",
+   "to": "html-api",
+   "weight": 1,
+   "inCycle": false
+  },
+  {
+   "from": "embeds-oembed",
+   "to": "http-api",
+   "weight": 1,
+   "inCycle": false
+  },
+  {
+   "from": "embeds-oembed",
+   "to": "posts-and-post-types",
+   "weight": 1,
+   "inCycle": false
+  },
+  {
+   "from": "embeds-oembed",
+   "to": "cache-and-object-cache",
+   "weight": 1,
+   "inCycle": false
+  },
+  {
+   "from": "embeds-oembed",
+   "to": "hooks-plugin-api",
+   "weight": 1,
+   "inCycle": false
+  },
+  {
+   "from": "embeds-oembed",
+   "to": "formatting-and-sanitization",
+   "weight": 1,
+   "inCycle": false
+  },
+  {
+   "from": "users-roles-capabilities",
+   "to": "database-wpdb",
+   "weight": 1,
+   "inCycle": false
+  },
+  {
+   "from": "users-roles-capabilities",
+   "to": "metadata",
+   "weight": 1,
+   "inCycle": false
+  },
+  {
+   "from": "users-roles-capabilities",
+   "to": "options-and-transients",
+   "weight": 1,
+   "inCycle": true
+  },
+  {
+   "from": "users-roles-capabilities",
+   "to": "hooks-plugin-api",
+   "weight": 1,
+   "inCycle": false
+  },
+  {
+   "from": "users-roles-capabilities",
+   "to": "posts-and-post-types",
+   "weight": 1,
+   "inCycle": true
+  },
+  {
+   "from": "users-roles-capabilities",
+   "to": "multisite",
+   "weight": 1,
+   "inCycle": true
+  },
+  {
+   "from": "authentication-and-sessions",
+   "to": "users-roles-capabilities",
+   "weight": 1,
+   "inCycle": true
+  },
+  {
+   "from": "authentication-and-sessions",
+   "to": "metadata",
+   "weight": 1,
+   "inCycle": false
+  },
+  {
+   "from": "authentication-and-sessions",
+   "to": "options-and-transients",
+   "weight": 1,
+   "inCycle": true
+  },
+  {
+   "from": "authentication-and-sessions",
+   "to": "hooks-plugin-api",
+   "weight": 1,
+   "inCycle": false
+  },
+  {
+   "from": "authentication-and-sessions",
+   "to": "http-api",
+   "weight": 1,
+   "inCycle": true
+  },
+  {
+   "from": "themes-and-templates",
+   "to": "query-and-loop",
+   "weight": 1,
+   "inCycle": true
+  },
+  {
+   "from": "themes-and-templates",
+   "to": "hooks-plugin-api",
+   "weight": 1,
+   "inCycle": false
+  },
+  {
+   "from": "themes-and-templates",
+   "to": "cache-and-object-cache",
+   "weight": 1,
+   "inCycle": false
+  },
+  {
+   "from": "themes-and-templates",
+   "to": "block-editor",
+   "weight": 1,
+   "inCycle": true
+  },
+  {
+   "from": "themes-and-templates",
+   "to": "global-styles-theme-json",
+   "weight": 1,
+   "inCycle": true
+  },
+  {
+   "from": "themes-and-templates",
+   "to": "posts-and-post-types",
+   "weight": 1,
+   "inCycle": true
+  },
+  {
+   "from": "rewrite-and-permalinks",
+   "to": "options-and-transients",
+   "weight": 1,
+   "inCycle": true
+  },
+  {
+   "from": "rewrite-and-permalinks",
+   "to": "query-and-loop",
+   "weight": 1,
+   "inCycle": true
+  },
+  {
+   "from": "rewrite-and-permalinks",
+   "to": "posts-and-post-types",
+   "weight": 1,
+   "inCycle": true
+  },
+  {
+   "from": "rewrite-and-permalinks",
+   "to": "taxonomy-and-terms",
+   "weight": 1,
+   "inCycle": true
+  },
+  {
+   "from": "rewrite-and-permalinks",
+   "to": "hooks-plugin-api",
+   "weight": 1,
+   "inCycle": false
+  },
+  {
+   "from": "rewrite-and-permalinks",
+   "to": "filesystem-api",
+   "weight": 1,
+   "inCycle": true
+  },
+  {
+   "from": "script-modules-and-assets",
+   "to": "hooks-plugin-api",
+   "weight": 1,
+   "inCycle": false
+  },
+  {
+   "from": "script-modules-and-assets",
+   "to": "internationalization",
+   "weight": 1,
+   "inCycle": true
+  },
+  {
+   "from": "script-modules-and-assets",
+   "to": "themes-and-templates",
+   "weight": 1,
+   "inCycle": true
+  },
+  {
+   "from": "widgets-and-nav-menus",
+   "to": "posts-and-post-types",
+   "weight": 1,
+   "inCycle": false
+  },
+  {
+   "from": "widgets-and-nav-menus",
+   "to": "taxonomy-and-terms",
+   "weight": 1,
+   "inCycle": false
+  },
+  {
+   "from": "widgets-and-nav-menus",
+   "to": "metadata",
+   "weight": 1,
+   "inCycle": false
+  },
+  {
+   "from": "widgets-and-nav-menus",
+   "to": "options-and-transients",
+   "weight": 1,
+   "inCycle": false
+  },
+  {
+   "from": "widgets-and-nav-menus",
+   "to": "customizer",
+   "weight": 1,
+   "inCycle": true
+  },
+  {
+   "from": "widgets-and-nav-menus",
+   "to": "hooks-plugin-api",
+   "weight": 1,
+   "inCycle": false
+  },
+  {
+   "from": "customizer",
+   "to": "posts-and-post-types",
+   "weight": 1,
+   "inCycle": false
+  },
+  {
+   "from": "customizer",
+   "to": "options-and-transients",
+   "weight": 1,
+   "inCycle": false
+  },
+  {
+   "from": "customizer",
+   "to": "themes-and-templates",
+   "weight": 1,
+   "inCycle": false
+  },
+  {
+   "from": "customizer",
+   "to": "users-roles-capabilities",
+   "weight": 1,
+   "inCycle": false
+  },
+  {
+   "from": "customizer",
+   "to": "widgets-and-nav-menus",
+   "weight": 1,
+   "inCycle": true
+  },
+  {
+   "from": "customizer",
+   "to": "hooks-plugin-api",
+   "weight": 1,
+   "inCycle": false
+  },
+  {
+   "from": "block-editor",
+   "to": "posts-and-post-types",
+   "weight": 1,
+   "inCycle": true
+  },
+  {
+   "from": "block-editor",
+   "to": "hooks-plugin-api",
+   "weight": 1,
+   "inCycle": false
+  },
+  {
+   "from": "block-editor",
+   "to": "script-modules-and-assets",
+   "weight": 1,
+   "inCycle": true
+  },
+  {
+   "from": "block-editor",
+   "to": "block-supports",
+   "weight": 1,
+   "inCycle": true
+  },
+  {
+   "from": "block-editor",
+   "to": "global-styles-theme-json",
+   "weight": 1,
+   "inCycle": true
+  },
+  {
+   "from": "block-editor",
+   "to": "html-api",
+   "weight": 1,
+   "inCycle": false
+  },
+  {
+   "from": "block-editor",
+   "to": "themes-and-templates",
+   "weight": 1,
+   "inCycle": true
+  },
+  {
+   "from": "blocks-library",
+   "to": "block-editor",
+   "weight": 1,
+   "inCycle": false
+  },
+  {
+   "from": "blocks-library",
+   "to": "block-supports",
+   "weight": 1,
+   "inCycle": false
+  },
+  {
+   "from": "blocks-library",
+   "to": "query-and-loop",
+   "weight": 1,
+   "inCycle": false
+  },
+  {
+   "from": "blocks-library",
+   "to": "posts-and-post-types",
+   "weight": 1,
+   "inCycle": false
+  },
+  {
+   "from": "blocks-library",
+   "to": "comments",
+   "weight": 1,
+   "inCycle": false
+  },
+  {
+   "from": "blocks-library",
+   "to": "taxonomy-and-terms",
+   "weight": 1,
+   "inCycle": false
+  },
+  {
+   "from": "blocks-library",
+   "to": "interactivity-api",
+   "weight": 1,
+   "inCycle": false
+  },
+  {
+   "from": "block-supports",
+   "to": "block-editor",
+   "weight": 1,
+   "inCycle": true
+  },
+  {
+   "from": "block-supports",
+   "to": "style-engine",
+   "weight": 1,
+   "inCycle": false
+  },
+  {
+   "from": "block-supports",
+   "to": "global-styles-theme-json",
+   "weight": 1,
+   "inCycle": true
+  },
+  {
+   "from": "block-supports",
+   "to": "hooks-plugin-api",
+   "weight": 1,
+   "inCycle": false
+  },
+  {
+   "from": "global-styles-theme-json",
+   "to": "posts-and-post-types",
+   "weight": 1,
+   "inCycle": true
+  },
+  {
+   "from": "global-styles-theme-json",
+   "to": "themes-and-templates",
+   "weight": 1,
+   "inCycle": true
+  },
+  {
+   "from": "global-styles-theme-json",
+   "to": "block-editor",
+   "weight": 1,
+   "inCycle": true
+  },
+  {
+   "from": "global-styles-theme-json",
+   "to": "style-engine",
+   "weight": 1,
+   "inCycle": false
+  },
+  {
+   "from": "global-styles-theme-json",
+   "to": "cache-and-object-cache",
+   "weight": 1,
+   "inCycle": false
+  },
+  {
+   "from": "interactivity-api",
+   "to": "html-api",
+   "weight": 1,
+   "inCycle": false
+  },
+  {
+   "from": "interactivity-api",
+   "to": "script-modules-and-assets",
+   "weight": 1,
+   "inCycle": false
+  },
+  {
+   "from": "interactivity-api",
+   "to": "block-editor",
+   "weight": 1,
+   "inCycle": false
+  },
+  {
+   "from": "interactivity-api",
+   "to": "hooks-plugin-api",
+   "weight": 1,
+   "inCycle": false
+  },
+  {
+   "from": "rest-api",
+   "to": "users-roles-capabilities",
+   "weight": 1,
+   "inCycle": false
+  },
+  {
+   "from": "rest-api",
+   "to": "authentication-and-sessions",
+   "weight": 1,
+   "inCycle": false
+  },
+  {
+   "from": "rest-api",
+   "to": "posts-and-post-types",
+   "weight": 1,
+   "inCycle": false
+  },
+  {
+   "from": "rest-api",
+   "to": "taxonomy-and-terms",
+   "weight": 1,
+   "inCycle": false
+  },
+  {
+   "from": "rest-api",
+   "to": "comments",
+   "weight": 1,
+   "inCycle": false
+  },
+  {
+   "from": "rest-api",
+   "to": "metadata",
+   "weight": 1,
+   "inCycle": false
+  },
+  {
+   "from": "rest-api",
+   "to": "hooks-plugin-api",
+   "weight": 1,
+   "inCycle": false
+  },
+  {
+   "from": "rest-api",
+   "to": "http-api",
+   "weight": 1,
+   "inCycle": false
+  },
+  {
+   "from": "http-api",
+   "to": "kses-security",
+   "weight": 1,
+   "inCycle": true
+  },
+  {
+   "from": "http-api",
+   "to": "options-and-transients",
+   "weight": 1,
+   "inCycle": true
+  },
+  {
+   "from": "http-api",
+   "to": "hooks-plugin-api",
+   "weight": 1,
+   "inCycle": false
+  },
+  {
+   "from": "xmlrpc",
+   "to": "authentication-and-sessions",
+   "weight": 1,
+   "inCycle": false
+  },
+  {
+   "from": "xmlrpc",
+   "to": "users-roles-capabilities",
+   "weight": 1,
+   "inCycle": false
+  },
+  {
+   "from": "xmlrpc",
+   "to": "posts-and-post-types",
+   "weight": 1,
+   "inCycle": false
+  },
+  {
+   "from": "xmlrpc",
+   "to": "comments",
+   "weight": 1,
+   "inCycle": false
+  },
+  {
+   "from": "xmlrpc",
+   "to": "media-and-attachments",
+   "weight": 1,
+   "inCycle": false
+  },
+  {
+   "from": "xmlrpc",
+   "to": "http-api",
+   "weight": 1,
+   "inCycle": false
+  },
+  {
+   "from": "feeds",
+   "to": "query-and-loop",
+   "weight": 1,
+   "inCycle": false
+  },
+  {
+   "from": "feeds",
+   "to": "http-api",
+   "weight": 1,
+   "inCycle": false
+  },
+  {
+   "from": "feeds",
+   "to": "kses-security",
+   "weight": 1,
+   "inCycle": false
+  },
+  {
+   "from": "feeds",
+   "to": "options-and-transients",
+   "weight": 1,
+   "inCycle": false
+  },
+  {
+   "from": "feeds",
+   "to": "themes-and-templates",
+   "weight": 1,
+   "inCycle": false
+  },
+  {
+   "from": "feeds",
+   "to": "rewrite-and-permalinks",
+   "weight": 1,
+   "inCycle": false
+  },
+  {
+   "from": "sitemaps",
+   "to": "posts-and-post-types",
+   "weight": 1,
+   "inCycle": false
+  },
+  {
+   "from": "sitemaps",
+   "to": "taxonomy-and-terms",
+   "weight": 1,
+   "inCycle": false
+  },
+  {
+   "from": "sitemaps",
+   "to": "users-roles-capabilities",
+   "weight": 1,
+   "inCycle": false
+  },
+  {
+   "from": "sitemaps",
+   "to": "rewrite-and-permalinks",
+   "weight": 1,
+   "inCycle": false
+  },
+  {
+   "from": "sitemaps",
+   "to": "query-and-loop",
+   "weight": 1,
+   "inCycle": false
+  },
+  {
+   "from": "ai-abilities-connectors",
+   "to": "rest-api",
+   "weight": 1,
+   "inCycle": false
+  },
+  {
+   "from": "ai-abilities-connectors",
+   "to": "http-api",
+   "weight": 1,
+   "inCycle": false
+  },
+  {
+   "from": "ai-abilities-connectors",
+   "to": "users-roles-capabilities",
+   "weight": 1,
+   "inCycle": false
+  },
+  {
+   "from": "ai-abilities-connectors",
+   "to": "cache-and-object-cache",
+   "weight": 1,
+   "inCycle": false
+  },
+  {
+   "from": "ai-abilities-connectors",
+   "to": "hooks-plugin-api",
+   "weight": 1,
+   "inCycle": false
+  },
+  {
+   "from": "cron",
+   "to": "options-and-transients",
+   "weight": 1,
+   "inCycle": true
+  },
+  {
+   "from": "cron",
+   "to": "http-api",
+   "weight": 1,
+   "inCycle": true
+  },
+  {
+   "from": "cron",
+   "to": "hooks-plugin-api",
+   "weight": 1,
+   "inCycle": false
+  },
+  {
+   "from": "cron",
+   "to": "cache-and-object-cache",
+   "weight": 1,
+   "inCycle": false
+  },
+  {
+   "from": "internationalization",
+   "to": "options-and-transients",
+   "weight": 1,
+   "inCycle": true
+  },
+  {
+   "from": "internationalization",
+   "to": "users-roles-capabilities",
+   "weight": 1,
+   "inCycle": true
+  },
+  {
+   "from": "internationalization",
+   "to": "hooks-plugin-api",
+   "weight": 1,
+   "inCycle": false
+  },
+  {
+   "from": "internationalization",
+   "to": "filesystem-api",
+   "weight": 1,
+   "inCycle": true
+  },
+  {
+   "from": "internationalization",
+   "to": "script-modules-and-assets",
+   "weight": 1,
+   "inCycle": true
+  },
+  {
+   "from": "formatting-and-sanitization",
+   "to": "kses-security",
+   "weight": 1,
+   "inCycle": true
+  },
+  {
+   "from": "formatting-and-sanitization",
+   "to": "hooks-plugin-api",
+   "weight": 1,
+   "inCycle": false
+  },
+  {
+   "from": "formatting-and-sanitization",
+   "to": "internationalization",
+   "weight": 1,
+   "inCycle": true
+  },
+  {
+   "from": "kses-security",
+   "to": "formatting-and-sanitization",
+   "weight": 1,
+   "inCycle": true
+  },
+  {
+   "from": "kses-security",
+   "to": "users-roles-capabilities",
+   "weight": 1,
+   "inCycle": true
+  },
+  {
+   "from": "kses-security",
+   "to": "hooks-plugin-api",
+   "weight": 1,
+   "inCycle": false
+  },
+  {
+   "from": "error-handling-and-recovery-mode",
+   "to": "bootstrap-and-load",
+   "weight": 1,
+   "inCycle": true
+  },
+  {
+   "from": "error-handling-and-recovery-mode",
+   "to": "options-and-transients",
+   "weight": 1,
+   "inCycle": true
+  },
+  {
+   "from": "error-handling-and-recovery-mode",
+   "to": "hooks-plugin-api",
+   "weight": 1,
+   "inCycle": false
+  },
+  {
+   "from": "error-handling-and-recovery-mode",
+   "to": "authentication-and-sessions",
+   "weight": 1,
+   "inCycle": true
+  },
+  {
+   "from": "performance-speculation-view-transitions",
+   "to": "rewrite-and-permalinks",
+   "weight": 1,
+   "inCycle": false
+  },
+  {
+   "from": "performance-speculation-view-transitions",
+   "to": "script-modules-and-assets",
+   "weight": 1,
+   "inCycle": false
+  },
+  {
+   "from": "performance-speculation-view-transitions",
+   "to": "hooks-plugin-api",
+   "weight": 1,
+   "inCycle": false
+  },
+  {
+   "from": "admin-application",
+   "to": "authentication-and-sessions",
+   "weight": 1,
+   "inCycle": true
+  },
+  {
+   "from": "admin-application",
+   "to": "users-roles-capabilities",
+   "weight": 1,
+   "inCycle": true
+  },
+  {
+   "from": "admin-application",
+   "to": "bootstrap-and-load",
+   "weight": 1,
+   "inCycle": true
+  },
+  {
+   "from": "admin-application",
+   "to": "cron",
+   "weight": 1,
+   "inCycle": true
+  },
+  {
+   "from": "admin-application",
+   "to": "options-and-transients",
+   "weight": 1,
+   "inCycle": true
+  },
+  {
+   "from": "admin-application",
+   "to": "hooks-plugin-api",
+   "weight": 1,
+   "inCycle": false
+  },
+  {
+   "from": "admin-application",
+   "to": "filesystem-api",
+   "weight": 1,
+   "inCycle": true
+  },
+  {
+   "from": "admin-application",
+   "to": "updates-and-upgrader",
+   "weight": 1,
+   "inCycle": true
+  },
+  {
+   "from": "filesystem-api",
+   "to": "http-api",
+   "weight": 1,
+   "inCycle": true
+  },
+  {
+   "from": "filesystem-api",
+   "to": "hooks-plugin-api",
+   "weight": 1,
+   "inCycle": false
+  },
+  {
+   "from": "filesystem-api",
+   "to": "updates-and-upgrader",
+   "weight": 1,
+   "inCycle": true
+  },
+  {
+   "from": "updates-and-upgrader",
+   "to": "http-api",
+   "weight": 1,
+   "inCycle": true
+  },
+  {
+   "from": "updates-and-upgrader",
+   "to": "filesystem-api",
+   "weight": 1,
+   "inCycle": true
+  },
+  {
+   "from": "updates-and-upgrader",
+   "to": "options-and-transients",
+   "weight": 1,
+   "inCycle": true
+  },
+  {
+   "from": "updates-and-upgrader",
+   "to": "database-wpdb",
+   "weight": 1,
+   "inCycle": false
+  },
+  {
+   "from": "updates-and-upgrader",
+   "to": "cron",
+   "weight": 1,
+   "inCycle": true
+  },
+  {
+   "from": "updates-and-upgrader",
+   "to": "bootstrap-and-load",
+   "weight": 1,
+   "inCycle": true
+  },
+  {
+   "from": "site-health",
+   "to": "http-api",
+   "weight": 1,
+   "inCycle": false
+  },
+  {
+   "from": "site-health",
+   "to": "cron",
+   "weight": 1,
+   "inCycle": false
+  },
+  {
+   "from": "site-health",
+   "to": "updates-and-upgrader",
+   "weight": 1,
+   "inCycle": false
+  },
+  {
+   "from": "site-health",
+   "to": "rest-api",
+   "weight": 1,
+   "inCycle": false
+  },
+  {
+   "from": "site-health",
+   "to": "admin-application",
+   "weight": 1,
+   "inCycle": false
+  },
+  {
+   "from": "site-health",
+   "to": "database-wpdb",
+   "weight": 1,
+   "inCycle": false
+  },
+  {
+   "from": "multisite",
+   "to": "database-wpdb",
+   "weight": 1,
+   "inCycle": false
+  },
+  {
+   "from": "multisite",
+   "to": "cache-and-object-cache",
+   "weight": 1,
+   "inCycle": false
+  },
+  {
+   "from": "multisite",
+   "to": "users-roles-capabilities",
+   "weight": 1,
+   "inCycle": true
+  },
+  {
+   "from": "multisite",
+   "to": "options-and-transients",
+   "weight": 1,
+   "inCycle": true
+  },
+  {
+   "from": "multisite",
+   "to": "bootstrap-and-load",
+   "weight": 1,
+   "inCycle": true
+  },
+  {
+   "from": "multisite",
+   "to": "posts-and-post-types",
+   "weight": 1,
+   "inCycle": true
+  },
+  {
+   "from": "multisite",
+   "to": "admin-application",
+   "weight": 1,
+   "inCycle": true
+  },
+  {
+   "from": "deprecated-compat",
+   "to": "hooks-plugin-api",
+   "weight": 1,
+   "inCycle": false
+  }
+ ]
+}

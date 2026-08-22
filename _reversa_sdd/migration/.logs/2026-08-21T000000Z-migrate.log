@@ -1,0 +1,41 @@
+2026-08-21T00:00:00Z [orchestrator] --resume: preconditions OK (7/7 required legacy artifacts present)
+2026-08-21T00:00:00Z [orchestrator] integrity: all 5 prior artifact front-matter hashes match .state.json
+2026-08-21T00:00:00Z [orchestrator] user confirmed resume from strategist
+2026-08-21T00:00:00Z [strategist] started; inputs: migration_brief, paradigm_decision, target_business_rules, domain, architecture, dependencies, inventory, spec-impact-matrix
+2026-08-21T00:00:00Z [strategist] evaluated 4 strategies (A Strangler Fig, B Big Bang, C Parallel Run, D Branch by Abstraction rejected)
+2026-08-21T00:00:00Z [strategist] recommended A+C; 16 risks registered (2 critical, 11 high, 3 medium)
+2026-08-21T00:00:00Z [strategist] wrote migration_strategy.md, risk_register.md, cutover_plan.md
+2026-08-21T00:00:00Z [orchestrator] status=awaiting_user_approval; pause: strategy choice
+2026-08-21T00:00:00Z [orchestrator] pause resolved: strategy = A+C (Strangler Fig + Parallel Run oracle)
+2026-08-21T00:00:00Z [orchestrator] pause resolved: no live deployment (product rebuild only)
+2026-08-21T00:00:00Z [strategist] cutover_plan.md reframed as launch plan; CDC seam reduced to seeding script
+2026-08-21T00:00:00Z [strategist] risks re-scored: RISK-002 CRITICAL->LOW, RISK-006/007 HIGH->MEDIUM; RISK-001 now sole critical
+2026-08-21T00:00:00Z [orchestrator] strategist -> completedAgents; currentAgent = designer/topology
+2026-08-21T00:00:00Z [designer] phase 1 (topology) complete; recommended option 2
+2026-08-21T00:00:00Z [orchestrator] pause resolved: topology = option 3 (hybrid, packs for leaf libraries only)
+2026-08-21T00:00:00Z [orchestrator] topologyApproved = true
+2026-08-21T00:00:00Z [designer] RISK-017 added: content core has convention-only boundaries; mitigation = Wave 0 cycle-detection CI job
+2026-08-21T00:00:00Z [designer] phase 2 (architecture) started
+2026-08-21T00:00:00Z [designer] phase 2 complete: target_architecture, target_domain_model, target_data_model, data_migration_plan
+2026-08-21T00:00:00Z [designer] 17 bounded contexts, 8 aggregates, 26 tables, 8 architectural decisions, 363/363 rules mapped
+2026-08-21T00:00:00Z [designer] P-4 raised: 47 Platform rules may describe framework-absorbed mechanisms
+2026-08-21T00:00:00Z [orchestrator] status=awaiting_user_approval; pause: approve the architecture
+2026-08-21T00:00:00Z [screen_translator] phase 1: source=php-server-rendered (confirmed), 144 screens inventoried
+2026-08-21T00:00:00Z [screen_translator] literal mode ruled out globally (FR-13 no screenshots; F-DS-07 components unrecoverable)
+2026-08-21T00:00:00Z [orchestrator] pause resolved: target=rails-hotwire, mode=hybrid (18 web literal, 126 modernized)
+2026-08-21T00:00:00Z [orchestrator] screenModeApproved = true
+2026-08-21T00:00:00Z [screen_translator] phase 2: target_screens.md, screen_deviation_log.md, golden/manifest.yaml, tokens-derived.md
+2026-08-21T00:00:00Z [screen_translator] 11 deviations recorded, 4 pending (DEV-001, DEV-007, DEV-009, DEV-011) -> blocks Inspector
+2026-08-21T00:00:00Z [orchestrator] status=awaiting_user_approval; pause: approve pending deviations
+2026-08-21T00:00:00Z [orchestrator] deviations resolved: DEV-001 approved, DEV-009 fix, DEV-011 themes-yes-plugins-no
+2026-08-21T00:00:00Z [orchestrator] DEV-007 REJECTED by owner: editor must reach parity -> DEV-012 created
+2026-08-21T00:00:00Z [screen_translator] editor screens regenerated in conformant mode (specified by oracle observation)
+2026-08-21T00:00:00Z [orchestrator] RISK-010 re-scoped; RISK-018 added (React island carve-out); P-9 opened
+2026-08-21T00:00:00Z [orchestrator] screen_translator -> completedAgents; currentAgent = inspector
+2026-08-21T00:00:00Z [inspector] started; transition detected: procedural -> classic OO / Active Record
+2026-08-21T00:00:00Z [inspector] P-3 RESOLVED: 363+68=431, no rule lost; 3 ruling-discards missing from discard_log.md
+2026-08-21T00:00:00Z [inspector] P-4 RESOLVED: 47 Platform rules classified 15 parity / 4 contingent / 18 deviation / 10 void
+2026-08-21T00:00:00Z [inspector] finding: 7 of 10 VOID rules are the recovery-mode cluster, voided by DEV-011
+2026-08-21T00:00:00Z [inspector] wrote parity_specs.md + 31 .feature files (159 scenarios), Gherkin validated
+2026-08-21T00:00:00Z [orchestrator] ambiguity_log consolidated: 0 pending, 29 resolved, 8 deferred
+2026-08-21T00:00:00Z [orchestrator] handoff.md generated; migration pipeline COMPLETE

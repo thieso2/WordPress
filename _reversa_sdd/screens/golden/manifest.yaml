@@ -1,0 +1,310 @@
+# golden/manifest.yaml
+#
+# Emitted by the Screen Translator (Phase 2) for the 18 literal `web.*` screens.
+# v1 does NOT automate capture (OQ-02). Each entry below carries the suggested command;
+# run them against the Wave 0 parity oracle and set `present: true` with the sha256.
+#
+# Until then every entry is present:false and DEV-001 stays PENDING, which blocks the
+# Inspector for these screens.
+
+schemaVersion: 1
+generatedAt: 2026-08-21T00:00:00Z
+reversa:
+  version: "1.2.58"
+producedBy: screen-translator
+sourcePlatform: php-server-rendered
+targetPlatform: rails-hotwire
+oracleAvailable: false        # the reference instance is built in Wave 0 (AD-08); not up yet
+oracleHash: null
+oracleCommand: "docker run --rm -p 8080:80 wordpress-oracle:7.2-alpha-63330"
+
+# The oracle must be seeded with the corpus defined in data_migration_plan.md:
+# all 16 post types, hierarchical + flat taxonomies, threaded comments, every role,
+# drafts carrying 0000-00-00, serialized postmeta/options, 4-byte UTF-8, quote-heavy text.
+# A capture against an under-seeded oracle proves very little.
+
+normalizationRules:
+  - lineEndings: "\n"
+  - trimTrailingSpaces: false
+  - stripAnsiColors: false          # n/a for HTML
+  - normalizeUtf8: true
+  - injectClock: "2026-01-01T00:00:00Z"
+  - seedRandom: 42
+  # HTML-specific normalization, beyond the template defaults:
+  - stripNonces: true               # nonces are per-session; never comparable
+  - stripAutoincrementIds: true     # post/comment ids differ between oracle and target
+  - stripGuid: true                 # DEV: guid becomes a UUID in the target (T-07)
+  - collapseWhitespaceBetweenTags: true
+  - sortClassAttributeTokens: true  # block supports concatenate classes in registration
+                                    # order (F-BSUP-01), which the target does not reproduce
+
+screens:
+  - name: web.index
+    legacyOrigin: "wp-includes/template-loader.php -> index"
+    capture:
+      command: "curl -s http://localhost:8080/ > golden-web-index.html"
+      expectedExitCode: 0
+      determinismStrategy: "fake-clock + fixed-seed + seeded corpus"
+    file: "golden-web-index.html"
+    format: "html-css-snapshot"
+    present: false
+    captureBy: null
+    capturedAt: null
+    sha256: null
+    deviations: [DEV-001, DEV-005]
+    notes: ""
+  - name: web.front_page
+    legacyOrigin: "wp-includes/template-loader.php -> front_page"
+    capture:
+      command: "curl -s http://localhost:8080/ > golden-web-front-page.html"
+      expectedExitCode: 0
+      determinismStrategy: "fake-clock + fixed-seed + seeded corpus"
+    file: "golden-web-front-page.html"
+    format: "html-css-snapshot"
+    present: false
+    captureBy: null
+    capturedAt: null
+    sha256: null
+    deviations: [DEV-001, DEV-005]
+    notes: ""
+  - name: web.home
+    legacyOrigin: "wp-includes/template-loader.php -> home"
+    capture:
+      command: "curl -s http://localhost:8080/ > golden-web-home.html"
+      expectedExitCode: 0
+      determinismStrategy: "fake-clock + fixed-seed + seeded corpus"
+    file: "golden-web-home.html"
+    format: "html-css-snapshot"
+    present: false
+    captureBy: null
+    capturedAt: null
+    sha256: null
+    deviations: [DEV-001, DEV-005]
+    notes: ""
+  - name: web.singular
+    legacyOrigin: "wp-includes/template-loader.php -> singular"
+    capture:
+      command: "curl -s http://localhost:8080/hello-world/ > golden-web-singular.html"
+      expectedExitCode: 0
+      determinismStrategy: "fake-clock + fixed-seed + seeded corpus"
+    file: "golden-web-singular.html"
+    format: "html-css-snapshot"
+    present: false
+    captureBy: null
+    capturedAt: null
+    sha256: null
+    deviations: [DEV-001, DEV-005]
+    notes: ""
+  - name: web.single
+    legacyOrigin: "wp-includes/template-loader.php -> single"
+    capture:
+      command: "curl -s http://localhost:8080/hello-world/ > golden-web-single.html"
+      expectedExitCode: 0
+      determinismStrategy: "fake-clock + fixed-seed + seeded corpus"
+    file: "golden-web-single.html"
+    format: "html-css-snapshot"
+    present: false
+    captureBy: null
+    capturedAt: null
+    sha256: null
+    deviations: [DEV-001, DEV-005]
+    notes: ""
+  - name: web.page
+    legacyOrigin: "wp-includes/template-loader.php -> page"
+    capture:
+      command: "curl -s http://localhost:8080/sample-page/ > golden-web-page.html"
+      expectedExitCode: 0
+      determinismStrategy: "fake-clock + fixed-seed + seeded corpus"
+    file: "golden-web-page.html"
+    format: "html-css-snapshot"
+    present: false
+    captureBy: null
+    capturedAt: null
+    sha256: null
+    deviations: [DEV-001, DEV-005]
+    notes: ""
+  - name: web.archive
+    legacyOrigin: "wp-includes/template-loader.php -> archive"
+    capture:
+      command: "curl -s http://localhost:8080/post/ > golden-web-archive.html"
+      expectedExitCode: 0
+      determinismStrategy: "fake-clock + fixed-seed + seeded corpus"
+    file: "golden-web-archive.html"
+    format: "html-css-snapshot"
+    present: false
+    captureBy: null
+    capturedAt: null
+    sha256: null
+    deviations: [DEV-001, DEV-005]
+    notes: ""
+  - name: web.category
+    legacyOrigin: "wp-includes/template-loader.php -> category"
+    capture:
+      command: "curl -s http://localhost:8080/category/uncategorized/ > golden-web-category.html"
+      expectedExitCode: 0
+      determinismStrategy: "fake-clock + fixed-seed + seeded corpus"
+    file: "golden-web-category.html"
+    format: "html-css-snapshot"
+    present: false
+    captureBy: null
+    capturedAt: null
+    sha256: null
+    deviations: [DEV-001, DEV-005]
+    notes: ""
+  - name: web.tag
+    legacyOrigin: "wp-includes/template-loader.php -> tag"
+    capture:
+      command: "curl -s http://localhost:8080/tag/sample/ > golden-web-tag.html"
+      expectedExitCode: 0
+      determinismStrategy: "fake-clock + fixed-seed + seeded corpus"
+    file: "golden-web-tag.html"
+    format: "html-css-snapshot"
+    present: false
+    captureBy: null
+    capturedAt: null
+    sha256: null
+    deviations: [DEV-001, DEV-005]
+    notes: ""
+  - name: web.taxonomy
+    legacyOrigin: "wp-includes/template-loader.php -> taxonomy"
+    capture:
+      command: "curl -s http://localhost:8080/sample-tax/term/ > golden-web-taxonomy.html"
+      expectedExitCode: 0
+      determinismStrategy: "fake-clock + fixed-seed + seeded corpus"
+    file: "golden-web-taxonomy.html"
+    format: "html-css-snapshot"
+    present: false
+    captureBy: null
+    capturedAt: null
+    sha256: null
+    deviations: [DEV-001, DEV-005]
+    notes: ""
+  - name: web.author
+    legacyOrigin: "wp-includes/template-loader.php -> author"
+    capture:
+      command: "curl -s http://localhost:8080/author/admin/ > golden-web-author.html"
+      expectedExitCode: 0
+      determinismStrategy: "fake-clock + fixed-seed + seeded corpus"
+    file: "golden-web-author.html"
+    format: "html-css-snapshot"
+    present: false
+    captureBy: null
+    capturedAt: null
+    sha256: null
+    deviations: [DEV-001, DEV-005]
+    notes: ""
+  - name: web.date
+    legacyOrigin: "wp-includes/template-loader.php -> date"
+    capture:
+      command: "curl -s http://localhost:8080/2026/01/ > golden-web-date.html"
+      expectedExitCode: 0
+      determinismStrategy: "fake-clock + fixed-seed + seeded corpus"
+    file: "golden-web-date.html"
+    format: "html-css-snapshot"
+    present: false
+    captureBy: null
+    capturedAt: null
+    sha256: null
+    deviations: [DEV-001, DEV-005]
+    notes: "date archive depends on the injected clock"
+  - name: web.search
+    legacyOrigin: "wp-includes/template-loader.php -> search"
+    capture:
+      command: "curl -s http://localhost:8080/?s=sample > golden-web-search.html"
+      expectedExitCode: 0
+      determinismStrategy: "fake-clock + fixed-seed + seeded corpus"
+    file: "golden-web-search.html"
+    format: "html-css-snapshot"
+    present: false
+    captureBy: null
+    capturedAt: null
+    sha256: null
+    deviations: [DEV-001, DEV-005]
+    notes: "result ordering depends on relevance; seed a deterministic corpus"
+  - name: web.not_found_404
+    legacyOrigin: "wp-includes/template-loader.php -> not_found_404"
+    capture:
+      command: "curl -s http://localhost:8080/definitely-not-a-real-url/ > golden-web-not-found-404.html"
+      expectedExitCode: 0
+      determinismStrategy: "fake-clock + fixed-seed + seeded corpus"
+    file: "golden-web-not-found-404.html"
+    format: "html-css-snapshot"
+    present: false
+    captureBy: null
+    capturedAt: null
+    sha256: null
+    deviations: [DEV-001, DEV-005]
+    notes: ""
+  - name: web.attachment
+    legacyOrigin: "wp-includes/template-loader.php -> attachment"
+    capture:
+      command: "curl -s http://localhost:8080/hello-world/sample-image/ > golden-web-attachment.html"
+      expectedExitCode: 0
+      determinismStrategy: "fake-clock + fixed-seed + seeded corpus"
+    file: "golden-web-attachment.html"
+    format: "html-css-snapshot"
+    present: false
+    captureBy: null
+    capturedAt: null
+    sha256: null
+    deviations: [DEV-001, DEV-005]
+    notes: "requires a seeded image asset with generated variants"
+  - name: web.embed
+    legacyOrigin: "wp-includes/template-loader.php -> embed"
+    capture:
+      command: "curl -s http://localhost:8080/hello-world/embed/ > golden-web-embed.html"
+      expectedExitCode: 0
+      determinismStrategy: "fake-clock + fixed-seed + seeded corpus"
+    file: "golden-web-embed.html"
+    format: "html-css-snapshot"
+    present: false
+    captureBy: null
+    capturedAt: null
+    sha256: null
+    deviations: [DEV-001, DEV-005]
+    notes: "the embed template emits an iframe wrapper; capture the inner document too"
+  - name: web.privacy_policy
+    legacyOrigin: "wp-includes/template-loader.php -> privacy_policy"
+    capture:
+      command: "curl -s http://localhost:8080/privacy-policy/ > golden-web-privacy-policy.html"
+      expectedExitCode: 0
+      determinismStrategy: "fake-clock + fixed-seed + seeded corpus"
+    file: "golden-web-privacy-policy.html"
+    format: "html-css-snapshot"
+    present: false
+    captureBy: null
+    capturedAt: null
+    sha256: null
+    deviations: [DEV-001, DEV-005]
+    notes: ""
+  - name: web.comments
+    legacyOrigin: "wp-includes/template-loader.php -> comments"
+    capture:
+      command: "curl -s http://localhost:8080/hello-world/#comments > golden-web-comments.html"
+      expectedExitCode: 0
+      determinismStrategy: "fake-clock + fixed-seed + seeded corpus"
+    file: "golden-web-comments.html"
+    format: "html-css-snapshot"
+    present: false
+    captureBy: null
+    capturedAt: null
+    sha256: null
+    deviations: [DEV-001, DEV-005]
+    notes: "a partial, not a route: capture within web.single and extract the comments region"
+
+# Screens for which a deterministic capture may not be possible.
+nonDeterministic:
+  - name: web.search
+    reason: "result ordering is relevance-dependent and MySQL-specific; PostgreSQL full-text ranking will differ regardless of seeding"
+    fallback: "compare the result SET and the page chrome, not the ordering"
+    samples: 3
+    deviations: [DEV-001]
+  - name: web.home
+    reason: "SQL_CALC_FOUND_ROWS pagination totals (DEV-003); the target may declare estimated"
+    fallback: "normalize the pager total out of the comparison"
+    samples: 1
+    deviations: [DEV-001, DEV-003]
+
+# Not applicable: this project HAS a UI.
+skipped: null
+

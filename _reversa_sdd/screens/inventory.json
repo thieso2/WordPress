@@ -1,0 +1,2466 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-08-21T00:00:00Z",
+  "producedBy": "screen-translator",
+  "sourcePlatform": "php-server-rendered",
+  "detectionConfidence": "confirmed",
+  "screens": [
+    {
+      "id": "SCR-0001",
+      "canonicalName": "console.about",
+      "legacyOrigin": {
+        "file": "wp-admin/about.php",
+        "line": null,
+        "paragraph": null
+      },
+      "kind": "page",
+      "isCritical": false,
+      "matchesUiInventory": false,
+      "uiInventoryRef": null,
+      "interpolations": [],
+      "transitions": [],
+      "tokens": [],
+      "scope": "in"
+    },
+    {
+      "id": "SCR-0002",
+      "canonicalName": "console.authorize-application",
+      "legacyOrigin": {
+        "file": "wp-admin/authorize-application.php",
+        "line": null,
+        "paragraph": null
+      },
+      "kind": "page",
+      "isCritical": false,
+      "matchesUiInventory": false,
+      "uiInventoryRef": null,
+      "interpolations": [],
+      "transitions": [],
+      "tokens": [],
+      "scope": "in"
+    },
+    {
+      "id": "SCR-0003",
+      "canonicalName": "console.comment",
+      "legacyOrigin": {
+        "file": "wp-admin/comment.php",
+        "line": null,
+        "paragraph": null
+      },
+      "kind": "page",
+      "isCritical": false,
+      "matchesUiInventory": false,
+      "uiInventoryRef": null,
+      "interpolations": [],
+      "transitions": [],
+      "tokens": [],
+      "scope": "in"
+    },
+    {
+      "id": "SCR-0004",
+      "canonicalName": "console.contribute",
+      "legacyOrigin": {
+        "file": "wp-admin/contribute.php",
+        "line": null,
+        "paragraph": null
+      },
+      "kind": "page",
+      "isCritical": false,
+      "matchesUiInventory": false,
+      "uiInventoryRef": null,
+      "interpolations": [],
+      "transitions": [],
+      "tokens": [],
+      "scope": "in"
+    },
+    {
+      "id": "SCR-0005",
+      "canonicalName": "console.credits",
+      "legacyOrigin": {
+        "file": "wp-admin/credits.php",
+        "line": null,
+        "paragraph": null
+      },
+      "kind": "page",
+      "isCritical": false,
+      "matchesUiInventory": false,
+      "uiInventoryRef": null,
+      "interpolations": [],
+      "transitions": [],
+      "tokens": [],
+      "scope": "in"
+    },
+    {
+      "id": "SCR-0006",
+      "canonicalName": "console.custom-background",
+      "legacyOrigin": {
+        "file": "wp-admin/custom-background.php",
+        "line": null,
+        "paragraph": null
+      },
+      "kind": "page",
+      "isCritical": false,
+      "matchesUiInventory": false,
+      "uiInventoryRef": null,
+      "interpolations": [],
+      "transitions": [],
+      "tokens": [],
+      "scope": "in"
+    },
+    {
+      "id": "SCR-0007",
+      "canonicalName": "console.custom-header",
+      "legacyOrigin": {
+        "file": "wp-admin/custom-header.php",
+        "line": null,
+        "paragraph": null
+      },
+      "kind": "page",
+      "isCritical": false,
+      "matchesUiInventory": false,
+      "uiInventoryRef": null,
+      "interpolations": [],
+      "transitions": [],
+      "tokens": [],
+      "scope": "in"
+    },
+    {
+      "id": "SCR-0008",
+      "canonicalName": "console.customize",
+      "legacyOrigin": {
+        "file": "wp-admin/customize.php",
+        "line": null,
+        "paragraph": null
+      },
+      "kind": "page",
+      "isCritical": true,
+      "matchesUiInventory": false,
+      "uiInventoryRef": null,
+      "interpolations": [],
+      "transitions": [],
+      "tokens": [],
+      "scope": "in"
+    },
+    {
+      "id": "SCR-0009",
+      "canonicalName": "console.edit-comments",
+      "legacyOrigin": {
+        "file": "wp-admin/edit-comments.php",
+        "line": null,
+        "paragraph": null
+      },
+      "kind": "page",
+      "isCritical": true,
+      "matchesUiInventory": false,
+      "uiInventoryRef": null,
+      "interpolations": [],
+      "transitions": [],
+      "tokens": [],
+      "scope": "in"
+    },
+    {
+      "id": "SCR-0010",
+      "canonicalName": "console.edit-tags",
+      "legacyOrigin": {
+        "file": "wp-admin/edit-tags.php",
+        "line": null,
+        "paragraph": null
+      },
+      "kind": "page",
+      "isCritical": true,
+      "matchesUiInventory": false,
+      "uiInventoryRef": null,
+      "interpolations": [],
+      "transitions": [],
+      "tokens": [],
+      "scope": "in"
+    },
+    {
+      "id": "SCR-0011",
+      "canonicalName": "console.edit",
+      "legacyOrigin": {
+        "file": "wp-admin/edit.php",
+        "line": null,
+        "paragraph": null
+      },
+      "kind": "page",
+      "isCritical": true,
+      "matchesUiInventory": false,
+      "uiInventoryRef": null,
+      "interpolations": [],
+      "transitions": [],
+      "tokens": [],
+      "scope": "in"
+    },
+    {
+      "id": "SCR-0012",
+      "canonicalName": "console.erase-personal-data",
+      "legacyOrigin": {
+        "file": "wp-admin/erase-personal-data.php",
+        "line": null,
+        "paragraph": null
+      },
+      "kind": "page",
+      "isCritical": false,
+      "matchesUiInventory": false,
+      "uiInventoryRef": null,
+      "interpolations": [],
+      "transitions": [],
+      "tokens": [],
+      "scope": "in"
+    },
+    {
+      "id": "SCR-0013",
+      "canonicalName": "console.export-personal-data",
+      "legacyOrigin": {
+        "file": "wp-admin/export-personal-data.php",
+        "line": null,
+        "paragraph": null
+      },
+      "kind": "page",
+      "isCritical": false,
+      "matchesUiInventory": false,
+      "uiInventoryRef": null,
+      "interpolations": [],
+      "transitions": [],
+      "tokens": [],
+      "scope": "in"
+    },
+    {
+      "id": "SCR-0014",
+      "canonicalName": "console.export",
+      "legacyOrigin": {
+        "file": "wp-admin/export.php",
+        "line": null,
+        "paragraph": null
+      },
+      "kind": "page",
+      "isCritical": false,
+      "matchesUiInventory": false,
+      "uiInventoryRef": null,
+      "interpolations": [],
+      "transitions": [],
+      "tokens": [],
+      "scope": "in"
+    },
+    {
+      "id": "SCR-0015",
+      "canonicalName": "console.font-library",
+      "legacyOrigin": {
+        "file": "wp-admin/font-library.php",
+        "line": null,
+        "paragraph": null
+      },
+      "kind": "page",
+      "isCritical": false,
+      "matchesUiInventory": false,
+      "uiInventoryRef": null,
+      "interpolations": [],
+      "transitions": [],
+      "tokens": [],
+      "scope": "in"
+    },
+    {
+      "id": "SCR-0016",
+      "canonicalName": "console.freedoms",
+      "legacyOrigin": {
+        "file": "wp-admin/freedoms.php",
+        "line": null,
+        "paragraph": null
+      },
+      "kind": "page",
+      "isCritical": false,
+      "matchesUiInventory": false,
+      "uiInventoryRef": null,
+      "interpolations": [],
+      "transitions": [],
+      "tokens": [],
+      "scope": "in"
+    },
+    {
+      "id": "SCR-0017",
+      "canonicalName": "console.import",
+      "legacyOrigin": {
+        "file": "wp-admin/import.php",
+        "line": null,
+        "paragraph": null
+      },
+      "kind": "page",
+      "isCritical": false,
+      "matchesUiInventory": false,
+      "uiInventoryRef": null,
+      "interpolations": [],
+      "transitions": [],
+      "tokens": [],
+      "scope": "in"
+    },
+    {
+      "id": "SCR-0018",
+      "canonicalName": "console.index",
+      "legacyOrigin": {
+        "file": "wp-admin/index.php",
+        "line": null,
+        "paragraph": null
+      },
+      "kind": "page",
+      "isCritical": true,
+      "matchesUiInventory": false,
+      "uiInventoryRef": null,
+      "interpolations": [],
+      "transitions": [],
+      "tokens": [],
+      "scope": "in"
+    },
+    {
+      "id": "SCR-0019",
+      "canonicalName": "console.install",
+      "legacyOrigin": {
+        "file": "wp-admin/install.php",
+        "line": null,
+        "paragraph": null
+      },
+      "kind": "page",
+      "isCritical": false,
+      "matchesUiInventory": false,
+      "uiInventoryRef": null,
+      "interpolations": [],
+      "transitions": [],
+      "tokens": [],
+      "scope": "in"
+    },
+    {
+      "id": "SCR-0020",
+      "canonicalName": "console.link-add",
+      "legacyOrigin": {
+        "file": "wp-admin/link-add.php",
+        "line": null,
+        "paragraph": null
+      },
+      "kind": "page",
+      "isCritical": false,
+      "matchesUiInventory": false,
+      "uiInventoryRef": null,
+      "interpolations": [],
+      "transitions": [],
+      "tokens": [],
+      "scope": "excluded"
+    },
+    {
+      "id": "SCR-0021",
+      "canonicalName": "console.link-manager",
+      "legacyOrigin": {
+        "file": "wp-admin/link-manager.php",
+        "line": null,
+        "paragraph": null
+      },
+      "kind": "page",
+      "isCritical": false,
+      "matchesUiInventory": false,
+      "uiInventoryRef": null,
+      "interpolations": [],
+      "transitions": [],
+      "tokens": [],
+      "scope": "excluded"
+    },
+    {
+      "id": "SCR-0022",
+      "canonicalName": "console.link",
+      "legacyOrigin": {
+        "file": "wp-admin/link.php",
+        "line": null,
+        "paragraph": null
+      },
+      "kind": "page",
+      "isCritical": false,
+      "matchesUiInventory": false,
+      "uiInventoryRef": null,
+      "interpolations": [],
+      "transitions": [],
+      "tokens": [],
+      "scope": "excluded"
+    },
+    {
+      "id": "SCR-0023",
+      "canonicalName": "console.media-new",
+      "legacyOrigin": {
+        "file": "wp-admin/media-new.php",
+        "line": null,
+        "paragraph": null
+      },
+      "kind": "page",
+      "isCritical": true,
+      "matchesUiInventory": false,
+      "uiInventoryRef": null,
+      "interpolations": [],
+      "transitions": [],
+      "tokens": [],
+      "scope": "in"
+    },
+    {
+      "id": "SCR-0024",
+      "canonicalName": "console.media-upload",
+      "legacyOrigin": {
+        "file": "wp-admin/media-upload.php",
+        "line": null,
+        "paragraph": null
+      },
+      "kind": "page",
+      "isCritical": false,
+      "matchesUiInventory": false,
+      "uiInventoryRef": null,
+      "interpolations": [],
+      "transitions": [],
+      "tokens": [],
+      "scope": "in"
+    },
+    {
+      "id": "SCR-0025",
+      "canonicalName": "console.media",
+      "legacyOrigin": {
+        "file": "wp-admin/media.php",
+        "line": null,
+        "paragraph": null
+      },
+      "kind": "page",
+      "isCritical": false,
+      "matchesUiInventory": false,
+      "uiInventoryRef": null,
+      "interpolations": [],
+      "transitions": [],
+      "tokens": [],
+      "scope": "in"
+    },
+    {
+      "id": "SCR-0026",
+      "canonicalName": "console.moderation",
+      "legacyOrigin": {
+        "file": "wp-admin/moderation.php",
+        "line": null,
+        "paragraph": null
+      },
+      "kind": "page",
+      "isCritical": false,
+      "matchesUiInventory": false,
+      "uiInventoryRef": null,
+      "interpolations": [],
+      "transitions": [],
+      "tokens": [],
+      "scope": "in"
+    },
+    {
+      "id": "SCR-0027",
+      "canonicalName": "console.ms-admin",
+      "legacyOrigin": {
+        "file": "wp-admin/ms-admin.php",
+        "line": null,
+        "paragraph": null
+      },
+      "kind": "page",
+      "isCritical": false,
+      "matchesUiInventory": false,
+      "uiInventoryRef": null,
+      "interpolations": [],
+      "transitions": [],
+      "tokens": [],
+      "scope": "in"
+    },
+    {
+      "id": "SCR-0028",
+      "canonicalName": "console.ms-delete-site",
+      "legacyOrigin": {
+        "file": "wp-admin/ms-delete-site.php",
+        "line": null,
+        "paragraph": null
+      },
+      "kind": "page",
+      "isCritical": false,
+      "matchesUiInventory": false,
+      "uiInventoryRef": null,
+      "interpolations": [],
+      "transitions": [],
+      "tokens": [],
+      "scope": "in"
+    },
+    {
+      "id": "SCR-0029",
+      "canonicalName": "console.ms-edit",
+      "legacyOrigin": {
+        "file": "wp-admin/ms-edit.php",
+        "line": null,
+        "paragraph": null
+      },
+      "kind": "page",
+      "isCritical": false,
+      "matchesUiInventory": false,
+      "uiInventoryRef": null,
+      "interpolations": [],
+      "transitions": [],
+      "tokens": [],
+      "scope": "in"
+    },
+    {
+      "id": "SCR-0030",
+      "canonicalName": "console.ms-options",
+      "legacyOrigin": {
+        "file": "wp-admin/ms-options.php",
+        "line": null,
+        "paragraph": null
+      },
+      "kind": "page",
+      "isCritical": false,
+      "matchesUiInventory": false,
+      "uiInventoryRef": null,
+      "interpolations": [],
+      "transitions": [],
+      "tokens": [],
+      "scope": "in"
+    },
+    {
+      "id": "SCR-0031",
+      "canonicalName": "console.ms-sites",
+      "legacyOrigin": {
+        "file": "wp-admin/ms-sites.php",
+        "line": null,
+        "paragraph": null
+      },
+      "kind": "page",
+      "isCritical": false,
+      "matchesUiInventory": false,
+      "uiInventoryRef": null,
+      "interpolations": [],
+      "transitions": [],
+      "tokens": [],
+      "scope": "in"
+    },
+    {
+      "id": "SCR-0032",
+      "canonicalName": "console.ms-themes",
+      "legacyOrigin": {
+        "file": "wp-admin/ms-themes.php",
+        "line": null,
+        "paragraph": null
+      },
+      "kind": "page",
+      "isCritical": false,
+      "matchesUiInventory": false,
+      "uiInventoryRef": null,
+      "interpolations": [],
+      "transitions": [],
+      "tokens": [],
+      "scope": "in"
+    },
+    {
+      "id": "SCR-0033",
+      "canonicalName": "console.ms-upgrade-network",
+      "legacyOrigin": {
+        "file": "wp-admin/ms-upgrade-network.php",
+        "line": null,
+        "paragraph": null
+      },
+      "kind": "page",
+      "isCritical": false,
+      "matchesUiInventory": false,
+      "uiInventoryRef": null,
+      "interpolations": [],
+      "transitions": [],
+      "tokens": [],
+      "scope": "in"
+    },
+    {
+      "id": "SCR-0034",
+      "canonicalName": "console.ms-users",
+      "legacyOrigin": {
+        "file": "wp-admin/ms-users.php",
+        "line": null,
+        "paragraph": null
+      },
+      "kind": "page",
+      "isCritical": false,
+      "matchesUiInventory": false,
+      "uiInventoryRef": null,
+      "interpolations": [],
+      "transitions": [],
+      "tokens": [],
+      "scope": "in"
+    },
+    {
+      "id": "SCR-0035",
+      "canonicalName": "console.my-sites",
+      "legacyOrigin": {
+        "file": "wp-admin/my-sites.php",
+        "line": null,
+        "paragraph": null
+      },
+      "kind": "page",
+      "isCritical": false,
+      "matchesUiInventory": false,
+      "uiInventoryRef": null,
+      "interpolations": [],
+      "transitions": [],
+      "tokens": [],
+      "scope": "in"
+    },
+    {
+      "id": "SCR-0036",
+      "canonicalName": "console.nav-menus",
+      "legacyOrigin": {
+        "file": "wp-admin/nav-menus.php",
+        "line": null,
+        "paragraph": null
+      },
+      "kind": "page",
+      "isCritical": true,
+      "matchesUiInventory": false,
+      "uiInventoryRef": null,
+      "interpolations": [],
+      "transitions": [],
+      "tokens": [],
+      "scope": "in"
+    },
+    {
+      "id": "SCR-0037",
+      "canonicalName": "console.network",
+      "legacyOrigin": {
+        "file": "wp-admin/network.php",
+        "line": null,
+        "paragraph": null
+      },
+      "kind": "page",
+      "isCritical": false,
+      "matchesUiInventory": false,
+      "uiInventoryRef": null,
+      "interpolations": [],
+      "transitions": [],
+      "tokens": [],
+      "scope": "in"
+    },
+    {
+      "id": "SCR-0038",
+      "canonicalName": "console.options-connectors",
+      "legacyOrigin": {
+        "file": "wp-admin/options-connectors.php",
+        "line": null,
+        "paragraph": null
+      },
+      "kind": "page",
+      "isCritical": false,
+      "matchesUiInventory": false,
+      "uiInventoryRef": null,
+      "interpolations": [],
+      "transitions": [],
+      "tokens": [],
+      "scope": "in"
+    },
+    {
+      "id": "SCR-0039",
+      "canonicalName": "console.options-discussion",
+      "legacyOrigin": {
+        "file": "wp-admin/options-discussion.php",
+        "line": null,
+        "paragraph": null
+      },
+      "kind": "page",
+      "isCritical": true,
+      "matchesUiInventory": false,
+      "uiInventoryRef": null,
+      "interpolations": [],
+      "transitions": [],
+      "tokens": [],
+      "scope": "in"
+    },
+    {
+      "id": "SCR-0040",
+      "canonicalName": "console.options-general",
+      "legacyOrigin": {
+        "file": "wp-admin/options-general.php",
+        "line": null,
+        "paragraph": null
+      },
+      "kind": "page",
+      "isCritical": true,
+      "matchesUiInventory": false,
+      "uiInventoryRef": null,
+      "interpolations": [],
+      "transitions": [],
+      "tokens": [],
+      "scope": "in"
+    },
+    {
+      "id": "SCR-0041",
+      "canonicalName": "console.options-head",
+      "legacyOrigin": {
+        "file": "wp-admin/options-head.php",
+        "line": null,
+        "paragraph": null
+      },
+      "kind": "page",
+      "isCritical": false,
+      "matchesUiInventory": false,
+      "uiInventoryRef": null,
+      "interpolations": [],
+      "transitions": [],
+      "tokens": [],
+      "scope": "in"
+    },
+    {
+      "id": "SCR-0042",
+      "canonicalName": "console.options-media",
+      "legacyOrigin": {
+        "file": "wp-admin/options-media.php",
+        "line": null,
+        "paragraph": null
+      },
+      "kind": "page",
+      "isCritical": false,
+      "matchesUiInventory": false,
+      "uiInventoryRef": null,
+      "interpolations": [],
+      "transitions": [],
+      "tokens": [],
+      "scope": "in"
+    },
+    {
+      "id": "SCR-0043",
+      "canonicalName": "console.options-permalink",
+      "legacyOrigin": {
+        "file": "wp-admin/options-permalink.php",
+        "line": null,
+        "paragraph": null
+      },
+      "kind": "page",
+      "isCritical": true,
+      "matchesUiInventory": false,
+      "uiInventoryRef": null,
+      "interpolations": [],
+      "transitions": [],
+      "tokens": [],
+      "scope": "in"
+    },
+    {
+      "id": "SCR-0044",
+      "canonicalName": "console.options-privacy",
+      "legacyOrigin": {
+        "file": "wp-admin/options-privacy.php",
+        "line": null,
+        "paragraph": null
+      },
+      "kind": "page",
+      "isCritical": false,
+      "matchesUiInventory": false,
+      "uiInventoryRef": null,
+      "interpolations": [],
+      "transitions": [],
+      "tokens": [],
+      "scope": "in"
+    },
+    {
+      "id": "SCR-0045",
+      "canonicalName": "console.options-reading",
+      "legacyOrigin": {
+        "file": "wp-admin/options-reading.php",
+        "line": null,
+        "paragraph": null
+      },
+      "kind": "page",
+      "isCritical": false,
+      "matchesUiInventory": false,
+      "uiInventoryRef": null,
+      "interpolations": [],
+      "transitions": [],
+      "tokens": [],
+      "scope": "in"
+    },
+    {
+      "id": "SCR-0046",
+      "canonicalName": "console.options-writing",
+      "legacyOrigin": {
+        "file": "wp-admin/options-writing.php",
+        "line": null,
+        "paragraph": null
+      },
+      "kind": "page",
+      "isCritical": false,
+      "matchesUiInventory": false,
+      "uiInventoryRef": null,
+      "interpolations": [],
+      "transitions": [],
+      "tokens": [],
+      "scope": "in"
+    },
+    {
+      "id": "SCR-0047",
+      "canonicalName": "console.options",
+      "legacyOrigin": {
+        "file": "wp-admin/options.php",
+        "line": null,
+        "paragraph": null
+      },
+      "kind": "page",
+      "isCritical": false,
+      "matchesUiInventory": false,
+      "uiInventoryRef": null,
+      "interpolations": [],
+      "transitions": [],
+      "tokens": [],
+      "scope": "in"
+    },
+    {
+      "id": "SCR-0048",
+      "canonicalName": "console.plugin-editor",
+      "legacyOrigin": {
+        "file": "wp-admin/plugin-editor.php",
+        "line": null,
+        "paragraph": null
+      },
+      "kind": "page",
+      "isCritical": false,
+      "matchesUiInventory": false,
+      "uiInventoryRef": null,
+      "interpolations": [],
+      "transitions": [],
+      "tokens": [],
+      "scope": "in"
+    },
+    {
+      "id": "SCR-0049",
+      "canonicalName": "console.plugin-install",
+      "legacyOrigin": {
+        "file": "wp-admin/plugin-install.php",
+        "line": null,
+        "paragraph": null
+      },
+      "kind": "page",
+      "isCritical": false,
+      "matchesUiInventory": false,
+      "uiInventoryRef": null,
+      "interpolations": [],
+      "transitions": [],
+      "tokens": [],
+      "scope": "in"
+    },
+    {
+      "id": "SCR-0050",
+      "canonicalName": "console.plugins",
+      "legacyOrigin": {
+        "file": "wp-admin/plugins.php",
+        "line": null,
+        "paragraph": null
+      },
+      "kind": "page",
+      "isCritical": true,
+      "matchesUiInventory": false,
+      "uiInventoryRef": null,
+      "interpolations": [],
+      "transitions": [],
+      "tokens": [],
+      "scope": "in"
+    },
+    {
+      "id": "SCR-0051",
+      "canonicalName": "console.post-new",
+      "legacyOrigin": {
+        "file": "wp-admin/post-new.php",
+        "line": null,
+        "paragraph": null
+      },
+      "kind": "page",
+      "isCritical": true,
+      "matchesUiInventory": false,
+      "uiInventoryRef": null,
+      "interpolations": [],
+      "transitions": [],
+      "tokens": [],
+      "scope": "in"
+    },
+    {
+      "id": "SCR-0052",
+      "canonicalName": "console.post",
+      "legacyOrigin": {
+        "file": "wp-admin/post.php",
+        "line": null,
+        "paragraph": null
+      },
+      "kind": "page",
+      "isCritical": true,
+      "matchesUiInventory": false,
+      "uiInventoryRef": null,
+      "interpolations": [],
+      "transitions": [],
+      "tokens": [],
+      "scope": "in"
+    },
+    {
+      "id": "SCR-0053",
+      "canonicalName": "console.press-this",
+      "legacyOrigin": {
+        "file": "wp-admin/press-this.php",
+        "line": null,
+        "paragraph": null
+      },
+      "kind": "page",
+      "isCritical": false,
+      "matchesUiInventory": false,
+      "uiInventoryRef": null,
+      "interpolations": [],
+      "transitions": [],
+      "tokens": [],
+      "scope": "in"
+    },
+    {
+      "id": "SCR-0054",
+      "canonicalName": "console.privacy-policy-guide",
+      "legacyOrigin": {
+        "file": "wp-admin/privacy-policy-guide.php",
+        "line": null,
+        "paragraph": null
+      },
+      "kind": "page",
+      "isCritical": false,
+      "matchesUiInventory": false,
+      "uiInventoryRef": null,
+      "interpolations": [],
+      "transitions": [],
+      "tokens": [],
+      "scope": "in"
+    },
+    {
+      "id": "SCR-0055",
+      "canonicalName": "console.privacy",
+      "legacyOrigin": {
+        "file": "wp-admin/privacy.php",
+        "line": null,
+        "paragraph": null
+      },
+      "kind": "page",
+      "isCritical": false,
+      "matchesUiInventory": false,
+      "uiInventoryRef": null,
+      "interpolations": [],
+      "transitions": [],
+      "tokens": [],
+      "scope": "in"
+    },
+    {
+      "id": "SCR-0056",
+      "canonicalName": "console.profile",
+      "legacyOrigin": {
+        "file": "wp-admin/profile.php",
+        "line": null,
+        "paragraph": null
+      },
+      "kind": "page",
+      "isCritical": true,
+      "matchesUiInventory": false,
+      "uiInventoryRef": null,
+      "interpolations": [],
+      "transitions": [],
+      "tokens": [],
+      "scope": "in"
+    },
+    {
+      "id": "SCR-0057",
+      "canonicalName": "console.revision",
+      "legacyOrigin": {
+        "file": "wp-admin/revision.php",
+        "line": null,
+        "paragraph": null
+      },
+      "kind": "page",
+      "isCritical": false,
+      "matchesUiInventory": false,
+      "uiInventoryRef": null,
+      "interpolations": [],
+      "transitions": [],
+      "tokens": [],
+      "scope": "in"
+    },
+    {
+      "id": "SCR-0058",
+      "canonicalName": "console.setup-config",
+      "legacyOrigin": {
+        "file": "wp-admin/setup-config.php",
+        "line": null,
+        "paragraph": null
+      },
+      "kind": "page",
+      "isCritical": false,
+      "matchesUiInventory": false,
+      "uiInventoryRef": null,
+      "interpolations": [],
+      "transitions": [],
+      "tokens": [],
+      "scope": "in"
+    },
+    {
+      "id": "SCR-0059",
+      "canonicalName": "console.site-editor",
+      "legacyOrigin": {
+        "file": "wp-admin/site-editor.php",
+        "line": null,
+        "paragraph": null
+      },
+      "kind": "page",
+      "isCritical": true,
+      "matchesUiInventory": false,
+      "uiInventoryRef": null,
+      "interpolations": [],
+      "transitions": [],
+      "tokens": [],
+      "scope": "in"
+    },
+    {
+      "id": "SCR-0060",
+      "canonicalName": "console.site-health-info",
+      "legacyOrigin": {
+        "file": "wp-admin/site-health-info.php",
+        "line": null,
+        "paragraph": null
+      },
+      "kind": "page",
+      "isCritical": false,
+      "matchesUiInventory": false,
+      "uiInventoryRef": null,
+      "interpolations": [],
+      "transitions": [],
+      "tokens": [],
+      "scope": "in"
+    },
+    {
+      "id": "SCR-0061",
+      "canonicalName": "console.site-health",
+      "legacyOrigin": {
+        "file": "wp-admin/site-health.php",
+        "line": null,
+        "paragraph": null
+      },
+      "kind": "page",
+      "isCritical": false,
+      "matchesUiInventory": false,
+      "uiInventoryRef": null,
+      "interpolations": [],
+      "transitions": [],
+      "tokens": [],
+      "scope": "in"
+    },
+    {
+      "id": "SCR-0062",
+      "canonicalName": "console.term",
+      "legacyOrigin": {
+        "file": "wp-admin/term.php",
+        "line": null,
+        "paragraph": null
+      },
+      "kind": "page",
+      "isCritical": false,
+      "matchesUiInventory": false,
+      "uiInventoryRef": null,
+      "interpolations": [],
+      "transitions": [],
+      "tokens": [],
+      "scope": "in"
+    },
+    {
+      "id": "SCR-0063",
+      "canonicalName": "console.theme-editor",
+      "legacyOrigin": {
+        "file": "wp-admin/theme-editor.php",
+        "line": null,
+        "paragraph": null
+      },
+      "kind": "page",
+      "isCritical": false,
+      "matchesUiInventory": false,
+      "uiInventoryRef": null,
+      "interpolations": [],
+      "transitions": [],
+      "tokens": [],
+      "scope": "in"
+    },
+    {
+      "id": "SCR-0064",
+      "canonicalName": "console.theme-install",
+      "legacyOrigin": {
+        "file": "wp-admin/theme-install.php",
+        "line": null,
+        "paragraph": null
+      },
+      "kind": "page",
+      "isCritical": false,
+      "matchesUiInventory": false,
+      "uiInventoryRef": null,
+      "interpolations": [],
+      "transitions": [],
+      "tokens": [],
+      "scope": "in"
+    },
+    {
+      "id": "SCR-0065",
+      "canonicalName": "console.themes",
+      "legacyOrigin": {
+        "file": "wp-admin/themes.php",
+        "line": null,
+        "paragraph": null
+      },
+      "kind": "page",
+      "isCritical": true,
+      "matchesUiInventory": false,
+      "uiInventoryRef": null,
+      "interpolations": [],
+      "transitions": [],
+      "tokens": [],
+      "scope": "in"
+    },
+    {
+      "id": "SCR-0066",
+      "canonicalName": "console.tools",
+      "legacyOrigin": {
+        "file": "wp-admin/tools.php",
+        "line": null,
+        "paragraph": null
+      },
+      "kind": "page",
+      "isCritical": false,
+      "matchesUiInventory": false,
+      "uiInventoryRef": null,
+      "interpolations": [],
+      "transitions": [],
+      "tokens": [],
+      "scope": "in"
+    },
+    {
+      "id": "SCR-0067",
+      "canonicalName": "console.update-core",
+      "legacyOrigin": {
+        "file": "wp-admin/update-core.php",
+        "line": null,
+        "paragraph": null
+      },
+      "kind": "page",
+      "isCritical": false,
+      "matchesUiInventory": false,
+      "uiInventoryRef": null,
+      "interpolations": [],
+      "transitions": [],
+      "tokens": [],
+      "scope": "in"
+    },
+    {
+      "id": "SCR-0068",
+      "canonicalName": "console.update",
+      "legacyOrigin": {
+        "file": "wp-admin/update.php",
+        "line": null,
+        "paragraph": null
+      },
+      "kind": "page",
+      "isCritical": false,
+      "matchesUiInventory": false,
+      "uiInventoryRef": null,
+      "interpolations": [],
+      "transitions": [],
+      "tokens": [],
+      "scope": "in"
+    },
+    {
+      "id": "SCR-0069",
+      "canonicalName": "console.upgrade-functions",
+      "legacyOrigin": {
+        "file": "wp-admin/upgrade-functions.php",
+        "line": null,
+        "paragraph": null
+      },
+      "kind": "page",
+      "isCritical": false,
+      "matchesUiInventory": false,
+      "uiInventoryRef": null,
+      "interpolations": [],
+      "transitions": [],
+      "tokens": [],
+      "scope": "in"
+    },
+    {
+      "id": "SCR-0070",
+      "canonicalName": "console.upgrade",
+      "legacyOrigin": {
+        "file": "wp-admin/upgrade.php",
+        "line": null,
+        "paragraph": null
+      },
+      "kind": "page",
+      "isCritical": false,
+      "matchesUiInventory": false,
+      "uiInventoryRef": null,
+      "interpolations": [],
+      "transitions": [],
+      "tokens": [],
+      "scope": "in"
+    },
+    {
+      "id": "SCR-0071",
+      "canonicalName": "console.upload",
+      "legacyOrigin": {
+        "file": "wp-admin/upload.php",
+        "line": null,
+        "paragraph": null
+      },
+      "kind": "page",
+      "isCritical": true,
+      "matchesUiInventory": false,
+      "uiInventoryRef": null,
+      "interpolations": [],
+      "transitions": [],
+      "tokens": [],
+      "scope": "in"
+    },
+    {
+      "id": "SCR-0072",
+      "canonicalName": "console.user-edit",
+      "legacyOrigin": {
+        "file": "wp-admin/user-edit.php",
+        "line": null,
+        "paragraph": null
+      },
+      "kind": "page",
+      "isCritical": false,
+      "matchesUiInventory": false,
+      "uiInventoryRef": null,
+      "interpolations": [],
+      "transitions": [],
+      "tokens": [],
+      "scope": "in"
+    },
+    {
+      "id": "SCR-0073",
+      "canonicalName": "console.user-new",
+      "legacyOrigin": {
+        "file": "wp-admin/user-new.php",
+        "line": null,
+        "paragraph": null
+      },
+      "kind": "page",
+      "isCritical": true,
+      "matchesUiInventory": false,
+      "uiInventoryRef": null,
+      "interpolations": [],
+      "transitions": [],
+      "tokens": [],
+      "scope": "in"
+    },
+    {
+      "id": "SCR-0074",
+      "canonicalName": "console.users",
+      "legacyOrigin": {
+        "file": "wp-admin/users.php",
+        "line": null,
+        "paragraph": null
+      },
+      "kind": "page",
+      "isCritical": true,
+      "matchesUiInventory": false,
+      "uiInventoryRef": null,
+      "interpolations": [],
+      "transitions": [],
+      "tokens": [],
+      "scope": "in"
+    },
+    {
+      "id": "SCR-0075",
+      "canonicalName": "console.widgets-form-blocks",
+      "legacyOrigin": {
+        "file": "wp-admin/widgets-form-blocks.php",
+        "line": null,
+        "paragraph": null
+      },
+      "kind": "page",
+      "isCritical": false,
+      "matchesUiInventory": false,
+      "uiInventoryRef": null,
+      "interpolations": [],
+      "transitions": [],
+      "tokens": [],
+      "scope": "in"
+    },
+    {
+      "id": "SCR-0076",
+      "canonicalName": "console.widgets-form",
+      "legacyOrigin": {
+        "file": "wp-admin/widgets-form.php",
+        "line": null,
+        "paragraph": null
+      },
+      "kind": "page",
+      "isCritical": false,
+      "matchesUiInventory": false,
+      "uiInventoryRef": null,
+      "interpolations": [],
+      "transitions": [],
+      "tokens": [],
+      "scope": "in"
+    },
+    {
+      "id": "SCR-0077",
+      "canonicalName": "console.widgets",
+      "legacyOrigin": {
+        "file": "wp-admin/widgets.php",
+        "line": null,
+        "paragraph": null
+      },
+      "kind": "page",
+      "isCritical": true,
+      "matchesUiInventory": false,
+      "uiInventoryRef": null,
+      "interpolations": [],
+      "transitions": [],
+      "tokens": [],
+      "scope": "in"
+    },
+    {
+      "id": "SCR-0078",
+      "canonicalName": "console.network.about",
+      "legacyOrigin": {
+        "file": "wp-admin/network/about.php",
+        "line": null,
+        "paragraph": null
+      },
+      "kind": "page",
+      "isCritical": false,
+      "matchesUiInventory": false,
+      "uiInventoryRef": null,
+      "interpolations": [],
+      "transitions": [],
+      "tokens": [],
+      "scope": "in"
+    },
+    {
+      "id": "SCR-0079",
+      "canonicalName": "console.network.contribute",
+      "legacyOrigin": {
+        "file": "wp-admin/network/contribute.php",
+        "line": null,
+        "paragraph": null
+      },
+      "kind": "page",
+      "isCritical": false,
+      "matchesUiInventory": false,
+      "uiInventoryRef": null,
+      "interpolations": [],
+      "transitions": [],
+      "tokens": [],
+      "scope": "in"
+    },
+    {
+      "id": "SCR-0080",
+      "canonicalName": "console.network.credits",
+      "legacyOrigin": {
+        "file": "wp-admin/network/credits.php",
+        "line": null,
+        "paragraph": null
+      },
+      "kind": "page",
+      "isCritical": false,
+      "matchesUiInventory": false,
+      "uiInventoryRef": null,
+      "interpolations": [],
+      "transitions": [],
+      "tokens": [],
+      "scope": "in"
+    },
+    {
+      "id": "SCR-0081",
+      "canonicalName": "console.network.edit",
+      "legacyOrigin": {
+        "file": "wp-admin/network/edit.php",
+        "line": null,
+        "paragraph": null
+      },
+      "kind": "page",
+      "isCritical": false,
+      "matchesUiInventory": false,
+      "uiInventoryRef": null,
+      "interpolations": [],
+      "transitions": [],
+      "tokens": [],
+      "scope": "in"
+    },
+    {
+      "id": "SCR-0082",
+      "canonicalName": "console.network.freedoms",
+      "legacyOrigin": {
+        "file": "wp-admin/network/freedoms.php",
+        "line": null,
+        "paragraph": null
+      },
+      "kind": "page",
+      "isCritical": false,
+      "matchesUiInventory": false,
+      "uiInventoryRef": null,
+      "interpolations": [],
+      "transitions": [],
+      "tokens": [],
+      "scope": "in"
+    },
+    {
+      "id": "SCR-0083",
+      "canonicalName": "console.network.index",
+      "legacyOrigin": {
+        "file": "wp-admin/network/index.php",
+        "line": null,
+        "paragraph": null
+      },
+      "kind": "page",
+      "isCritical": false,
+      "matchesUiInventory": false,
+      "uiInventoryRef": null,
+      "interpolations": [],
+      "transitions": [],
+      "tokens": [],
+      "scope": "in"
+    },
+    {
+      "id": "SCR-0084",
+      "canonicalName": "console.network.plugin-editor",
+      "legacyOrigin": {
+        "file": "wp-admin/network/plugin-editor.php",
+        "line": null,
+        "paragraph": null
+      },
+      "kind": "page",
+      "isCritical": false,
+      "matchesUiInventory": false,
+      "uiInventoryRef": null,
+      "interpolations": [],
+      "transitions": [],
+      "tokens": [],
+      "scope": "in"
+    },
+    {
+      "id": "SCR-0085",
+      "canonicalName": "console.network.plugin-install",
+      "legacyOrigin": {
+        "file": "wp-admin/network/plugin-install.php",
+        "line": null,
+        "paragraph": null
+      },
+      "kind": "page",
+      "isCritical": false,
+      "matchesUiInventory": false,
+      "uiInventoryRef": null,
+      "interpolations": [],
+      "transitions": [],
+      "tokens": [],
+      "scope": "in"
+    },
+    {
+      "id": "SCR-0086",
+      "canonicalName": "console.network.plugins",
+      "legacyOrigin": {
+        "file": "wp-admin/network/plugins.php",
+        "line": null,
+        "paragraph": null
+      },
+      "kind": "page",
+      "isCritical": false,
+      "matchesUiInventory": false,
+      "uiInventoryRef": null,
+      "interpolations": [],
+      "transitions": [],
+      "tokens": [],
+      "scope": "in"
+    },
+    {
+      "id": "SCR-0087",
+      "canonicalName": "console.network.privacy",
+      "legacyOrigin": {
+        "file": "wp-admin/network/privacy.php",
+        "line": null,
+        "paragraph": null
+      },
+      "kind": "page",
+      "isCritical": false,
+      "matchesUiInventory": false,
+      "uiInventoryRef": null,
+      "interpolations": [],
+      "transitions": [],
+      "tokens": [],
+      "scope": "in"
+    },
+    {
+      "id": "SCR-0088",
+      "canonicalName": "console.network.profile",
+      "legacyOrigin": {
+        "file": "wp-admin/network/profile.php",
+        "line": null,
+        "paragraph": null
+      },
+      "kind": "page",
+      "isCritical": false,
+      "matchesUiInventory": false,
+      "uiInventoryRef": null,
+      "interpolations": [],
+      "transitions": [],
+      "tokens": [],
+      "scope": "in"
+    },
+    {
+      "id": "SCR-0089",
+      "canonicalName": "console.network.settings",
+      "legacyOrigin": {
+        "file": "wp-admin/network/settings.php",
+        "line": null,
+        "paragraph": null
+      },
+      "kind": "page",
+      "isCritical": false,
+      "matchesUiInventory": false,
+      "uiInventoryRef": null,
+      "interpolations": [],
+      "transitions": [],
+      "tokens": [],
+      "scope": "in"
+    },
+    {
+      "id": "SCR-0090",
+      "canonicalName": "console.network.setup",
+      "legacyOrigin": {
+        "file": "wp-admin/network/setup.php",
+        "line": null,
+        "paragraph": null
+      },
+      "kind": "page",
+      "isCritical": false,
+      "matchesUiInventory": false,
+      "uiInventoryRef": null,
+      "interpolations": [],
+      "transitions": [],
+      "tokens": [],
+      "scope": "in"
+    },
+    {
+      "id": "SCR-0091",
+      "canonicalName": "console.network.site-info",
+      "legacyOrigin": {
+        "file": "wp-admin/network/site-info.php",
+        "line": null,
+        "paragraph": null
+      },
+      "kind": "page",
+      "isCritical": false,
+      "matchesUiInventory": false,
+      "uiInventoryRef": null,
+      "interpolations": [],
+      "transitions": [],
+      "tokens": [],
+      "scope": "in"
+    },
+    {
+      "id": "SCR-0092",
+      "canonicalName": "console.network.site-new",
+      "legacyOrigin": {
+        "file": "wp-admin/network/site-new.php",
+        "line": null,
+        "paragraph": null
+      },
+      "kind": "page",
+      "isCritical": false,
+      "matchesUiInventory": false,
+      "uiInventoryRef": null,
+      "interpolations": [],
+      "transitions": [],
+      "tokens": [],
+      "scope": "in"
+    },
+    {
+      "id": "SCR-0093",
+      "canonicalName": "console.network.site-settings",
+      "legacyOrigin": {
+        "file": "wp-admin/network/site-settings.php",
+        "line": null,
+        "paragraph": null
+      },
+      "kind": "page",
+      "isCritical": false,
+      "matchesUiInventory": false,
+      "uiInventoryRef": null,
+      "interpolations": [],
+      "transitions": [],
+      "tokens": [],
+      "scope": "in"
+    },
+    {
+      "id": "SCR-0094",
+      "canonicalName": "console.network.site-themes",
+      "legacyOrigin": {
+        "file": "wp-admin/network/site-themes.php",
+        "line": null,
+        "paragraph": null
+      },
+      "kind": "page",
+      "isCritical": false,
+      "matchesUiInventory": false,
+      "uiInventoryRef": null,
+      "interpolations": [],
+      "transitions": [],
+      "tokens": [],
+      "scope": "in"
+    },
+    {
+      "id": "SCR-0095",
+      "canonicalName": "console.network.site-users",
+      "legacyOrigin": {
+        "file": "wp-admin/network/site-users.php",
+        "line": null,
+        "paragraph": null
+      },
+      "kind": "page",
+      "isCritical": false,
+      "matchesUiInventory": false,
+      "uiInventoryRef": null,
+      "interpolations": [],
+      "transitions": [],
+      "tokens": [],
+      "scope": "in"
+    },
+    {
+      "id": "SCR-0096",
+      "canonicalName": "console.network.sites",
+      "legacyOrigin": {
+        "file": "wp-admin/network/sites.php",
+        "line": null,
+        "paragraph": null
+      },
+      "kind": "page",
+      "isCritical": false,
+      "matchesUiInventory": false,
+      "uiInventoryRef": null,
+      "interpolations": [],
+      "transitions": [],
+      "tokens": [],
+      "scope": "in"
+    },
+    {
+      "id": "SCR-0097",
+      "canonicalName": "console.network.theme-editor",
+      "legacyOrigin": {
+        "file": "wp-admin/network/theme-editor.php",
+        "line": null,
+        "paragraph": null
+      },
+      "kind": "page",
+      "isCritical": false,
+      "matchesUiInventory": false,
+      "uiInventoryRef": null,
+      "interpolations": [],
+      "transitions": [],
+      "tokens": [],
+      "scope": "in"
+    },
+    {
+      "id": "SCR-0098",
+      "canonicalName": "console.network.theme-install",
+      "legacyOrigin": {
+        "file": "wp-admin/network/theme-install.php",
+        "line": null,
+        "paragraph": null
+      },
+      "kind": "page",
+      "isCritical": false,
+      "matchesUiInventory": false,
+      "uiInventoryRef": null,
+      "interpolations": [],
+      "transitions": [],
+      "tokens": [],
+      "scope": "in"
+    },
+    {
+      "id": "SCR-0099",
+      "canonicalName": "console.network.themes",
+      "legacyOrigin": {
+        "file": "wp-admin/network/themes.php",
+        "line": null,
+        "paragraph": null
+      },
+      "kind": "page",
+      "isCritical": false,
+      "matchesUiInventory": false,
+      "uiInventoryRef": null,
+      "interpolations": [],
+      "transitions": [],
+      "tokens": [],
+      "scope": "in"
+    },
+    {
+      "id": "SCR-0100",
+      "canonicalName": "console.network.update-core",
+      "legacyOrigin": {
+        "file": "wp-admin/network/update-core.php",
+        "line": null,
+        "paragraph": null
+      },
+      "kind": "page",
+      "isCritical": false,
+      "matchesUiInventory": false,
+      "uiInventoryRef": null,
+      "interpolations": [],
+      "transitions": [],
+      "tokens": [],
+      "scope": "in"
+    },
+    {
+      "id": "SCR-0101",
+      "canonicalName": "console.network.update",
+      "legacyOrigin": {
+        "file": "wp-admin/network/update.php",
+        "line": null,
+        "paragraph": null
+      },
+      "kind": "page",
+      "isCritical": false,
+      "matchesUiInventory": false,
+      "uiInventoryRef": null,
+      "interpolations": [],
+      "transitions": [],
+      "tokens": [],
+      "scope": "in"
+    },
+    {
+      "id": "SCR-0102",
+      "canonicalName": "console.network.upgrade",
+      "legacyOrigin": {
+        "file": "wp-admin/network/upgrade.php",
+        "line": null,
+        "paragraph": null
+      },
+      "kind": "page",
+      "isCritical": false,
+      "matchesUiInventory": false,
+      "uiInventoryRef": null,
+      "interpolations": [],
+      "transitions": [],
+      "tokens": [],
+      "scope": "in"
+    },
+    {
+      "id": "SCR-0103",
+      "canonicalName": "console.network.user-edit",
+      "legacyOrigin": {
+        "file": "wp-admin/network/user-edit.php",
+        "line": null,
+        "paragraph": null
+      },
+      "kind": "page",
+      "isCritical": false,
+      "matchesUiInventory": false,
+      "uiInventoryRef": null,
+      "interpolations": [],
+      "transitions": [],
+      "tokens": [],
+      "scope": "in"
+    },
+    {
+      "id": "SCR-0104",
+      "canonicalName": "console.network.user-new",
+      "legacyOrigin": {
+        "file": "wp-admin/network/user-new.php",
+        "line": null,
+        "paragraph": null
+      },
+      "kind": "page",
+      "isCritical": false,
+      "matchesUiInventory": false,
+      "uiInventoryRef": null,
+      "interpolations": [],
+      "transitions": [],
+      "tokens": [],
+      "scope": "in"
+    },
+    {
+      "id": "SCR-0105",
+      "canonicalName": "console.network.users",
+      "legacyOrigin": {
+        "file": "wp-admin/network/users.php",
+        "line": null,
+        "paragraph": null
+      },
+      "kind": "page",
+      "isCritical": false,
+      "matchesUiInventory": false,
+      "uiInventoryRef": null,
+      "interpolations": [],
+      "transitions": [],
+      "tokens": [],
+      "scope": "in"
+    },
+    {
+      "id": "SCR-0106",
+      "canonicalName": "console.user.about",
+      "legacyOrigin": {
+        "file": "wp-admin/user/about.php",
+        "line": null,
+        "paragraph": null
+      },
+      "kind": "page",
+      "isCritical": false,
+      "matchesUiInventory": false,
+      "uiInventoryRef": null,
+      "interpolations": [],
+      "transitions": [],
+      "tokens": [],
+      "scope": "in"
+    },
+    {
+      "id": "SCR-0107",
+      "canonicalName": "console.user.contribute",
+      "legacyOrigin": {
+        "file": "wp-admin/user/contribute.php",
+        "line": null,
+        "paragraph": null
+      },
+      "kind": "page",
+      "isCritical": false,
+      "matchesUiInventory": false,
+      "uiInventoryRef": null,
+      "interpolations": [],
+      "transitions": [],
+      "tokens": [],
+      "scope": "in"
+    },
+    {
+      "id": "SCR-0108",
+      "canonicalName": "console.user.credits",
+      "legacyOrigin": {
+        "file": "wp-admin/user/credits.php",
+        "line": null,
+        "paragraph": null
+      },
+      "kind": "page",
+      "isCritical": false,
+      "matchesUiInventory": false,
+      "uiInventoryRef": null,
+      "interpolations": [],
+      "transitions": [],
+      "tokens": [],
+      "scope": "in"
+    },
+    {
+      "id": "SCR-0109",
+      "canonicalName": "console.user.freedoms",
+      "legacyOrigin": {
+        "file": "wp-admin/user/freedoms.php",
+        "line": null,
+        "paragraph": null
+      },
+      "kind": "page",
+      "isCritical": false,
+      "matchesUiInventory": false,
+      "uiInventoryRef": null,
+      "interpolations": [],
+      "transitions": [],
+      "tokens": [],
+      "scope": "in"
+    },
+    {
+      "id": "SCR-0110",
+      "canonicalName": "console.user.index",
+      "legacyOrigin": {
+        "file": "wp-admin/user/index.php",
+        "line": null,
+        "paragraph": null
+      },
+      "kind": "page",
+      "isCritical": false,
+      "matchesUiInventory": false,
+      "uiInventoryRef": null,
+      "interpolations": [],
+      "transitions": [],
+      "tokens": [],
+      "scope": "in"
+    },
+    {
+      "id": "SCR-0111",
+      "canonicalName": "console.user.privacy",
+      "legacyOrigin": {
+        "file": "wp-admin/user/privacy.php",
+        "line": null,
+        "paragraph": null
+      },
+      "kind": "page",
+      "isCritical": false,
+      "matchesUiInventory": false,
+      "uiInventoryRef": null,
+      "interpolations": [],
+      "transitions": [],
+      "tokens": [],
+      "scope": "in"
+    },
+    {
+      "id": "SCR-0112",
+      "canonicalName": "console.user.profile",
+      "legacyOrigin": {
+        "file": "wp-admin/user/profile.php",
+        "line": null,
+        "paragraph": null
+      },
+      "kind": "page",
+      "isCritical": false,
+      "matchesUiInventory": false,
+      "uiInventoryRef": null,
+      "interpolations": [],
+      "transitions": [],
+      "tokens": [],
+      "scope": "in"
+    },
+    {
+      "id": "SCR-0113",
+      "canonicalName": "console.user.user-edit",
+      "legacyOrigin": {
+        "file": "wp-admin/user/user-edit.php",
+        "line": null,
+        "paragraph": null
+      },
+      "kind": "page",
+      "isCritical": false,
+      "matchesUiInventory": false,
+      "uiInventoryRef": null,
+      "interpolations": [],
+      "transitions": [],
+      "tokens": [],
+      "scope": "in"
+    },
+    {
+      "id": "SCR-0114",
+      "canonicalName": "auth.login",
+      "legacyOrigin": {
+        "file": "wp-login.php",
+        "line": null,
+        "paragraph": null
+      },
+      "kind": "form",
+      "isCritical": true,
+      "matchesUiInventory": false,
+      "uiInventoryRef": null,
+      "interpolations": [],
+      "transitions": [],
+      "tokens": [],
+      "scope": "in"
+    },
+    {
+      "id": "SCR-0115",
+      "canonicalName": "auth.logout",
+      "legacyOrigin": {
+        "file": "wp-login.php",
+        "line": null,
+        "paragraph": null
+      },
+      "kind": "form",
+      "isCritical": false,
+      "matchesUiInventory": false,
+      "uiInventoryRef": null,
+      "interpolations": [],
+      "transitions": [],
+      "tokens": [],
+      "scope": "in"
+    },
+    {
+      "id": "SCR-0116",
+      "canonicalName": "auth.lostpassword",
+      "legacyOrigin": {
+        "file": "wp-login.php",
+        "line": null,
+        "paragraph": null
+      },
+      "kind": "form",
+      "isCritical": false,
+      "matchesUiInventory": false,
+      "uiInventoryRef": null,
+      "interpolations": [],
+      "transitions": [],
+      "tokens": [],
+      "scope": "in"
+    },
+    {
+      "id": "SCR-0117",
+      "canonicalName": "auth.retrievepassword",
+      "legacyOrigin": {
+        "file": "wp-login.php",
+        "line": null,
+        "paragraph": null
+      },
+      "kind": "form",
+      "isCritical": false,
+      "matchesUiInventory": false,
+      "uiInventoryRef": null,
+      "interpolations": [],
+      "transitions": [],
+      "tokens": [],
+      "scope": "in"
+    },
+    {
+      "id": "SCR-0118",
+      "canonicalName": "auth.resetpass",
+      "legacyOrigin": {
+        "file": "wp-login.php",
+        "line": null,
+        "paragraph": null
+      },
+      "kind": "form",
+      "isCritical": true,
+      "matchesUiInventory": false,
+      "uiInventoryRef": null,
+      "interpolations": [],
+      "transitions": [],
+      "tokens": [],
+      "scope": "in"
+    },
+    {
+      "id": "SCR-0119",
+      "canonicalName": "auth.register",
+      "legacyOrigin": {
+        "file": "wp-login.php",
+        "line": null,
+        "paragraph": null
+      },
+      "kind": "form",
+      "isCritical": false,
+      "matchesUiInventory": false,
+      "uiInventoryRef": null,
+      "interpolations": [],
+      "transitions": [],
+      "tokens": [],
+      "scope": "in"
+    },
+    {
+      "id": "SCR-0120",
+      "canonicalName": "auth.confirmaction",
+      "legacyOrigin": {
+        "file": "wp-login.php",
+        "line": null,
+        "paragraph": null
+      },
+      "kind": "form",
+      "isCritical": false,
+      "matchesUiInventory": false,
+      "uiInventoryRef": null,
+      "interpolations": [],
+      "transitions": [],
+      "tokens": [],
+      "scope": "in"
+    },
+    {
+      "id": "SCR-0121",
+      "canonicalName": "auth.checkemail",
+      "legacyOrigin": {
+        "file": "wp-login.php",
+        "line": null,
+        "paragraph": null
+      },
+      "kind": "form",
+      "isCritical": false,
+      "matchesUiInventory": false,
+      "uiInventoryRef": null,
+      "interpolations": [],
+      "transitions": [],
+      "tokens": [],
+      "scope": "in"
+    },
+    {
+      "id": "SCR-0122",
+      "canonicalName": "tenancy.user_signup",
+      "legacyOrigin": {
+        "file": "wp-signup.php",
+        "line": null,
+        "paragraph": null
+      },
+      "kind": "wizard-step",
+      "isCritical": false,
+      "matchesUiInventory": false,
+      "uiInventoryRef": null,
+      "interpolations": [],
+      "transitions": [],
+      "tokens": [],
+      "scope": "in"
+    },
+    {
+      "id": "SCR-0123",
+      "canonicalName": "tenancy.blog_signup",
+      "legacyOrigin": {
+        "file": "wp-signup.php",
+        "line": null,
+        "paragraph": null
+      },
+      "kind": "wizard-step",
+      "isCritical": false,
+      "matchesUiInventory": false,
+      "uiInventoryRef": null,
+      "interpolations": [],
+      "transitions": [],
+      "tokens": [],
+      "scope": "in"
+    },
+    {
+      "id": "SCR-0124",
+      "canonicalName": "tenancy.signup_confirm",
+      "legacyOrigin": {
+        "file": "wp-signup.php",
+        "line": null,
+        "paragraph": null
+      },
+      "kind": "wizard-step",
+      "isCritical": false,
+      "matchesUiInventory": false,
+      "uiInventoryRef": null,
+      "interpolations": [],
+      "transitions": [],
+      "tokens": [],
+      "scope": "in"
+    },
+    {
+      "id": "SCR-0125",
+      "canonicalName": "tenancy.activate_form",
+      "legacyOrigin": {
+        "file": "wp-activate.php",
+        "line": null,
+        "paragraph": null
+      },
+      "kind": "wizard-step",
+      "isCritical": false,
+      "matchesUiInventory": false,
+      "uiInventoryRef": null,
+      "interpolations": [],
+      "transitions": [],
+      "tokens": [],
+      "scope": "in"
+    },
+    {
+      "id": "SCR-0126",
+      "canonicalName": "tenancy.activate_result",
+      "legacyOrigin": {
+        "file": "wp-activate.php",
+        "line": null,
+        "paragraph": null
+      },
+      "kind": "wizard-step",
+      "isCritical": false,
+      "matchesUiInventory": false,
+      "uiInventoryRef": null,
+      "interpolations": [],
+      "transitions": [],
+      "tokens": [],
+      "scope": "in"
+    },
+    {
+      "id": "SCR-0127",
+      "canonicalName": "web.index",
+      "legacyOrigin": {
+        "file": "wp-includes/template-loader.php",
+        "line": null,
+        "paragraph": null
+      },
+      "kind": "page",
+      "isCritical": false,
+      "matchesUiInventory": false,
+      "uiInventoryRef": null,
+      "interpolations": [],
+      "transitions": [],
+      "tokens": [],
+      "scope": "in"
+    },
+    {
+      "id": "SCR-0128",
+      "canonicalName": "web.front_page",
+      "legacyOrigin": {
+        "file": "wp-includes/template-loader.php",
+        "line": null,
+        "paragraph": null
+      },
+      "kind": "page",
+      "isCritical": false,
+      "matchesUiInventory": false,
+      "uiInventoryRef": null,
+      "interpolations": [],
+      "transitions": [],
+      "tokens": [],
+      "scope": "in"
+    },
+    {
+      "id": "SCR-0129",
+      "canonicalName": "web.home",
+      "legacyOrigin": {
+        "file": "wp-includes/template-loader.php",
+        "line": null,
+        "paragraph": null
+      },
+      "kind": "page",
+      "isCritical": true,
+      "matchesUiInventory": false,
+      "uiInventoryRef": null,
+      "interpolations": [],
+      "transitions": [],
+      "tokens": [],
+      "scope": "in"
+    },
+    {
+      "id": "SCR-0130",
+      "canonicalName": "web.singular",
+      "legacyOrigin": {
+        "file": "wp-includes/template-loader.php",
+        "line": null,
+        "paragraph": null
+      },
+      "kind": "page",
+      "isCritical": false,
+      "matchesUiInventory": false,
+      "uiInventoryRef": null,
+      "interpolations": [],
+      "transitions": [],
+      "tokens": [],
+      "scope": "in"
+    },
+    {
+      "id": "SCR-0131",
+      "canonicalName": "web.single",
+      "legacyOrigin": {
+        "file": "wp-includes/template-loader.php",
+        "line": null,
+        "paragraph": null
+      },
+      "kind": "page",
+      "isCritical": true,
+      "matchesUiInventory": false,
+      "uiInventoryRef": null,
+      "interpolations": [],
+      "transitions": [],
+      "tokens": [],
+      "scope": "in"
+    },
+    {
+      "id": "SCR-0132",
+      "canonicalName": "web.page",
+      "legacyOrigin": {
+        "file": "wp-includes/template-loader.php",
+        "line": null,
+        "paragraph": null
+      },
+      "kind": "page",
+      "isCritical": true,
+      "matchesUiInventory": false,
+      "uiInventoryRef": null,
+      "interpolations": [],
+      "transitions": [],
+      "tokens": [],
+      "scope": "in"
+    },
+    {
+      "id": "SCR-0133",
+      "canonicalName": "web.archive",
+      "legacyOrigin": {
+        "file": "wp-includes/template-loader.php",
+        "line": null,
+        "paragraph": null
+      },
+      "kind": "page",
+      "isCritical": true,
+      "matchesUiInventory": false,
+      "uiInventoryRef": null,
+      "interpolations": [],
+      "transitions": [],
+      "tokens": [],
+      "scope": "in"
+    },
+    {
+      "id": "SCR-0134",
+      "canonicalName": "web.category",
+      "legacyOrigin": {
+        "file": "wp-includes/template-loader.php",
+        "line": null,
+        "paragraph": null
+      },
+      "kind": "page",
+      "isCritical": false,
+      "matchesUiInventory": false,
+      "uiInventoryRef": null,
+      "interpolations": [],
+      "transitions": [],
+      "tokens": [],
+      "scope": "in"
+    },
+    {
+      "id": "SCR-0135",
+      "canonicalName": "web.tag",
+      "legacyOrigin": {
+        "file": "wp-includes/template-loader.php",
+        "line": null,
+        "paragraph": null
+      },
+      "kind": "page",
+      "isCritical": false,
+      "matchesUiInventory": false,
+      "uiInventoryRef": null,
+      "interpolations": [],
+      "transitions": [],
+      "tokens": [],
+      "scope": "in"
+    },
+    {
+      "id": "SCR-0136",
+      "canonicalName": "web.taxonomy",
+      "legacyOrigin": {
+        "file": "wp-includes/template-loader.php",
+        "line": null,
+        "paragraph": null
+      },
+      "kind": "page",
+      "isCritical": false,
+      "matchesUiInventory": false,
+      "uiInventoryRef": null,
+      "interpolations": [],
+      "transitions": [],
+      "tokens": [],
+      "scope": "in"
+    },
+    {
+      "id": "SCR-0137",
+      "canonicalName": "web.author",
+      "legacyOrigin": {
+        "file": "wp-includes/template-loader.php",
+        "line": null,
+        "paragraph": null
+      },
+      "kind": "page",
+      "isCritical": false,
+      "matchesUiInventory": false,
+      "uiInventoryRef": null,
+      "interpolations": [],
+      "transitions": [],
+      "tokens": [],
+      "scope": "in"
+    },
+    {
+      "id": "SCR-0138",
+      "canonicalName": "web.date",
+      "legacyOrigin": {
+        "file": "wp-includes/template-loader.php",
+        "line": null,
+        "paragraph": null
+      },
+      "kind": "page",
+      "isCritical": false,
+      "matchesUiInventory": false,
+      "uiInventoryRef": null,
+      "interpolations": [],
+      "transitions": [],
+      "tokens": [],
+      "scope": "in"
+    },
+    {
+      "id": "SCR-0139",
+      "canonicalName": "web.search",
+      "legacyOrigin": {
+        "file": "wp-includes/template-loader.php",
+        "line": null,
+        "paragraph": null
+      },
+      "kind": "page",
+      "isCritical": false,
+      "matchesUiInventory": false,
+      "uiInventoryRef": null,
+      "interpolations": [],
+      "transitions": [],
+      "tokens": [],
+      "scope": "in"
+    },
+    {
+      "id": "SCR-0140",
+      "canonicalName": "web.not_found_404",
+      "legacyOrigin": {
+        "file": "wp-includes/template-loader.php",
+        "line": null,
+        "paragraph": null
+      },
+      "kind": "page",
+      "isCritical": true,
+      "matchesUiInventory": false,
+      "uiInventoryRef": null,
+      "interpolations": [],
+      "transitions": [],
+      "tokens": [],
+      "scope": "in"
+    },
+    {
+      "id": "SCR-0141",
+      "canonicalName": "web.attachment",
+      "legacyOrigin": {
+        "file": "wp-includes/template-loader.php",
+        "line": null,
+        "paragraph": null
+      },
+      "kind": "page",
+      "isCritical": false,
+      "matchesUiInventory": false,
+      "uiInventoryRef": null,
+      "interpolations": [],
+      "transitions": [],
+      "tokens": [],
+      "scope": "in"
+    },
+    {
+      "id": "SCR-0142",
+      "canonicalName": "web.embed",
+      "legacyOrigin": {
+        "file": "wp-includes/template-loader.php",
+        "line": null,
+        "paragraph": null
+      },
+      "kind": "page",
+      "isCritical": false,
+      "matchesUiInventory": false,
+      "uiInventoryRef": null,
+      "interpolations": [],
+      "transitions": [],
+      "tokens": [],
+      "scope": "in"
+    },
+    {
+      "id": "SCR-0143",
+      "canonicalName": "web.privacy_policy",
+      "legacyOrigin": {
+        "file": "wp-includes/template-loader.php",
+        "line": null,
+        "paragraph": null
+      },
+      "kind": "page",
+      "isCritical": false,
+      "matchesUiInventory": false,
+      "uiInventoryRef": null,
+      "interpolations": [],
+      "transitions": [],
+      "tokens": [],
+      "scope": "in"
+    },
+    {
+      "id": "SCR-0144",
+      "canonicalName": "web.comments",
+      "legacyOrigin": {
+        "file": "wp-includes/template-loader.php",
+        "line": null,
+        "paragraph": null
+      },
+      "kind": "page",
+      "isCritical": false,
+      "matchesUiInventory": false,
+      "uiInventoryRef": null,
+      "interpolations": [],
+      "transitions": [],
+      "tokens": [],
+      "scope": "in"
+    }
+  ],
+  "divergenceFromUiInventory": {
+    "totalInUiInventory": 0,
+    "totalInThisInventory": 144,
+    "matched": 0,
+    "missingInUiInventory": [],
+    "extraInUiInventory": [],
+    "divergencePercent": null,
+    "note": "_reversa_sdd/ui/inventory.md is absent (reversa-visor has not run). Comparison not possible; FR-05 divergence check cannot be applied. EC-18."
+  }
+}

@@ -1,0 +1,765 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>3D Architecture | WordPress 7.2-alpha-63330</title>
+<script src="assets/vendor/three.min.js"></script>
+<script src="assets/vendor/OrbitControls.js"></script>
+<style>
+  :root{
+    --bg:#0a0a12; --panel:rgba(16,16,24,.88); --line:#2a2a3a;
+    --fg:#e8e8f0; --dim:#9494a8; --accent:#ff6b35;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;overflow:hidden;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;background:var(--bg);color:var(--fg)}
+  #scene{position:fixed;inset:0;display:block}
+  #labels{position:fixed;inset:0;pointer-events:none;overflow:hidden}
+  .lbl{position:absolute;transform:translate(-50%,-50%);font-size:11px;line-height:1;
+       padding:3px 6px;border-radius:4px;background:rgba(10,10,18,.82);border:1px solid var(--line);
+       white-space:nowrap;color:var(--fg);letter-spacing:.2px}
+  .lbl.hot{border-color:var(--accent);color:#fff}
+
+  #sidebar{position:fixed;top:0;right:0;width:300px;height:100vh;padding:18px 16px 90px;
+           background:var(--panel);backdrop-filter:blur(8px);border-left:1px solid var(--line);
+           overflow-y:auto;font-size:13px}
+  #sidebar h1{font-size:14px;margin:0 0 2px;letter-spacing:.3px}
+  #sidebar .sub{color:var(--dim);font-size:11px;margin:0 0 16px;line-height:1.5}
+  #sidebar h2{font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--dim);
+              margin:20px 0 8px;font-weight:600;border-bottom:1px solid var(--line);padding-bottom:5px}
+  label{display:block;margin:11px 0;color:var(--fg)}
+  label .v{float:right;color:var(--dim);font-variant-numeric:tabular-nums}
+  input[type=range]{width:100%;margin-top:6px;accent-color:var(--accent)}
+  input[type=checkbox]{accent-color:var(--accent);margin-right:7px;vertical-align:-1px}
+  select{width:100%;margin-top:6px;padding:5px;background:#14141f;color:var(--fg);
+         border:1px solid var(--line);border-radius:4px;font-size:12px}
+  button{width:100%;margin-top:7px;padding:8px;background:#1c1c2a;color:var(--fg);
+         border:1px solid var(--line);border-radius:5px;cursor:pointer;font-size:12px;font-family:inherit}
+  button:hover{background:#26263a;border-color:#3c3c52}
+  button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+  .legend{display:flex;align-items:center;gap:8px;margin:5px 0;font-size:11.5px}
+  .sw{width:11px;height:11px;border-radius:50%;flex:none}
+  .stat{display:flex;justify-content:space-between;margin:4px 0;font-size:11.5px;color:var(--dim)}
+  .stat b{color:var(--fg);font-variant-numeric:tabular-nums;font-weight:600}
+
+  #tip{position:fixed;pointer-events:none;z-index:20;max-width:290px;padding:10px 12px;
+       background:rgba(10,10,18,.96);border:1px solid var(--line);border-radius:6px;
+       font-size:12px;display:none;box-shadow:0 6px 24px rgba(0,0,0,.5)}
+  #tip .n{font-weight:600;margin-bottom:6px;font-size:13px}
+  #tip .p{color:var(--dim);margin:6px 0 8px;line-height:1.45;font-size:11.5px}
+  #tip .g{display:grid;grid-template-columns:auto auto;gap:2px 14px;font-size:11.5px}
+  #tip .g span:nth-child(odd){color:var(--dim)}
+  #tip .g span:nth-child(even){text-align:right;font-variant-numeric:tabular-nums}
+  #tip .cyc{margin-top:8px;padding-top:7px;border-top:1px solid var(--line);color:var(--accent);font-size:11px}
+
+  #loader{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;
+          flex-direction:column;gap:14px;background:var(--bg);z-index:50;font-size:15px}
+  .spin{width:26px;height:26px;border:2px solid var(--line);border-top-color:var(--accent);
+        border-radius:50%;animation:sp .8s linear infinite}
+  @keyframes sp{to{transform:rotate(360deg)}}
+  #err{position:fixed;inset:0;display:none;align-items:center;justify-content:center;
+       background:var(--bg);z-index:60;padding:32px}
+  #err div{max-width:460px;text-align:center;line-height:1.6}
+  #err h2{color:var(--accent);font-size:16px;margin:0 0 10px}
+  #err p{color:var(--dim);font-size:13px;margin:0}
+  #foot{position:fixed;left:14px;bottom:12px;font-size:10.5px;color:var(--dim);
+        line-height:1.6;max-width:calc(100vw - 340px)}
+  #toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);padding:9px 16px;
+         background:var(--panel);border:1px solid var(--line);border-radius:6px;font-size:12px;
+         display:none;z-index:30}
+  @media (max-width:820px){#sidebar{width:100%;height:46vh;top:auto;bottom:0;border-left:none;border-top:1px solid var(--line)}#foot{display:none}}
+</style>
+</head>
+<body data-style="exploratory">
+
+<canvas id="scene"></canvas>
+<div id="labels"></div>
+<div id="tip"></div>
+<div id="toast"></div>
+
+<div id="foot"></div>
+
+<aside id="sidebar">
+  <h1>Dependency Graph 3D</h1>
+  <p class="sub">WordPress 7.2-alpha-63330<br>Extracted by Reversa from 44 modules.</p>
+
+  <h2>Scene</h2>
+  <div class="stat"><span>Modules</span><b id="s-nodes">0</b></div>
+  <div class="stat"><span>Dependencies</span><b id="s-edges">0</b></div>
+  <div class="stat"><span>Edges inside a cycle</span><b id="s-cyc">0</b></div>
+  <div class="stat"><span>Lines of code</span><b id="s-loc">0</b></div>
+
+  <h2>Layers</h2>
+  <div id="legend"></div>
+
+  <h2>Forces</h2>
+  <label>Repulsion <span class="v" id="v-rep">800</span>
+    <input type="range" id="rep" data-param="repulsion" min="100" max="2000" step="50" value="800">
+  </label>
+  <label>Attraction <span class="v" id="v-att">0.04</span>
+    <input type="range" id="att" data-param="attraction" min="0.01" max="0.2" step="0.01" value="0.04">
+  </label>
+  <label>Node scale <span class="v" id="v-scl">1.0</span>
+    <input type="range" id="scl" data-param="nodeScale" min="0.4" max="2.5" step="0.1" value="1">
+  </label>
+
+  <h2>Filter</h2>
+  <label>Layer
+    <select id="flt" data-param="layerFilter"><option value="all">All layers</option></select>
+  </label>
+
+  <h2>Display</h2>
+  <label><input type="checkbox" id="cyc" data-param="highlightCycles" checked> Highlight cycles</label>
+  <label><input type="checkbox" id="lbl" data-param="showLabels"> Always show labels</label>
+  <label><input type="checkbox" id="arw" data-param="showArrows" checked> Direction arrows</label>
+  <label><input type="checkbox" id="onlyc" data-param="onlyCycles"> Only cyclic edges</label>
+
+  <h2>Actions</h2>
+  <button id="freeze">Freeze simulation</button>
+  <button id="reset">Reset view and settings</button>
+  <button id="export-png">Export PNG</button>
+</aside>
+
+<div id="loader"><div class="spin"></div><span>Loading 3D scene...</span></div>
+<div id="err"><div><h2 id="err-t">Something went wrong</h2><p id="err-m"></p></div></div>
+
+<script id="data" type="application/json">{"modules":[{"name":"html-api","folder":"Foundation","loc":15062,"complexity":9,"type":"code","layer":"Foundation","layerOrder":0,"complexityLabel":"high","files":7,"vendoredLoc":0,"fanIn":3,"fanOut":0,"rules":7,"findings":4,"hooks":0,"functions":13,"purpose":"Parse and modify HTML correctly in PHP without a DOM. Two layers: a streaming tag-level editor and a full HTML5-spec-compliant tree-construction parser.","sccId":5,"inCycle":false,"sccSize":1},{"name":"hooks-plugin-api","folder":"Foundation","loc":2504,"complexity":9,"type":"code","layer":"Foundation","layerOrder":0,"complexityLabel":"high","files":4,"vendoredLoc":0,"fanIn":32,"fanOut":0,"rules":12,"findings":7,"hooks":1,"functions":15,"purpose":"The extension mechanism the entire system is built on. Provides the action and filter engine through which 565 actions and 1638 filters are dispatched, plus plugin lifecycle registration.","sccId":0,"inCycle":false,"sccSize":1},{"name":"style-engine","folder":"Foundation","loc":1823,"complexity":2,"type":"code","layer":"Foundation","layerOrder":0,"complexityLabel":"low","files":6,"vendoredLoc":0,"fanIn":2,"fanOut":0,"rules":4,"findings":2,"hooks":0,"functions":3,"purpose":"Convert style objects into CSS rules. A small, focused module that both block supports and global styles depend on.","sccId":4,"inCycle":false,"sccSize":1},{"name":"cache-and-object-cache","folder":"Foundation","loc":1404,"complexity":5,"type":"code","layer":"Foundation","layerOrder":0,"complexityLabel":"medium","files":3,"vendoredLoc":0,"fanIn":14,"fanOut":0,"rules":10,"findings":5,"hooks":0,"functions":13,"purpose":"A request-scoped in-memory cache designed to be transparently replaced by a persistent one via the object-cache.php drop-in. The default implementation does not persist across requests.","sccId":2,"inCycle":false,"sccSize":1},{"name":"formatting-and-sanitization","folder":"Kernel","loc":7966,"complexity":9,"type":"code","layer":"Kernel","layerOrder":1,"complexityLabel":"high","files":4,"vendoredLoc":0,"fanIn":6,"fanOut":3,"rules":7,"findings":5,"hooks":12,"functions":15,"purpose":"Text transformation on the way in and out: escaping, sanitizing, typographic transformation and slashing. At 350 KB, formatting.php is the single largest file in WordPress.","sccId":6,"inCycle":true,"sccSize":23},{"name":"database-wpdb","folder":"Kernel","loc":4238,"complexity":9,"type":"code","layer":"Kernel","layerOrder":1,"complexityLabel":"high","files":2,"vendoredLoc":0,"fanIn":11,"fanOut":1,"rules":14,"findings":8,"hooks":1,"functions":18,"purpose":"The entire data access layer. A single ~4230-line class with no ORM, no query builder and no server-side prepared statements. Every module reaches the database through the global $wpdb.","sccId":1,"inCycle":false,"sccSize":1},{"name":"bootstrap-and-load","folder":"Kernel","loc":3679,"complexity":9,"type":"code","layer":"Kernel","layerOrder":1,"complexityLabel":"high","files":8,"vendoredLoc":0,"fanIn":4,"fanOut":5,"rules":10,"findings":5,"hooks":12,"functions":15,"purpose":"Turn a bare PHP request into a fully initialized WordPress runtime: locate configuration, verify host requirements, define constants, connect the database, start the object cache, load plugins and the theme, hand off to the request handler.","sccId":6,"inCycle":true,"sccSize":23},{"name":"options-and-transients","folder":"Kernel","loc":3275,"complexity":9,"type":"code","layer":"Kernel","layerOrder":1,"complexityLabel":"high","files":1,"vendoredLoc":0,"fanIn":14,"fanOut":4,"rules":15,"findings":7,"hooks":25,"functions":15,"purpose":"WordPress's key-value store. Site configuration, plugin settings, cached remote data and expiring values all live in wp_options addressed by name. Read on every request via wp_load_alloptions(), making its caching behavior the largest single lever on WordPress performance.","sccId":6,"inCycle":true,"sccSize":23},{"name":"kses-security","folder":"Kernel","loc":3158,"complexity":9,"type":"code","layer":"Kernel","layerOrder":1,"complexityLabel":"high","files":1,"vendoredLoc":0,"fanIn":4,"fanOut":3,"rules":10,"findings":5,"hooks":4,"functions":10,"purpose":"KSES Strips Evil Scripts: an HTML allowlist filter and the last line of defense for untrusted markup.","sccId":6,"inCycle":true,"sccSize":23},{"name":"metadata","folder":"Kernel","loc":2949,"complexity":9,"type":"code","layer":"Kernel","layerOrder":1,"complexityLabel":"high","files":3,"vendoredLoc":0,"fanIn":9,"fanOut":3,"rules":10,"findings":6,"hooks":15,"functions":13,"purpose":"The generic attribute system. One implementation serves posts, comments, terms, users and blogs, driven by a $meta_type string that resolves to a table name.","sccId":3,"inCycle":false,"sccSize":1},{"name":"error-handling-and-recovery-mode","folder":"Kernel","loc":2380,"complexity":5,"type":"code","layer":"Kernel","layerOrder":1,"complexityLabel":"medium","files":10,"vendoredLoc":0,"fanIn":1,"fanOut":4,"rules":10,"findings":5,"hooks":6,"functions":9,"purpose":"Survive a fatal PHP error: catch it, identify which plugin or theme caused it, pause that extension, and email the administrator a link to a mode where the site loads without it.","sccId":6,"inCycle":true,"sccSize":23},{"name":"posts-and-post-types","folder":"Domain","loc":14183,"complexity":9,"type":"code","layer":"Domain","layerOrder":2,"complexityLabel":"high","files":7,"vendoredLoc":0,"fanIn":17,"fanOut":9,"rules":12,"findings":7,"hooks":19,"functions":14,"purpose":"The central content entity. wp_posts stores posts, pages, attachments, revisions, nav menu items, reusable blocks, templates, global styles and fonts: 16 built-in types in one table distinguished only by the post_type column.","sccId":6,"inCycle":true,"sccSize":23},{"name":"media-and-attachments","folder":"Domain","loc":13303,"complexity":9,"type":"code","layer":"Domain","layerOrder":2,"complexityLabel":"high","files":7,"vendoredLoc":25700,"fanIn":1,"fanOut":6,"rules":10,"findings":5,"hooks":12,"functions":11,"purpose":"Upload handling, image resizing, responsive image markup and media metadata. The largest body of pure algorithmic code in WordPress: geometry, aspect-ratio matching and srcset generation.","sccId":8,"inCycle":false,"sccSize":1},{"name":"users-roles-capabilities","folder":"Domain","loc":10741,"complexity":9,"type":"code","layer":"Domain","layerOrder":2,"complexityLabel":"high","files":7,"vendoredLoc":0,"fanIn":13,"fanOut":6,"rules":15,"findings":8,"hooks":7,"functions":14,"purpose":"The authorization model. Roles are named bundles of capabilities, capabilities are booleans, and a meta-capability layer translates object-specific questions into concrete capability checks. This is WordPress's entire access control.","sccId":6,"inCycle":true,"sccSize":23},{"name":"taxonomy-and-terms","folder":"Domain","loc":9893,"complexity":9,"type":"code","layer":"Domain","layerOrder":2,"complexityLabel":"high","files":7,"vendoredLoc":0,"fanIn":7,"fanOut":6,"rules":14,"findings":7,"hooks":23,"functions":14,"purpose":"Classify objects via a three-table design (wp_terms, wp_term_taxonomy, wp_term_relationships) that separates the word from the classification from the assignment. The most normalized part of the WordPress schema and the source of its most confusing API.","sccId":6,"inCycle":true,"sccSize":23},{"name":"comments","folder":"Domain","loc":9893,"complexity":9,"type":"code","layer":"Domain","layerOrder":2,"complexityLabel":"high","files":6,"vendoredLoc":0,"fanIn":3,"fanOut":8,"rules":14,"findings":7,"hooks":20,"functions":15,"purpose":"Accept, moderate and display reader responses plus trackbacks and pingbacks. The moderation pipeline is the most rule-dense business logic in WordPress core: a spam filter expressed as option-driven sequential checks.","sccId":7,"inCycle":false,"sccSize":1},{"name":"query-and-loop","folder":"Domain","loc":9889,"complexity":9,"type":"code","layer":"Domain","layerOrder":2,"complexityLabel":"high","files":6,"vendoredLoc":0,"fanIn":5,"fanOut":8,"rules":12,"findings":7,"hooks":38,"functions":15,"purpose":"Turn a URL into a set of posts. WP parses the request into query variables, WP_Query compiles those into SQL, and The Loop iterates the result. WordPress's front controller, router and query layer combined.","sccId":6,"inCycle":true,"sccSize":23},{"name":"authentication-and-sessions","folder":"Domain","loc":6330,"complexity":9,"type":"code","layer":"Domain","layerOrder":2,"complexityLabel":"high","files":6,"vendoredLoc":0,"fanIn":4,"fanOut":5,"rules":16,"findings":8,"hooks":20,"functions":17,"purpose":"Prove identity and maintain it across requests: password hashing, cookie-based sessions, session tokens, nonces, and the pluggable-function override mechanism.","sccId":6,"inCycle":true,"sccSize":23},{"name":"blocks-library","folder":"Presentation","loc":23930,"complexity":5,"type":"code","layer":"Presentation","layerOrder":3,"complexityLabel":"medium","files":94,"vendoredLoc":0,"fanIn":0,"fanOut":7,"rules":6,"findings":4,"hooks":2,"functions":0,"purpose":"The 115 built-in blocks. Each is a block.json plus, for dynamic blocks, a PHP render callback.","sccId":12,"inCycle":false,"sccSize":1},{"name":"customizer","folder":"Presentation","loc":18883,"complexity":9,"type":"code","layer":"Presentation","layerOrder":3,"complexityLabel":"high","files":43,"vendoredLoc":0,"fanIn":1,"fanOut":6,"rules":8,"findings":4,"hooks":10,"functions":11,"purpose":"Live-preview theme and site settings with a changeset that can be saved, scheduled or discarded. Superseded by the Site Editor for block themes but still the settings surface for classic themes.","sccId":10,"inCycle":true,"sccSize":2},{"name":"themes-and-templates","folder":"Presentation","loc":14855,"complexity":5,"type":"code","layer":"Presentation","layerOrder":3,"complexityLabel":"medium","files":18,"vendoredLoc":0,"fanIn":5,"fanOut":6,"rules":14,"findings":6,"hooks":11,"functions":9,"purpose":"Choose which PHP or HTML file renders the current query, and manage theme registration, parent/child inheritance and theme features.","sccId":6,"inCycle":true,"sccSize":23},{"name":"widgets-and-nav-menus","folder":"Presentation","loc":10887,"complexity":5,"type":"code","layer":"Presentation","layerOrder":3,"complexityLabel":"medium","files":29,"vendoredLoc":0,"fanIn":1,"fanOut":6,"rules":11,"findings":5,"hooks":14,"functions":10,"purpose":"Two legacy content-placement systems that predate blocks and remain load-bearing: sidebar widgets and navigation menus.","sccId":10,"inCycle":true,"sccSize":2},{"name":"block-editor","folder":"Presentation","loc":10044,"complexity":9,"type":"code","layer":"Presentation","layerOrder":3,"complexityLabel":"high","files":17,"vendoredLoc":0,"fanIn":5,"fanOut":7,"rules":12,"findings":6,"hooks":11,"functions":13,"purpose":"Parse, register and render the block-based content format. Post content is HTML with block boundaries encoded as HTML comments; this module turns that string into a tree and back.","sccId":6,"inCycle":true,"sccSize":23},{"name":"script-modules-and-assets","folder":"Presentation","loc":9597,"complexity":5,"type":"code","layer":"Presentation","layerOrder":3,"complexityLabel":"medium","files":9,"vendoredLoc":0,"fanIn":4,"fanOut":3,"rules":10,"findings":6,"hooks":13,"functions":11,"purpose":"Register, resolve dependencies for, and emit scripts and stylesheets. Two generations coexist: the classic WP_Dependencies handle system and WP_Script_Modules with ES modules and import maps.","sccId":6,"inCycle":true,"sccSize":23},{"name":"global-styles-theme-json","folder":"Presentation","loc":9250,"complexity":9,"type":"code","layer":"Presentation","layerOrder":3,"complexityLabel":"high","files":6,"vendoredLoc":0,"fanIn":3,"fanOut":5,"rules":10,"findings":5,"hooks":6,"functions":9,"purpose":"A declarative styling system. theme.json describes settings (what the editor offers) and styles (what is applied), merged across four origins and compiled to CSS.","sccId":6,"inCycle":true,"sccSize":23},{"name":"rewrite-and-permalinks","folder":"Presentation","loc":8750,"complexity":9,"type":"code","layer":"Presentation","layerOrder":3,"complexityLabel":"high","files":5,"vendoredLoc":0,"fanIn":5,"fanOut":6,"rules":12,"findings":6,"hooks":15,"functions":10,"purpose":"Two inverse operations: compile a permalink structure into regex rules mapping URLs to query variables, and generate URLs from objects. WordPress's router.","sccId":6,"inCycle":true,"sccSize":23},{"name":"block-supports","folder":"Presentation","loc":6059,"complexity":5,"type":"code","layer":"Presentation","layerOrder":3,"complexityLabel":"medium","files":24,"vendoredLoc":0,"fanIn":2,"fanOut":4,"rules":6,"findings":3,"hooks":2,"functions":4,"purpose":"Cross-cutting block features. A block declares supports in block.json and this module injects the resulting classes and inline styles at render time, so no block implements colour or spacing handling itself.","sccId":6,"inCycle":true,"sccSize":23},{"name":"embeds-oembed","folder":"Presentation","loc":2927,"complexity":5,"type":"code","layer":"Presentation","layerOrder":3,"complexityLabel":"medium","files":5,"vendoredLoc":0,"fanIn":0,"fanOut":5,"rules":8,"findings":4,"hooks":9,"functions":9,"purpose":"Turn a bare URL on its own line into rich embedded content, and expose WordPress's own posts as oEmbed providers.","sccId":9,"inCycle":false,"sccSize":1},{"name":"interactivity-api","folder":"Presentation","loc":2051,"complexity":9,"type":"code","layer":"Presentation","layerOrder":3,"complexityLabel":"high","files":3,"vendoredLoc":0,"fanIn":1,"fanOut":4,"rules":7,"findings":4,"hooks":2,"functions":10,"purpose":"Declarative client-side interactivity driven by data-wp-* HTML attributes, with server-side pre-rendering of directives so the initial HTML is already correct.","sccId":11,"inCycle":false,"sccSize":1},{"name":"rest-api","folder":"Interfaces","loc":42333,"complexity":9,"type":"code","layer":"Interfaces","layerOrder":4,"complexityLabel":"high","files":60,"vendoredLoc":0,"fanIn":2,"fanOut":8,"rules":11,"findings":5,"hooks":12,"functions":8,"purpose":"WordPress's HTTP API. A route registry, a dispatcher with a schema-driven validate/sanitize pipeline, and 49 controllers exposing core entities at /wp-json/.","sccId":13,"inCycle":false,"sccSize":1},{"name":"xmlrpc","folder":"Interfaces","loc":7558,"complexity":9,"type":"code","layer":"Interfaces","layerOrder":4,"complexityLabel":"high","files":4,"vendoredLoc":1219,"fanIn":0,"fanOut":6,"rules":5,"findings":4,"hooks":6,"functions":3,"purpose":"The legacy remote API: 78 methods across five protocol families, predating REST by a decade and still enabled by default.","sccId":14,"inCycle":false,"sccSize":1},{"name":"ai-abilities-connectors","folder":"Interfaces","loc":6727,"complexity":9,"type":"code","layer":"Interfaces","layerOrder":4,"complexityLabel":"high","files":18,"vendoredLoc":16639,"fanIn":0,"fanOut":5,"rules":10,"findings":6,"hooks":3,"functions":8,"purpose":"The newest subsystem: a registry of typed, permission-gated, schema-described abilities that AI agents can discover and invoke, plus a provider-agnostic AI client.","sccId":17,"inCycle":false,"sccSize":1},{"name":"http-api","folder":"Interfaces","loc":3898,"complexity":9,"type":"code","layer":"Interfaces","layerOrder":4,"complexityLabel":"high","files":9,"vendoredLoc":8065,"fanIn":10,"fanOut":3,"rules":13,"findings":6,"hooks":9,"functions":7,"purpose":"Make outbound HTTP requests portably, with a safe variant defending against Server-Side Request Forgery. Underlies updates, oEmbed discovery, feeds, the block directory and every plugin calling a remote service.","sccId":6,"inCycle":true,"sccSize":23},{"name":"feeds","folder":"Interfaces","loc":2847,"complexity":5,"type":"code","layer":"Interfaces","layerOrder":4,"complexityLabel":"medium","files":12,"vendoredLoc":21000,"fanIn":0,"fanOut":6,"rules":6,"findings":3,"hooks":5,"functions":3,"purpose":"Publish content as RSS 2.0, RSS 0.92, RDF and Atom, and consume external feeds via SimplePie.","sccId":15,"inCycle":false,"sccSize":1},{"name":"sitemaps","folder":"Interfaces","loc":1985,"complexity":2,"type":"code","layer":"Interfaces","layerOrder":4,"complexityLabel":"low","files":10,"vendoredLoc":0,"fanIn":0,"fanOut":5,"rules":5,"findings":2,"hooks":8,"functions":3,"purpose":"Generate XML sitemaps for search engines from a small provider-based architecture.","sccId":16,"inCycle":false,"sccSize":1},{"name":"admin-application","folder":"Operations","loc":98733,"complexity":9,"type":"code","layer":"Operations","layerOrder":5,"complexityLabel":"high","files":148,"vendoredLoc":5732,"fanIn":2,"fanOut":8,"rules":8,"findings":4,"hooks":13,"functions":3,"purpose":"The /wp-admin/ application: 95 screen files, 106 shared includes, 30 network screens, 10 per-user screens, plus the menu system, list tables and admin-ajax.","sccId":6,"inCycle":true,"sccSize":23},{"name":"multisite","folder":"Operations","loc":15012,"complexity":9,"type":"code","layer":"Operations","layerOrder":5,"complexityLabel":"high","files":46,"vendoredLoc":0,"fanIn":1,"fanOut":7,"rules":8,"findings":4,"hooks":11,"functions":7,"purpose":"Run many sites from one installation, sharing users and a codebase while separating content.","sccId":6,"inCycle":true,"sccSize":23},{"name":"deprecated-compat","folder":"Operations","loc":11825,"complexity":2,"type":"code","layer":"Operations","layerOrder":5,"complexityLabel":"low","files":15,"vendoredLoc":0,"fanIn":0,"fanOut":1,"rules":6,"findings":4,"hooks":5,"functions":6,"purpose":"Keep code written for WordPress 1.5 working on WordPress 7.2, and polyfill newer PHP functions so core can use modern syntax on PHP 7.4.","sccId":20,"inCycle":false,"sccSize":1},{"name":"updates-and-upgrader","folder":"Operations","loc":11280,"complexity":9,"type":"code","layer":"Operations","layerOrder":5,"complexityLabel":"high","files":7,"vendoredLoc":0,"fanIn":3,"fanOut":6,"rules":9,"findings":4,"hooks":11,"functions":8,"purpose":"Check for, download, verify and install core, plugin, theme and translation updates, and migrate the database schema between versions.","sccId":6,"inCycle":true,"sccSize":23},{"name":"site-health","folder":"Operations","loc":7155,"complexity":5,"type":"code","layer":"Operations","layerOrder":5,"complexityLabel":"medium","files":5,"vendoredLoc":0,"fanIn":0,"fanOut":6,"rules":5,"findings":2,"hooks":4,"functions":3,"purpose":"Run diagnostic tests and surface configuration problems, with a debug-data collector for support.","sccId":19,"inCycle":false,"sccSize":1},{"name":"filesystem-api","folder":"Operations","loc":7030,"complexity":9,"type":"code","layer":"Operations","layerOrder":5,"complexityLabel":"high","files":6,"vendoredLoc":5732,"fanIn":5,"fanOut":3,"rules":11,"findings":4,"hooks":5,"functions":5,"purpose":"Write files portably, including on hosts where PHP cannot write directly and must go through FTP or SSH; plus Ed25519 verification of update packages.","sccId":6,"inCycle":true,"sccSize":23},{"name":"internationalization","folder":"Operations","loc":4455,"complexity":5,"type":"code","layer":"Operations","layerOrder":5,"complexityLabel":"medium","files":10,"vendoredLoc":2321,"fanIn":2,"fanOut":5,"rules":9,"findings":4,"hooks":11,"functions":10,"purpose":"Translate strings, resolve the active locale, and switch locale mid-request.","sccId":6,"inCycle":true,"sccSize":23},{"name":"performance-speculation-view-transitions","folder":"Operations","loc":2310,"complexity":2,"type":"code","layer":"Operations","layerOrder":5,"complexityLabel":"low","files":6,"vendoredLoc":0,"fanIn":0,"fanOut":3,"rules":6,"findings":3,"hooks":3,"functions":6,"purpose":"Modern browser-performance primitives: the Speculation Rules API for prefetch and prerender, plus View Transitions.","sccId":18,"inCycle":false,"sccSize":1},{"name":"cron","folder":"Operations","loc":1556,"complexity":9,"type":"code","layer":"Operations","layerOrder":5,"complexityLabel":"high","files":2,"vendoredLoc":0,"fanIn":4,"fanOut":4,"rules":13,"findings":6,"hooks":10,"functions":12,"purpose":"Schedule deferred and recurring work. WordPress has no daemon; cron is a queue in an option, drained by piggybacking on incoming HTTP requests.","sccId":6,"inCycle":true,"sccSize":23}],"deps":{"nodes":[{"id":"bootstrap-and-load"},{"id":"hooks-plugin-api"},{"id":"database-wpdb"},{"id":"options-and-transients"},{"id":"cache-and-object-cache"},{"id":"metadata"},{"id":"posts-and-post-types"},{"id":"query-and-loop"},{"id":"taxonomy-and-terms"},{"id":"comments"},{"id":"media-and-attachments"},{"id":"embeds-oembed"},{"id":"users-roles-capabilities"},{"id":"authentication-and-sessions"},{"id":"themes-and-templates"},{"id":"rewrite-and-permalinks"},{"id":"script-modules-and-assets"},{"id":"widgets-and-nav-menus"},{"id":"customizer"},{"id":"block-editor"},{"id":"blocks-library"},{"id":"block-supports"},{"id":"global-styles-theme-json"},{"id":"style-engine"},{"id":"html-api"},{"id":"interactivity-api"},{"id":"rest-api"},{"id":"http-api"},{"id":"xmlrpc"},{"id":"feeds"},{"id":"sitemaps"},{"id":"ai-abilities-connectors"},{"id":"cron"},{"id":"internationalization"},{"id":"formatting-and-sanitization"},{"id":"kses-security"},{"id":"error-handling-and-recovery-mode"},{"id":"performance-speculation-view-transitions"},{"id":"admin-application"},{"id":"filesystem-api"},{"id":"updates-and-upgrader"},{"id":"site-health"},{"id":"multisite"},{"id":"deprecated-compat"}],"edges":[{"from":"bootstrap-and-load","to":"database-wpdb","weight":1,"inCycle":false},{"from":"bootstrap-and-load","to":"cache-and-object-cache","weight":1,"inCycle":false},{"from":"bootstrap-and-load","to":"hooks-plugin-api","weight":1,"inCycle":false},{"from":"bootstrap-and-load","to":"error-handling-and-recovery-mode","weight":1,"inCycle":true},{"from":"bootstrap-and-load","to":"options-and-transients","weight":1,"inCycle":true},{"from":"database-wpdb","to":"hooks-plugin-api","weight":1,"inCycle":false},{"from":"options-and-transients","to":"database-wpdb","weight":1,"inCycle":false},{"from":"options-and-transients","to":"cache-and-object-cache","weight":1,"inCycle":false},{"from":"options-and-transients","to":"hooks-plugin-api","weight":1,"inCycle":false},{"from":"options-and-transients","to":"formatting-and-sanitization","weight":1,"inCycle":true},{"from":"metadata","to":"database-wpdb","weight":1,"inCycle":false},{"from":"metadata","to":"cache-and-object-cache","weight":1,"inCycle":false},{"from":"metadata","to":"hooks-plugin-api","weight":1,"inCycle":false},{"from":"posts-and-post-types","to":"database-wpdb","weight":1,"inCycle":false},{"from":"posts-and-post-types","to":"metadata","weight":1,"inCycle":false},{"from":"posts-and-post-types","to":"cache-and-object-cache","weight":1,"inCycle":false},{"from":"posts-and-post-types","to":"hooks-plugin-api","weight":1,"inCycle":false},{"from":"posts-and-post-types","to":"taxonomy-and-terms","weight":1,"inCycle":true},{"from":"posts-and-post-types","to":"users-roles-capabilities","weight":1,"inCycle":true},{"from":"posts-and-post-types","to":"rewrite-and-permalinks","weight":1,"inCycle":true},{"from":"posts-and-post-types","to":"cron","weight":1,"inCycle":true},{"from":"posts-and-post-types","to":"formatting-and-sanitization","weight":1,"inCycle":true},{"from":"query-and-loop","to":"database-wpdb","weight":1,"inCycle":false},{"from":"query-and-loop","to":"posts-and-post-types","weight":1,"inCycle":true},{"from":"query-and-loop","to":"taxonomy-and-terms","weight":1,"inCycle":true},{"from":"query-and-loop","to":"metadata","weight":1,"inCycle":false},{"from":"query-and-loop","to":"cache-and-object-cache","weight":1,"inCycle":false},{"from":"query-and-loop","to":"rewrite-and-permalinks","weight":1,"inCycle":true},{"from":"query-and-loop","to":"users-roles-capabilities","weight":1,"inCycle":true},{"from":"query-and-loop","to":"hooks-plugin-api","weight":1,"inCycle":false},{"from":"taxonomy-and-terms","to":"database-wpdb","weight":1,"inCycle":false},{"from":"taxonomy-and-terms","to":"metadata","weight":1,"inCycle":false},{"from":"taxonomy-and-terms","to":"cache-and-object-cache","weight":1,"inCycle":false},{"from":"taxonomy-and-terms","to":"hooks-plugin-api","weight":1,"inCycle":false},{"from":"taxonomy-and-terms","to":"posts-and-post-types","weight":1,"inCycle":true},{"from":"taxonomy-and-terms","to":"formatting-and-sanitization","weight":1,"inCycle":true},{"from":"comments","to":"database-wpdb","weight":1,"inCycle":false},{"from":"comments","to":"posts-and-post-types","weight":1,"inCycle":false},{"from":"comments","to":"users-roles-capabilities","weight":1,"inCycle":false},{"from":"comments","to":"metadata","weight":1,"inCycle":false},{"from":"comments","to":"cache-and-object-cache","weight":1,"inCycle":false},{"from":"comments","to":"hooks-plugin-api","weight":1,"inCycle":false},{"from":"comments","to":"formatting-and-sanitization","weight":1,"inCycle":false},{"from":"comments","to":"kses-security","weight":1,"inCycle":false},{"from":"media-and-attachments","to":"posts-and-post-types","weight":1,"inCycle":false},{"from":"media-and-attachments","to":"metadata","weight":1,"inCycle":false},{"from":"media-and-attachments","to":"cache-and-object-cache","weight":1,"inCycle":false},{"from":"media-and-attachments","to":"filesystem-api","weight":1,"inCycle":false},{"from":"media-and-attachments","to":"hooks-plugin-api","weight":1,"inCycle":false},{"from":"media-and-attachments","to":"html-api","weight":1,"inCycle":false},{"from":"embeds-oembed","to":"http-api","weight":1,"inCycle":false},{"from":"embeds-oembed","to":"posts-and-post-types","weight":1,"inCycle":false},{"from":"embeds-oembed","to":"cache-and-object-cache","weight":1,"inCycle":false},{"from":"embeds-oembed","to":"hooks-plugin-api","weight":1,"inCycle":false},{"from":"embeds-oembed","to":"formatting-and-sanitization","weight":1,"inCycle":false},{"from":"users-roles-capabilities","to":"database-wpdb","weight":1,"inCycle":false},{"from":"users-roles-capabilities","to":"metadata","weight":1,"inCycle":false},{"from":"users-roles-capabilities","to":"options-and-transients","weight":1,"inCycle":true},{"from":"users-roles-capabilities","to":"hooks-plugin-api","weight":1,"inCycle":false},{"from":"users-roles-capabilities","to":"posts-and-post-types","weight":1,"inCycle":true},{"from":"users-roles-capabilities","to":"multisite","weight":1,"inCycle":true},{"from":"authentication-and-sessions","to":"users-roles-capabilities","weight":1,"inCycle":true},{"from":"authentication-and-sessions","to":"metadata","weight":1,"inCycle":false},{"from":"authentication-and-sessions","to":"options-and-transients","weight":1,"inCycle":true},{"from":"authentication-and-sessions","to":"hooks-plugin-api","weight":1,"inCycle":false},{"from":"authentication-and-sessions","to":"http-api","weight":1,"inCycle":true},{"from":"themes-and-templates","to":"query-and-loop","weight":1,"inCycle":true},{"from":"themes-and-templates","to":"hooks-plugin-api","weight":1,"inCycle":false},{"from":"themes-and-templates","to":"cache-and-object-cache","weight":1,"inCycle":false},{"from":"themes-and-templates","to":"block-editor","weight":1,"inCycle":true},{"from":"themes-and-templates","to":"global-styles-theme-json","weight":1,"inCycle":true},{"from":"themes-and-templates","to":"posts-and-post-types","weight":1,"inCycle":true},{"from":"rewrite-and-permalinks","to":"options-and-transients","weight":1,"inCycle":true},{"from":"rewrite-and-permalinks","to":"query-and-loop","weight":1,"inCycle":true},{"from":"rewrite-and-permalinks","to":"posts-and-post-types","weight":1,"inCycle":true},{"from":"rewrite-and-permalinks","to":"taxonomy-and-terms","weight":1,"inCycle":true},{"from":"rewrite-and-permalinks","to":"hooks-plugin-api","weight":1,"inCycle":false},{"from":"rewrite-and-permalinks","to":"filesystem-api","weight":1,"inCycle":true},{"from":"script-modules-and-assets","to":"hooks-plugin-api","weight":1,"inCycle":false},{"from":"script-modules-and-assets","to":"internationalization","weight":1,"inCycle":true},{"from":"script-modules-and-assets","to":"themes-and-templates","weight":1,"inCycle":true},{"from":"widgets-and-nav-menus","to":"posts-and-post-types","weight":1,"inCycle":false},{"from":"widgets-and-nav-menus","to":"taxonomy-and-terms","weight":1,"inCycle":false},{"from":"widgets-and-nav-menus","to":"metadata","weight":1,"inCycle":false},{"from":"widgets-and-nav-menus","to":"options-and-transients","weight":1,"inCycle":false},{"from":"widgets-and-nav-menus","to":"customizer","weight":1,"inCycle":true},{"from":"widgets-and-nav-menus","to":"hooks-plugin-api","weight":1,"inCycle":false},{"from":"customizer","to":"posts-and-post-types","weight":1,"inCycle":false},{"from":"customizer","to":"options-and-transients","weight":1,"inCycle":false},{"from":"customizer","to":"themes-and-templates","weight":1,"inCycle":false},{"from":"customizer","to":"users-roles-capabilities","weight":1,"inCycle":false},{"from":"customizer","to":"widgets-and-nav-menus","weight":1,"inCycle":true},{"from":"customizer","to":"hooks-plugin-api","weight":1,"inCycle":false},{"from":"block-editor","to":"posts-and-post-types","weight":1,"inCycle":true},{"from":"block-editor","to":"hooks-plugin-api","weight":1,"inCycle":false},{"from":"block-editor","to":"script-modules-and-assets","weight":1,"inCycle":true},{"from":"block-editor","to":"block-supports","weight":1,"inCycle":true},{"from":"block-editor","to":"global-styles-theme-json","weight":1,"inCycle":true},{"from":"block-editor","to":"html-api","weight":1,"inCycle":false},{"from":"block-editor","to":"themes-and-templates","weight":1,"inCycle":true},{"from":"blocks-library","to":"block-editor","weight":1,"inCycle":false},{"from":"blocks-library","to":"block-supports","weight":1,"inCycle":false},{"from":"blocks-library","to":"query-and-loop","weight":1,"inCycle":false},{"from":"blocks-library","to":"posts-and-post-types","weight":1,"inCycle":false},{"from":"blocks-library","to":"comments","weight":1,"inCycle":false},{"from":"blocks-library","to":"taxonomy-and-terms","weight":1,"inCycle":false},{"from":"blocks-library","to":"interactivity-api","weight":1,"inCycle":false},{"from":"block-supports","to":"block-editor","weight":1,"inCycle":true},{"from":"block-supports","to":"style-engine","weight":1,"inCycle":false},{"from":"block-supports","to":"global-styles-theme-json","weight":1,"inCycle":true},{"from":"block-supports","to":"hooks-plugin-api","weight":1,"inCycle":false},{"from":"global-styles-theme-json","to":"posts-and-post-types","weight":1,"inCycle":true},{"from":"global-styles-theme-json","to":"themes-and-templates","weight":1,"inCycle":true},{"from":"global-styles-theme-json","to":"block-editor","weight":1,"inCycle":true},{"from":"global-styles-theme-json","to":"style-engine","weight":1,"inCycle":false},{"from":"global-styles-theme-json","to":"cache-and-object-cache","weight":1,"inCycle":false},{"from":"interactivity-api","to":"html-api","weight":1,"inCycle":false},{"from":"interactivity-api","to":"script-modules-and-assets","weight":1,"inCycle":false},{"from":"interactivity-api","to":"block-editor","weight":1,"inCycle":false},{"from":"interactivity-api","to":"hooks-plugin-api","weight":1,"inCycle":false},{"from":"rest-api","to":"users-roles-capabilities","weight":1,"inCycle":false},{"from":"rest-api","to":"authentication-and-sessions","weight":1,"inCycle":false},{"from":"rest-api","to":"posts-and-post-types","weight":1,"inCycle":false},{"from":"rest-api","to":"taxonomy-and-terms","weight":1,"inCycle":false},{"from":"rest-api","to":"comments","weight":1,"inCycle":false},{"from":"rest-api","to":"metadata","weight":1,"inCycle":false},{"from":"rest-api","to":"hooks-plugin-api","weight":1,"inCycle":false},{"from":"rest-api","to":"http-api","weight":1,"inCycle":false},{"from":"http-api","to":"kses-security","weight":1,"inCycle":true},{"from":"http-api","to":"options-and-transients","weight":1,"inCycle":true},{"from":"http-api","to":"hooks-plugin-api","weight":1,"inCycle":false},{"from":"xmlrpc","to":"authentication-and-sessions","weight":1,"inCycle":false},{"from":"xmlrpc","to":"users-roles-capabilities","weight":1,"inCycle":false},{"from":"xmlrpc","to":"posts-and-post-types","weight":1,"inCycle":false},{"from":"xmlrpc","to":"comments","weight":1,"inCycle":false},{"from":"xmlrpc","to":"media-and-attachments","weight":1,"inCycle":false},{"from":"xmlrpc","to":"http-api","weight":1,"inCycle":false},{"from":"feeds","to":"query-and-loop","weight":1,"inCycle":false},{"from":"feeds","to":"http-api","weight":1,"inCycle":false},{"from":"feeds","to":"kses-security","weight":1,"inCycle":false},{"from":"feeds","to":"options-and-transients","weight":1,"inCycle":false},{"from":"feeds","to":"themes-and-templates","weight":1,"inCycle":false},{"from":"feeds","to":"rewrite-and-permalinks","weight":1,"inCycle":false},{"from":"sitemaps","to":"posts-and-post-types","weight":1,"inCycle":false},{"from":"sitemaps","to":"taxonomy-and-terms","weight":1,"inCycle":false},{"from":"sitemaps","to":"users-roles-capabilities","weight":1,"inCycle":false},{"from":"sitemaps","to":"rewrite-and-permalinks","weight":1,"inCycle":false},{"from":"sitemaps","to":"query-and-loop","weight":1,"inCycle":false},{"from":"ai-abilities-connectors","to":"rest-api","weight":1,"inCycle":false},{"from":"ai-abilities-connectors","to":"http-api","weight":1,"inCycle":false},{"from":"ai-abilities-connectors","to":"users-roles-capabilities","weight":1,"inCycle":false},{"from":"ai-abilities-connectors","to":"cache-and-object-cache","weight":1,"inCycle":false},{"from":"ai-abilities-connectors","to":"hooks-plugin-api","weight":1,"inCycle":false},{"from":"cron","to":"options-and-transients","weight":1,"inCycle":true},{"from":"cron","to":"http-api","weight":1,"inCycle":true},{"from":"cron","to":"hooks-plugin-api","weight":1,"inCycle":false},{"from":"cron","to":"cache-and-object-cache","weight":1,"inCycle":false},{"from":"internationalization","to":"options-and-transients","weight":1,"inCycle":true},{"from":"internationalization","to":"users-roles-capabilities","weight":1,"inCycle":true},{"from":"internationalization","to":"hooks-plugin-api","weight":1,"inCycle":false},{"from":"internationalization","to":"filesystem-api","weight":1,"inCycle":true},{"from":"internationalization","to":"script-modules-and-assets","weight":1,"inCycle":true},{"from":"formatting-and-sanitization","to":"kses-security","weight":1,"inCycle":true},{"from":"formatting-and-sanitization","to":"hooks-plugin-api","weight":1,"inCycle":false},{"from":"formatting-and-sanitization","to":"internationalization","weight":1,"inCycle":true},{"from":"kses-security","to":"formatting-and-sanitization","weight":1,"inCycle":true},{"from":"kses-security","to":"users-roles-capabilities","weight":1,"inCycle":true},{"from":"kses-security","to":"hooks-plugin-api","weight":1,"inCycle":false},{"from":"error-handling-and-recovery-mode","to":"bootstrap-and-load","weight":1,"inCycle":true},{"from":"error-handling-and-recovery-mode","to":"options-and-transients","weight":1,"inCycle":true},{"from":"error-handling-and-recovery-mode","to":"hooks-plugin-api","weight":1,"inCycle":false},{"from":"error-handling-and-recovery-mode","to":"authentication-and-sessions","weight":1,"inCycle":true},{"from":"performance-speculation-view-transitions","to":"rewrite-and-permalinks","weight":1,"inCycle":false},{"from":"performance-speculation-view-transitions","to":"script-modules-and-assets","weight":1,"inCycle":false},{"from":"performance-speculation-view-transitions","to":"hooks-plugin-api","weight":1,"inCycle":false},{"from":"admin-application","to":"authentication-and-sessions","weight":1,"inCycle":true},{"from":"admin-application","to":"users-roles-capabilities","weight":1,"inCycle":true},{"from":"admin-application","to":"bootstrap-and-load","weight":1,"inCycle":true},{"from":"admin-application","to":"cron","weight":1,"inCycle":true},{"from":"admin-application","to":"options-and-transients","weight":1,"inCycle":true},{"from":"admin-application","to":"hooks-plugin-api","weight":1,"inCycle":false},{"from":"admin-application","to":"filesystem-api","weight":1,"inCycle":true},{"from":"admin-application","to":"updates-and-upgrader","weight":1,"inCycle":true},{"from":"filesystem-api","to":"http-api","weight":1,"inCycle":true},{"from":"filesystem-api","to":"hooks-plugin-api","weight":1,"inCycle":false},{"from":"filesystem-api","to":"updates-and-upgrader","weight":1,"inCycle":true},{"from":"updates-and-upgrader","to":"http-api","weight":1,"inCycle":true},{"from":"updates-and-upgrader","to":"filesystem-api","weight":1,"inCycle":true},{"from":"updates-and-upgrader","to":"options-and-transients","weight":1,"inCycle":true},{"from":"updates-and-upgrader","to":"database-wpdb","weight":1,"inCycle":false},{"from":"updates-and-upgrader","to":"cron","weight":1,"inCycle":true},{"from":"updates-and-upgrader","to":"bootstrap-and-load","weight":1,"inCycle":true},{"from":"site-health","to":"http-api","weight":1,"inCycle":false},{"from":"site-health","to":"cron","weight":1,"inCycle":false},{"from":"site-health","to":"updates-and-upgrader","weight":1,"inCycle":false},{"from":"site-health","to":"rest-api","weight":1,"inCycle":false},{"from":"site-health","to":"admin-application","weight":1,"inCycle":false},{"from":"site-health","to":"database-wpdb","weight":1,"inCycle":false},{"from":"multisite","to":"database-wpdb","weight":1,"inCycle":false},{"from":"multisite","to":"cache-and-object-cache","weight":1,"inCycle":false},{"from":"multisite","to":"users-roles-capabilities","weight":1,"inCycle":true},{"from":"multisite","to":"options-and-transients","weight":1,"inCycle":true},{"from":"multisite","to":"bootstrap-and-load","weight":1,"inCycle":true},{"from":"multisite","to":"posts-and-post-types","weight":1,"inCycle":true},{"from":"multisite","to":"admin-application","weight":1,"inCycle":true},{"from":"deprecated-compat","to":"hooks-plugin-api","weight":1,"inCycle":false}]}}</script>
+<script>
+(function () {
+"use strict";
+
+/* ------------------------------------------------------------------ *
+ * Configuration
+ * ------------------------------------------------------------------ */
+var CFG = {
+  BG: 0x0a0a12,
+  FOG_NEAR: 340, FOG_FAR: 1500,
+  REPULSION: 800, ATTRACTION: 0.04, CENTER_GRAVITY: 0.002, DAMPING: 0.85,
+  MAX_SIM_FRAMES: 420, RESTART_FRAMES: 120,
+  NODE_MIN: 3.2, NODE_MAX: 15, NODE_SCALE: 1,
+  EDGE_COLOR: 0x4a6fa5, EDGE_CYCLE: 0xff3b30, EDGE_OPACITY: 0.26, EDGE_CYCLE_OPACITY: 0.5,
+  DIM_OPACITY: 0.05, LABEL_DIST: 300, MAX_LABELS: 26,
+  CYCLE_COLOR: 0xff6b35,
+  LAYERS: [
+    { name: "Foundation",   color: 0xa855f7 },
+    { name: "Kernel",       color: 0x38bdf8 },
+    { name: "Domain",       color: 0x34d399 },
+    { name: "Presentation", color: 0xfbbf24 },
+    { name: "Interfaces",   color: 0xfb7185 },
+    { name: "Operations",   color: 0x94a3b8 }
+  ],
+  HARD_NODE_LIMIT: 5000
+};
+var LAYER_COLOR = {};
+CFG.LAYERS.forEach(function (l) { LAYER_COLOR[l.name] = l.color; });
+
+/* ------------------------------------------------------------------ *
+ * Error and toast helpers  (ERR-01 .. ERR-10)
+ * ------------------------------------------------------------------ */
+function showError(title, msg) {
+  var e = document.getElementById("err");
+  document.getElementById("err-t").textContent = title;
+  document.getElementById("err-m").textContent = msg;
+  e.style.display = "flex";
+  var l = document.getElementById("loader"); if (l) l.style.display = "none";
+}
+var toastTimer = null;
+function showToast(msg) {
+  var t = document.getElementById("toast");
+  t.textContent = msg; t.style.display = "block";
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(function () { t.style.display = "none"; }, 2600);
+}
+
+/* ERR-01: Three.js did not load */
+if (typeof THREE === "undefined") {
+  showError("Three.js did not load",
+    "This visualization needs the Three.js library. Check that assets/vendor/three.min.js sits next to this file, then reload.");
+  return;
+}
+/* ERR-02: no WebGL */
+(function () {
+  try {
+    var c = document.createElement("canvas");
+    if (!(window.WebGLRenderingContext && (c.getContext("webgl") || c.getContext("experimental-webgl")))) {
+      throw new Error("no webgl");
+    }
+  } catch (e) {
+    showError("WebGL is not available",
+      "Your browser or graphics driver does not support WebGL, which this 3D scene requires. Try a different browser, or enable hardware acceleration.");
+    throw e;
+  }
+})();
+
+/* ------------------------------------------------------------------ *
+ * Data: window.RV_DATA when run by the Docs team, otherwise inline.
+ * Never fetch(), because that breaks under file://
+ * ------------------------------------------------------------------ */
+var DATA;
+try {
+  if (window.RV_DATA && window.RV_DATA.modules) {
+    DATA = { modules: window.RV_DATA.modules, deps: window.RV_DATA.deps };
+  } else {
+    DATA = JSON.parse(document.getElementById("data").textContent);
+  }
+} catch (e) {                                            /* ERR-03 */
+  showError("The data could not be read",
+    "The embedded JSON is malformed, so the graph cannot be built. " + e.message);
+  throw e;
+}
+var MODULES = (DATA && DATA.modules) || [];
+var RAWEDGES = (DATA && DATA.deps && DATA.deps.edges) || [];
+
+if (!MODULES.length) {                                   /* ERR-04 */
+  showError("Nothing to display",
+    "No modules were found in the data, so there is no graph to draw.");
+  return;
+}
+if (MODULES.length > CFG.HARD_NODE_LIMIT) {              /* ERR-05 */
+  showError("Too many nodes",
+    MODULES.length + " nodes exceeds the safe limit of " + CFG.HARD_NODE_LIMIT +
+    ". Group the modules by folder before visualizing.");
+  return;
+}
+
+/* ------------------------------------------------------------------ *
+ * Graph model
+ * ------------------------------------------------------------------ */
+var byName = {};
+var maxLoc = 1;
+MODULES.forEach(function (m) { if (m.loc > maxLoc) maxLoc = m.loc; });
+
+var nodes = MODULES.map(function (m, i) {
+  var t = Math.sqrt(m.loc / maxLoc);
+  var n = {
+    i: i, id: m.name, m: m,
+    x: (Math.random() - 0.5) * 260,
+    y: (Math.random() - 0.5) * 200,
+    z: (Math.random() - 0.5) * 260,
+    vx: 0, vy: 0, vz: 0, fx: 0, fy: 0, fz: 0,
+    mass: 1 + m.loc / 6000,
+    radius: CFG.NODE_MIN + t * (CFG.NODE_MAX - CFG.NODE_MIN),
+    color: LAYER_COLOR[m.layer] !== undefined ? LAYER_COLOR[m.layer] : 0x888888,
+    visible: true
+  };
+  byName[m.name] = n;
+  return n;
+});
+
+var edges = [];
+RAWEDGES.forEach(function (e) {
+  var s = byName[e.from], t = byName[e.to];
+  if (s && t) edges.push({ s: s, t: t, w: e.weight || 1, cyc: !!e.inCycle });
+});
+
+var neighbours = {};
+nodes.forEach(function (n) { neighbours[n.id] = {}; });
+edges.forEach(function (e) { neighbours[e.s.id][e.t.id] = 1; neighbours[e.t.id][e.s.id] = 1; });
+
+var cyclicEdgeCount = edges.filter(function (e) { return e.cyc; }).length;
+var totalLoc = MODULES.reduce(function (a, m) { return a + m.loc; }, 0);
+var biggestScc = 0;
+MODULES.forEach(function (m) { if (m.sccSize > biggestScc) biggestScc = m.sccSize; });
+
+/* ------------------------------------------------------------------ *
+ * Scene, camera, renderer, lighting  (THREE_PATTERNS)
+ * ------------------------------------------------------------------ */
+var canvas = document.getElementById("scene");
+var scene = new THREE.Scene();
+scene.background = new THREE.Color(CFG.BG);
+scene.fog = new THREE.Fog(CFG.BG, CFG.FOG_NEAR, CFG.FOG_FAR);
+
+var camera = new THREE.PerspectiveCamera(52, window.innerWidth / window.innerHeight, 0.1, 4000);
+var SPREAD = 60 * Math.sqrt(nodes.length);        /* camera distance derives from scene size */
+camera.position.set(SPREAD * 0.75, SPREAD * 0.62, SPREAD * 1.05);
+camera.lookAt(0, 0, 0);
+
+var renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+scene.add(new THREE.AmbientLight(0xffffff, 0.34));
+var hemi = new THREE.HemisphereLight(0xddeeff, 0x202028, 0.55);
+hemi.position.set(0, 260, 0);
+scene.add(hemi);
+var dir = new THREE.DirectionalLight(0xffffff, 0.9);
+dir.position.set(160, 300, 200);
+dir.castShadow = true;
+dir.shadow.mapSize.set(2048, 2048);
+dir.shadow.camera.left = -500; dir.shadow.camera.right = 500;
+dir.shadow.camera.top = 500;   dir.shadow.camera.bottom = -500;
+scene.add(dir);
+
+var controls = new THREE.OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+controls.dampingFactor = 0.08;
+controls.minDistance = 40;
+controls.maxDistance = 2200;
+
+/* ERR-09: WebGL context lost */
+canvas.addEventListener("webglcontextlost", function (ev) {
+  ev.preventDefault();
+  showToast("The graphics context was lost. Reload the page to continue.");
+});
+
+/* ------------------------------------------------------------------ *
+ * Geometry: 44 nodes, so individual meshes rather than an InstancedMesh
+ * (the reference sets the instancing threshold at 50 nodes). Individual
+ * meshes give per-node opacity, which the click-to-isolate mode needs.
+ * ------------------------------------------------------------------ */
+var sphereGeo = new THREE.SphereGeometry(1, 22, 16);
+var nodeGroup = new THREE.Group();
+scene.add(nodeGroup);
+
+nodes.forEach(function (n) {
+  var mat = new THREE.MeshStandardMaterial({
+    color: n.color, roughness: 0.42, metalness: 0.12,
+    emissive: new THREE.Color(n.color).multiplyScalar(0.16),
+    transparent: true, opacity: 1
+  });
+  var mesh = new THREE.Mesh(sphereGeo, mat);
+  mesh.castShadow = true;
+  mesh.receiveShadow = true;
+  mesh.userData.node = n;
+  n.mesh = mesh;
+  n.baseColor = new THREE.Color(n.color);
+  nodeGroup.add(mesh);
+});
+
+/* Edges: one LineSegments for normal, one for cyclic, so each gets its own colour */
+function makeLines(color, opacity) {
+  var geo = new THREE.BufferGeometry();
+  geo.setAttribute("position", new THREE.BufferAttribute(new Float32Array(edges.length * 6), 3));
+  var mat = new THREE.LineBasicMaterial({ color: color, transparent: true, opacity: opacity });
+  var ls = new THREE.LineSegments(geo, mat);
+  ls.frustumCulled = false;
+  scene.add(ls);
+  return ls;
+}
+var linesNormal = makeLines(CFG.EDGE_COLOR, CFG.EDGE_OPACITY);
+var linesCycle  = makeLines(CFG.EDGE_CYCLE, CFG.EDGE_CYCLE_OPACITY);
+
+/* Direction arrows: cones near the target. 206 of them, so InstancedMesh. */
+var coneGeo = new THREE.ConeGeometry(1.5, 5, 7);
+coneGeo.translate(0, -2.5, 0);
+var coneMat = new THREE.MeshBasicMaterial({ color: 0x8fb4e0, transparent: true, opacity: 0.55 });
+var arrows = new THREE.InstancedMesh(coneGeo, coneMat, edges.length);
+arrows.frustumCulled = false;
+scene.add(arrows);
+var dummy = new THREE.Object3D();
+var upVec = new THREE.Vector3(0, 1, 0);
+var dirVec = new THREE.Vector3();
+
+/* ------------------------------------------------------------------ *
+ * Force simulation
+ * ------------------------------------------------------------------ */
+var simFrame = 0, frozen = false;
+
+function simulationStep() {
+  var i, j, n;
+  for (i = 0; i < nodes.length; i++) { n = nodes[i]; n.fx = 0; n.fy = 0; n.fz = 0; }
+
+  for (i = 0; i < nodes.length; i++) {
+    for (j = i + 1; j < nodes.length; j++) {
+      var a = nodes[i], b = nodes[j];
+      var dx = b.x - a.x, dy = b.y - a.y, dz = b.z - a.z;
+      var d2 = dx * dx + dy * dy + dz * dz + 0.1;
+      var d = Math.sqrt(d2);
+      var f = CFG.REPULSION / d2;
+      var fx = (dx / d) * f, fy = (dy / d) * f, fz = (dz / d) * f;
+      a.fx -= fx; a.fy -= fy; a.fz -= fz;
+      b.fx += fx; b.fy += fy; b.fz += fz;
+    }
+  }
+  edges.forEach(function (e) {
+    var dx = e.t.x - e.s.x, dy = e.t.y - e.s.y, dz = e.t.z - e.s.z;
+    var f = CFG.ATTRACTION * e.w;
+    e.s.fx += dx * f; e.s.fy += dy * f; e.s.fz += dz * f;
+    e.t.fx -= dx * f; e.t.fy -= dy * f; e.t.fz -= dz * f;
+  });
+  nodes.forEach(function (n2) {
+    n2.fx -= n2.x * CFG.CENTER_GRAVITY;
+    n2.fy -= n2.y * CFG.CENTER_GRAVITY;
+    n2.fz -= n2.z * CFG.CENTER_GRAVITY;
+    n2.vx = (n2.vx + n2.fx / n2.mass) * CFG.DAMPING;
+    n2.vy = (n2.vy + n2.fy / n2.mass) * CFG.DAMPING;
+    n2.vz = (n2.vz + n2.fz / n2.mass) * CFG.DAMPING;
+    if (!isFinite(n2.vx) || !isFinite(n2.vy) || !isFinite(n2.vz)) {   /* ERR-08 guard */
+      n2.vx = n2.vy = n2.vz = 0;
+    }
+    n2.x += n2.vx; n2.y += n2.vy; n2.z += n2.vz;
+  });
+}
+
+function syncNodes() {
+  nodes.forEach(function (n) {
+    n.mesh.position.set(n.x, n.y, n.z);
+    var r = n.radius * CFG.NODE_SCALE;
+    n.mesh.scale.set(r, r, r);
+  });
+}
+
+function syncEdges() {
+  var pn = linesNormal.geometry.attributes.position.array;
+  var pc = linesCycle.geometry.attributes.position.array;
+  var cn = 0, cc = 0, shown = 0;
+  var only = state.onlyCycles, hi = state.highlightCycles;
+
+  edges.forEach(function (e, idx) {
+    var vis = e.s.visible && e.t.visible && (!only || e.cyc);
+    if (isolated) {
+      vis = vis && (e.s.id === isolated || e.t.id === isolated);
+    }
+    if (!vis) return;
+    var arr, o;
+    if (e.cyc && hi) { arr = pc; o = cc; cc += 6; } else { arr = pn; o = cn; cn += 6; }
+    arr[o] = e.s.x; arr[o + 1] = e.s.y; arr[o + 2] = e.s.z;
+    arr[o + 3] = e.t.x; arr[o + 4] = e.t.y; arr[o + 5] = e.t.z;
+
+    if (state.showArrows && shown < edges.length) {
+      dirVec.set(e.s.x - e.t.x, e.s.y - e.t.y, e.s.z - e.t.z).normalize();
+      var back = e.t.radius * CFG.NODE_SCALE + 2.5;
+      dummy.position.set(e.t.x + dirVec.x * back, e.t.y + dirVec.y * back, e.t.z + dirVec.z * back);
+      dummy.quaternion.setFromUnitVectors(upVec, dirVec.clone().negate());
+      dummy.scale.set(1, 1, 1);
+      dummy.updateMatrix();
+      arrows.setMatrixAt(shown, dummy.matrix);
+      shown++;
+    }
+  });
+
+  for (var k = cn; k < pn.length; k++) pn[k] = 0;
+  for (var k2 = cc; k2 < pc.length; k2++) pc[k2] = 0;
+  linesNormal.geometry.attributes.position.needsUpdate = true;
+  linesCycle.geometry.attributes.position.needsUpdate = true;
+  linesNormal.geometry.setDrawRange(0, cn / 3);
+  linesCycle.geometry.setDrawRange(0, cc / 3);
+
+  dummy.scale.set(0, 0, 0); dummy.updateMatrix();
+  for (var a2 = shown; a2 < edges.length; a2++) arrows.setMatrixAt(a2, dummy.matrix);
+  arrows.count = edges.length;
+  arrows.instanceMatrix.needsUpdate = true;
+  arrows.visible = state.showArrows;
+}
+
+/* ------------------------------------------------------------------ *
+ * Appearance: layer colour, cycle highlight, isolation dimming
+ * ------------------------------------------------------------------ */
+var isolated = null;
+
+function applyAppearance() {
+  nodes.forEach(function (n) {
+    var mat = n.mesh.material;
+    var inCycle = n.m.inCycle && state.highlightCycles;
+    mat.color.set(inCycle ? CFG.CYCLE_COLOR : n.baseColor);
+    mat.emissive.copy(mat.color).multiplyScalar(inCycle ? 0.3 : 0.16);
+
+    var vis = n.visible;
+    var dim = false;
+    if (isolated) {
+      dim = (n.id !== isolated) && !neighbours[isolated][n.id];
+    }
+    n.mesh.visible = vis;
+    mat.opacity = dim ? CFG.DIM_OPACITY : 1;
+    mat.needsUpdate = true;
+  });
+}
+
+/* ------------------------------------------------------------------ *
+ * Labels: HTML overlay projected from 3D. CSS2DRenderer lives in
+ * examples/jsm, which this skill does not load, so labels are plain divs.
+ * ------------------------------------------------------------------ */
+var labelHost = document.getElementById("labels");
+nodes.forEach(function (n) {
+  var d = document.createElement("div");
+  d.className = "lbl";
+  d.textContent = n.m.name;
+  d.style.display = "none";
+  labelHost.appendChild(d);
+  n.label = d;
+});
+var proj = new THREE.Vector3();
+
+function syncLabels() {
+  var w = window.innerWidth, h = window.innerHeight;
+  var ranked = nodes.slice().sort(function (a, b) { return b.m.fanIn - a.m.fanIn; });
+  var budget = state.showLabels ? nodes.length : CFG.MAX_LABELS;
+  var used = 0;
+  ranked.forEach(function (n) {
+    var show = n.mesh.visible && n.mesh.material.opacity > 0.4;
+    if (show && !state.showLabels) {
+      var dist = camera.position.distanceTo(n.mesh.position);
+      show = (dist < CFG.LABEL_DIST + n.m.fanIn * 22) || n.id === hoveredId || n.id === isolated;
+    }
+    if (show && used >= budget && n.id !== hoveredId && n.id !== isolated) show = false;
+    if (!show) { n.label.style.display = "none"; return; }
+    proj.copy(n.mesh.position).project(camera);
+    if (proj.z > 1) { n.label.style.display = "none"; return; }
+    used++;
+    n.label.style.display = "block";
+    n.label.style.left = ((proj.x * 0.5 + 0.5) * w) + "px";
+    n.label.style.top = ((-proj.y * 0.5 + 0.5) * h - n.radius * CFG.NODE_SCALE - 10) + "px";
+    n.label.classList.toggle("hot", !!(n.m.inCycle && state.highlightCycles));
+  });
+}
+
+/* ------------------------------------------------------------------ *
+ * Hover, click, double click
+ * ------------------------------------------------------------------ */
+var ray = new THREE.Raycaster();
+var pointer = new THREE.Vector2();
+var tip = document.getElementById("tip");
+var hoveredId = null;
+
+function pick(ev) {
+  var r = renderer.domElement.getBoundingClientRect();
+  pointer.x = ((ev.clientX - r.left) / r.width) * 2 - 1;
+  pointer.y = -((ev.clientY - r.top) / r.height) * 2 + 1;
+  ray.setFromCamera(pointer, camera);
+  var hits = ray.intersectObjects(nodeGroup.children, false);
+  for (var i = 0; i < hits.length; i++) {
+    if (hits[i].object.visible && hits[i].object.material.opacity > 0.4) return hits[i].object.userData.node;
+  }
+  return null;
+}
+
+renderer.domElement.addEventListener("pointermove", function (ev) {
+  var n = pick(ev);
+  if (!n) { hoveredId = null; tip.style.display = "none"; document.body.style.cursor = "default"; return; }
+  hoveredId = n.id;
+  document.body.style.cursor = "pointer";
+  var m = n.m;
+  tip.innerHTML =
+    '<div class="n">' + m.name + "</div>" +
+    '<div class="p">' + m.purpose + "</div>" +
+    '<div class="g">' +
+      "<span>Layer</span><span>" + m.layer + "</span>" +
+      "<span>Lines of code</span><span>" + m.loc.toLocaleString() + "</span>" +
+      "<span>Files</span><span>" + m.files + "</span>" +
+      "<span>Complexity</span><span>" + m.complexityLabel + "</span>" +
+      "<span>Depended on by</span><span>" + m.fanIn + "</span>" +
+      "<span>Depends on</span><span>" + m.fanOut + "</span>" +
+      "<span>Business rules</span><span>" + m.rules + "</span>" +
+      "<span>Extension points</span><span>" + m.hooks + "</span>" +
+    "</div>" +
+    (m.inCycle
+      ? '<div class="cyc">Inside the ' + m.sccSize + " module cycle. Every module in that set can reach every other one.</div>"
+      : (m.fanIn === 0 ? '<div class="cyc">Terminal module. Nothing depends on it.</div>' : ""));
+  tip.style.display = "block";
+  var tw = tip.offsetWidth, th = tip.offsetHeight;
+  var x = ev.clientX + 16, y = ev.clientY + 16;
+  if (x + tw > window.innerWidth - 310) x = ev.clientX - tw - 16;
+  if (y + th > window.innerHeight - 10) y = ev.clientY - th - 16;
+  tip.style.left = x + "px"; tip.style.top = y + "px";
+});
+
+renderer.domElement.addEventListener("pointerleave", function () {
+  hoveredId = null; tip.style.display = "none";
+});
+
+renderer.domElement.addEventListener("click", function (ev) {
+  var n = pick(ev);
+  if (!n) { isolated = null; applyAppearance(); showToast("Isolation cleared"); return; }
+  isolated = (isolated === n.id) ? null : n.id;
+  applyAppearance();
+  showToast(isolated ? ("Isolated " + n.id + ". Click empty space to clear.") : "Isolation cleared");
+});
+
+renderer.domElement.addEventListener("dblclick", function (ev) {
+  var n = pick(ev);
+  if (!n) return;
+  controls.target.set(n.x, n.y, n.z);
+  var off = 90 + n.radius * 4;
+  camera.position.set(n.x + off, n.y + off * 0.6, n.z + off);
+});
+
+/* ------------------------------------------------------------------ *
+ * Sidebar
+ * ------------------------------------------------------------------ */
+var state = {
+  repulsion: CFG.REPULSION, attraction: CFG.ATTRACTION, nodeScale: 1,
+  layerFilter: "all", highlightCycles: true, showLabels: false,
+  showArrows: true, onlyCycles: false
+};
+var LS = "arq3d.";
+
+function reheat(frames) { simFrame = Math.max(0, CFG.MAX_SIM_FRAMES - (frames || CFG.RESTART_FRAMES)); frozen = false; }
+
+function applyParam(p, v) {
+  state[p] = v;
+  if (p === "repulsion")  { CFG.REPULSION = v;  document.getElementById("v-rep").textContent = v; reheat(); }
+  if (p === "attraction") { CFG.ATTRACTION = v; document.getElementById("v-att").textContent = v.toFixed(2); reheat(); }
+  if (p === "nodeScale")  { CFG.NODE_SCALE = v; document.getElementById("v-scl").textContent = v.toFixed(1); syncNodes(); }
+  if (p === "layerFilter") {
+    nodes.forEach(function (n) { n.visible = (v === "all" || n.m.layer === v); });
+    isolated = null; applyAppearance();
+  }
+  if (p === "highlightCycles" || p === "onlyCycles") applyAppearance();
+}
+
+function wire(el) {
+  var p = el.dataset.param;
+  var isCheck = el.type === "checkbox";
+  var read = function () { return isCheck ? el.checked : parseFloat(el.value); };
+  var saved = null;
+  try { saved = localStorage.getItem(LS + p); } catch (e) { saved = null; }   /* ERR-10 */
+  if (saved !== null) {
+    try {
+      if (isCheck) el.checked = saved === "true";
+      else if (el.tagName === "SELECT") el.value = saved;
+      else el.value = saved;
+    } catch (e) { /* ignore a corrupt value */ }
+  }
+  var handler = function () {
+    var v = (el.tagName === "SELECT") ? el.value : read();
+    applyParam(p, v);
+    try { localStorage.setItem(LS + p, String(v)); } catch (e) {}
+  };
+  el.addEventListener(el.tagName === "SELECT" || isCheck ? "change" : "input", handler);
+  return handler;
+}
+
+/* Build the layer filter and legend from the data */
+var sel = document.getElementById("flt");
+var legend = document.getElementById("legend");
+var counts = {};
+MODULES.forEach(function (m) { counts[m.layer] = (counts[m.layer] || 0) + 1; });
+CFG.LAYERS.forEach(function (l) {
+  if (!counts[l.name]) return;
+  var o = document.createElement("option");
+  o.value = l.name; o.textContent = l.name + " (" + counts[l.name] + ")";
+  sel.appendChild(o);
+  var row = document.createElement("div");
+  row.className = "legend";
+  row.innerHTML = '<span class="sw" style="background:#' + l.color.toString(16).padStart(6, "0") + '"></span>' +
+                  "<span>" + l.name + "</span>";
+  legend.appendChild(row);
+});
+var rowC = document.createElement("div");
+rowC.className = "legend";
+rowC.innerHTML = '<span class="sw" style="background:#ff6b35"></span><span>Inside a dependency cycle</span>';
+legend.appendChild(rowC);
+
+var handlers = [];
+["rep", "att", "scl", "flt", "cyc", "lbl", "arw", "onlyc"].forEach(function (id) {
+  handlers.push(wire(document.getElementById(id)));
+});
+handlers.forEach(function (h) { h(); });
+
+document.getElementById("s-nodes").textContent = nodes.length;
+document.getElementById("s-edges").textContent = edges.length;
+document.getElementById("s-cyc").textContent = cyclicEdgeCount;
+document.getElementById("s-loc").textContent = totalLoc.toLocaleString();
+
+document.getElementById("freeze").addEventListener("click", function () {
+  frozen = !frozen;
+  this.textContent = frozen ? "Resume simulation" : "Freeze simulation";
+  showToast(frozen ? "Simulation frozen" : "Simulation resumed");
+});
+
+document.getElementById("reset").addEventListener("click", function () {
+  try { Object.keys(state).forEach(function (k) { localStorage.removeItem(LS + k); }); } catch (e) {}
+  isolated = null;
+  nodes.forEach(function (n) {
+    n.x = (Math.random() - 0.5) * 260; n.y = (Math.random() - 0.5) * 200; n.z = (Math.random() - 0.5) * 260;
+    n.vx = n.vy = n.vz = 0; n.visible = true;
+  });
+  document.getElementById("rep").value = 800;
+  document.getElementById("att").value = 0.04;
+  document.getElementById("scl").value = 1;
+  document.getElementById("flt").value = "all";
+  document.getElementById("cyc").checked = true;
+  document.getElementById("lbl").checked = false;
+  document.getElementById("arw").checked = true;
+  document.getElementById("onlyc").checked = false;
+  handlers.forEach(function (h) { h(); });
+  controls.target.set(0, 0, 0);
+  camera.position.set(SPREAD * 0.75, SPREAD * 0.62, SPREAD * 1.05);
+  reheat(CFG.MAX_SIM_FRAMES);
+  showToast("View and settings reset");
+});
+
+document.getElementById("export-png").addEventListener("click", function () {
+  renderer.render(scene, camera);
+  renderer.domElement.toBlob(function (blob) {
+    if (!blob) { showToast("The export failed in this browser"); return; }
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement("a");
+    a.href = url; a.download = "wordpress-dependency-graph-3d.png"; a.click();
+    URL.revokeObjectURL(url);
+    showToast("PNG exported");
+  });
+});
+
+/* ------------------------------------------------------------------ *
+ * Footer note, resize, dispose
+ * ------------------------------------------------------------------ */
+document.getElementById("foot").innerHTML =
+  "Drag to orbit, scroll to zoom, hover for detail. Click a node to isolate it, double click to focus.<br>" +
+  nodes.length + " modules and " + edges.length + " dependencies, of which " + cyclicEdgeCount +
+  " sit inside a cycle. Largest strongly connected component: " + biggestScc + " modules. " +
+  "Node radius is lines of code, colour is architectural layer. Individual meshes were used rather than " +
+  "an InstancedMesh because the node count is below the instancing threshold of 50.";
+
+window.addEventListener("resize", function () {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+});
+
+window.addEventListener("beforeunload", function () {
+  sphereGeo.dispose(); coneGeo.dispose();
+  nodes.forEach(function (n) { n.mesh.material.dispose(); });
+  linesNormal.geometry.dispose(); linesNormal.material.dispose();
+  linesCycle.geometry.dispose(); linesCycle.material.dispose();
+  coneMat.dispose();
+  renderer.dispose();
+});
+
+/* ------------------------------------------------------------------ *
+ * Render loop
+ * ------------------------------------------------------------------ */
+var firstFrame = true, slowFrames = 0, last = performance.now();
+
+function tick() {
+  requestAnimationFrame(tick);
+  var now = performance.now(), dt = now - last; last = now;
+
+  if (!frozen && simFrame < CFG.MAX_SIM_FRAMES) {
+    simulationStep();
+    syncNodes();
+    simFrame++;
+    if (simFrame === CFG.MAX_SIM_FRAMES) frozen = true;
+  }
+  syncEdges();
+  controls.update();
+  renderer.render(scene, camera);
+  syncLabels();
+
+  if (!firstFrame && dt > 34) { slowFrames++; } else if (dt < 25) { slowFrames = 0; }
+  if (slowFrames === 90) {                                   /* ERR-06 */
+    showToast("Frame rate is low. Turning off shadows to recover.");
+    renderer.shadowMap.enabled = false;
+    dir.castShadow = false;
+    nodes.forEach(function (n) { n.mesh.castShadow = false; n.mesh.receiveShadow = false; });
+    slowFrames++;
+  }
+  if (firstFrame) {
+    firstFrame = false;
+    var l = document.getElementById("loader");
+    l.style.transition = "opacity .35s";
+    l.style.opacity = "0";
+    setTimeout(function () { l.style.display = "none"; }, 380);
+  }
+}
+applyAppearance();
+syncNodes();
+tick();
+
+})();
+</script>
+</body>
+</html>
