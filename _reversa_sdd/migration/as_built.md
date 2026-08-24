@@ -126,6 +126,13 @@ coverage found more defects per hour than any other activity in the project.
 
 ## Open, and honest about it
 
+> ▶ **If you are the next agent picking this up, read `../NEXT_AGENT_BRIEF.md`.** It turns the
+> table below into an evidence-backed attack plan for the three live risks, including four
+> security defects (one critical, with a working exploit), six confirmed user-visible bugs the
+> green gate cannot see, and a measured performance backlog. It also lists the traps that
+> will otherwise cost you hours.
+
+
 | # | Item | Note |
 |---|---|---|
 | ~~LICENCE~~ | ✅ **Decided 2026-08-24: GPL v2 or later**, the same terms as WordPress, which is also what the bundled `@wordpress/*` packages require. `_reversa_forward/rebuild/LICENSE` carries the verbatim GPLv2 text (copied from the oracle's own `license.txt`) behind a header naming this project and the work it derives from. |

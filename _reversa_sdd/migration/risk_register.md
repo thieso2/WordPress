@@ -518,6 +518,12 @@ RISK-012) are organizational and have no technical mitigation — they are manag
 
 ## Risk status after the build (2026-08-24)
 
+> ▶ RISK-021, RISK-022 and RISK-023 have since been investigated in depth. The findings —
+> including four real security defects and six confirmed user-visible bugs — are in
+> `../NEXT_AGENT_BRIEF.md`. **RISK-023 is worse than recorded here**: the raw-HTML surface is
+> mostly disciplined, but the post write path runs no KSES at all, so stored XSS is live.
+
+
 > Added when the build reached its current state. See `as_built.md` for the whole picture.
 
 | Risk | Now |
