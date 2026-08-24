@@ -1,0 +1,6 @@
+<%# wp-signup.php prints validation errors via WP_Error above the form. Literal messages
+    come from the controller. -%>
+<% errors ||= [] %>
+<% if errors.any? %>
+  <div class="error message"><ul><% errors.each do |message| %><li><%= message %></li><% end %></ul></div>
+<% end %>

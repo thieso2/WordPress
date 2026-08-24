@@ -1,0 +1,110 @@
+# The parity request corpus.
+#
+# ⚠️ parity_specs.md § "Parity accepted" criteria: "Observation window: the diff harness
+# green across the agreed corpus for 5 consecutive runs with no unexplained diff.
+# NOT a calendar period — with no production traffic, elapsed time proves nothing;
+# only corpus coverage does."
+#
+# So this file is the measure of the parity claim. Adding a screen to the rebuild
+# without adding its request here makes the harness quieter, not the system better.
+#
+# `screen` names match _reversa_sdd/screens/golden/manifest.yaml. The 18 `web.*` screens
+# are LITERAL (byte-comparable against golden files, screen_modernization_decision.md);
+# everything else is a semantic contract.
+# The web.* paths below are RESOLVED from the oracle by
+# _reversa_forward/oracle/wordpress/tools/corpus_urls.php, not hand-written.
+# Re-run it whenever the corpus changes; permalinks depend on
+# permalink_structure and on the corpus's own slugs.
+requests:
+  - screen: web.index
+    path: /
+    golden: golden-web-index.html
+  - screen: web.front_page
+    path: /
+    golden: golden-web-front-page.html
+  - screen: web.home
+    path: /
+    golden: golden-web-home.html
+  - screen: web.singular
+    path: /2026/03/hello-world/
+    golden: golden-web-singular.html
+  - screen: web.single
+    path: /2026/03/hello-world/
+    golden: golden-web-single.html
+  - screen: web.page
+    path: /parent-page/
+    golden: golden-web-page.html
+  - screen: web.archive
+    path: /2026/
+    golden: golden-web-archive.html
+  - screen: web.category
+    path: /category/top-category/
+    golden: golden-web-category.html
+  - screen: web.tag
+    path: /tag/flat-tag-one/
+    golden: golden-web-tag.html
+  - screen: web.taxonomy
+    path: /category/top-category/middle-category/
+    golden: golden-web-taxonomy.html
+  - screen: web.author
+    path: /author/oracle_author/
+    golden: golden-web-author.html
+  - screen: web.date
+    path: /2026/03/
+    golden: golden-web-date.html
+  - screen: web.search
+    path: /?s=article
+    golden: golden-web-search.html
+  - screen: web.not_found_404
+    path: /definitely-not-a-real-url/
+    expect_status: 404
+    golden: golden-web-not-found-404.html
+  # ⚠️ SCREEN-INVENTORY FINDING (deferred item D-7 — "144 is one reading, not two").
+  # golden/manifest.yaml lists web.attachment among the 18 LITERAL screens to be
+  # byte-compared as rendered HTML. It does not render. On a default WordPress 7.2
+  # install `wp_attachment_pages_enabled` is '0', and wp-includes/canonical.php:553
+  # 301-redirects every attachment URL to the file itself. Verified against the oracle
+  # for all three corpus attachments (pdf, jpeg, png) — all 301.
+  # The parity contract for this screen is therefore THE REDIRECT, not a page. Captured
+  # as such rather than quietly following it, because following it would compare the
+  # wrong thing and report green.
+  - screen: web.attachment
+    path: /2026/03/published-article-with-he-said-its-a-test-she-replied-nested-59-tall-3-wide-french-%e3%80%8c%e6%97%a5%e6%9c%ac%e8%aa%9e%e3%80%8d-curly/asset-oracle-image-png-%f0%9f%98%80/
+    expect_status: 301
+    # Documentary — the harness compares the golden, not this field (differ.rb reads
+    # only expect_status). The corpus URL above is the PNG attachment; the golden
+    # records `REDIRECT <SITE>/wp-content/uploads/2026/08/oracle-image.png`.
+    expect_location: /wp-content/uploads/2026/08/oracle-image.png
+    golden: golden-web-attachment.html
+  - screen: web.embed
+    path: /2026/03/hello-world/embed/
+    golden: golden-web-embed.html
+  - screen: web.privacy_policy
+    path: /privacy-policy/
+    golden: golden-web-privacy-policy.html
+  - screen: web.comments
+    path: /2026/03/hello-world/
+    golden: golden-web-comments.html
+
+  # ── Wave 1 surfaces: terminal modules, zero dependents (F-SIM-06), no write path ──
+  - screen: syndication.feed_rss2
+    path: /feed/
+    content_type: xml
+  - screen: syndication.feed_atom
+    path: /feed/atom/
+    content_type: xml
+  - screen: syndication.feed_comments
+    path: /comments/feed/
+    content_type: xml
+  - screen: syndication.sitemap_index
+    path: /wp-sitemap.xml
+    content_type: xml
+  - screen: syndication.sitemap_posts
+    path: /wp-sitemap-posts-post-1.xml
+    content_type: xml
+  - screen: syndication.sitemap_users
+    path: /wp-sitemap-users-1.xml
+    content_type: xml
+  - screen: syndication.robots
+    path: /robots.txt
+    content_type: text

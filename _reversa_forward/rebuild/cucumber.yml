@@ -1,0 +1,9 @@
+# The parity suite lives in spec/parity/features (target_architecture.md: spec/parity/
+# harness/ corpus/ features/), not in the default features/ directory.
+#
+# The .feature files are COPIES of _reversa_sdd/migration/parity_tests/*.feature, kept
+# byte-identical on purpose: they are the Inspector's output, and editing them here to
+# make a test pass would be editing the specification to match the implementation.
+default: --publish-quiet -r spec/parity/features/support -r spec/parity/features/step_definitions spec/parity/features
+wip: --tags @wip
+parity: --tags @parity

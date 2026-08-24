@@ -1,0 +1,10 @@
+<%# auth.confirmaction -- wp-login.php:1237-1274 and
+    _wp_privacy_account_request_confirmed_message() (user.php:4757). Idle: the confirmed
+    message. Error: the wp_die() string, rendered as the screen's error notice. -%>
+<% @legacy_action = "confirmaction"; @screen = "auth.confirmaction" %>
+<% if @message %>
+  <div class="confirmed">
+    <p class="success"><%= @message.first %></p>
+    <p><%= @message.last %></p>
+  </div>
+<% end %>

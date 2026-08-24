@@ -1,0 +1,18 @@
+<%# Tenancy surface layout (Wave 5, MODERNIZED). Self-contained and deliberately minimal:
+    these five screens are NOT among the 25 byte-parity front-end screens, so this markup is
+    the rebuild's own (DEV-009 branding), not a golden. The wp-signup / wp-activate body
+    classes are kept so the screens read as their legacy origin. -%>
+<!DOCTYPE html>
+<html lang="<%= I18n.locale %>">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="noindex,nofollow">
+    <title><%= @title.present? ? "#{@title} &lsaquo; #{site_name}".html_safe : site_name %></title>
+  </head>
+  <body class="wp-signup-page no-js">
+    <div id="signup-content" class="widecolumn">
+      <%= yield %>
+    </div>
+  </body>
+</html>

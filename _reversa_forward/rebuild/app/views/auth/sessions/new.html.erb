@@ -1,0 +1,46 @@
+<%# auth.login -- wp-login.php:1480-1600 (the `loginform`). Modernized: the form's
+    fields, labels, order and hidden inputs are the legacy's; the chrome is not. -%>
+<% @title = "Log In"; @legacy_action = "login"; @screen = "auth.login" %>
+<% aria = @errors.any? ? (@errors.first_is_message? ? "login-message" : "login_error") : nil %>
+<%= form_with url: login_path, method: :post, id: "loginform", html: { name: "loginform" }, data: { controller: "login" } do |f| %>
+  <p>
+    <label for="user_login">Username or Email Address</label>
+    <input type="text" name="log" id="user_login"<%= tag.attributes("aria-describedby": aria) if aria %> class="input ltr" value="<%= @user_login %>" size="20" autocapitalize="off" autocomplete="username" required="required">
+  </p>
+  <div class="user-pass-wrap">
+    <label for="user_pass">Password</label>
+    <div class="wp-pwd">
+      <input type="password" name="pwd" id="user_pass"<%= tag.attributes("aria-describedby": aria) if aria %> class="input password-input ltr" value="" size="20" autocomplete="current-password" spellcheck="false" required="required">
+      <button type="button" class="button button-secondary wp-hide-pw" data-toggle="0" aria-label="Show password" data-label-show="Show password" data-label-hide="Hide password">
+        <span aria-hidden="true">&#128065;</span>
+      </button>
+    </div>
+  </div>
+  <p class="forgetmenot">
+    <input name="rememberme" type="checkbox" id="rememberme" value="forever"<%= " checked" if @rememberme %>>
+    <label for="rememberme">Remember Me</label>
+  </p>
+  <p class="submit">
+    <input type="submit" name="wp-submit" id="wp-submit" class="button button-primary button-large" value="Log In" data-disable-with="Log In">
+    <input type="hidden" name="redirect_to" value="<%= @redirect_to %>">
+    <input type="hidden" name="testcookie" value="1">
+  </p>
+<% end %>
+<%# :1578-1600: Register (when open), then "Lost your password?". %>
+<%= render "auth/shared/nav", links: %i[register lost_password] %>
+<script>
+  // user-profile.js's show/hide toggle, reduced to the one control this screen has.
+  (function () {
+    var b = document.querySelector('#loginform .wp-hide-pw'), i = document.getElementById('user_pass');
+    if (!b || !i) return;
+    b.addEventListener('click', function () {
+      var show = i.type === 'password';
+      i.type = show ? 'text' : 'password';
+      b.setAttribute('aria-label', show ? b.dataset.labelHide : b.dataset.labelShow);
+      b.dataset.toggle = show ? '1' : '0';
+    });
+    // wp_attempt_focus(), :1604-1620: focus the identifier, or the password when the
+    // identifier is pre-filled.
+    setTimeout(function () { try { var d = i.value === '' && document.getElementById('user_login').value ? i : document.getElementById('user_login'); d.focus(); d.select(); } catch (e) {} }, 200);
+  })();
+</script>

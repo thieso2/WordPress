@@ -1,0 +1,6 @@
+<% role_labels = { "subscriber" => "Subscriber", "contributor" => "Contributor", "author" => "Author", "editor" => "Editor", "administrator" => "Administrator" } %>
+<select name="role" id="role">
+  <% role_labels.each do |value, label| %>
+    <option value="<%= value %>" <%= "selected" if value == selected_role %>><%= label %></option>
+  <% end %>
+</select>

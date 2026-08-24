@@ -1,0 +1,70 @@
+<%# console.options-general — options-general.php, modernized. Title + labels LITERAL;
+    fields DECLARED (Configuration::SettingsRegistry "general"). -%>
+<% @page_title = "General Settings" %>
+<h1 class="wp-heading-inline">General Settings</h1>
+<hr class="wp-header-end">
+<%= render "console/settings/nav" %>
+
+<%= form_with url: settings_path_for("general"), method: :post do %>
+  <table class="form-table" role="presentation">
+    <tbody>
+      <tr>
+        <th scope="row"><label for="blogname">Site Title</label></th>
+        <td><input name="blogname" type="text" id="blogname" value="<%= input_value("blogname") %>" class="regular-text"></td>
+      </tr>
+      <tr>
+        <th scope="row"><label for="blogdescription">Tagline</label></th>
+        <td>
+          <input name="blogdescription" type="text" id="blogdescription" value="<%= input_value("blogdescription") %>" class="regular-text">
+          <p class="description">In a few words, explain what this site is about.</p>
+        </td>
+      </tr>
+      <tr>
+        <th scope="row"><label for="siteurl">WordPress Address (URL)</label></th>
+        <td><input name="siteurl" type="url" id="siteurl" value="<%= input_value("siteurl") %>" class="regular-text code"></td>
+      </tr>
+      <tr>
+        <th scope="row"><label for="home">Site Address (URL)</label></th>
+        <td>
+          <input name="home" type="url" id="home" value="<%= input_value("home") %>" class="regular-text code">
+          <p class="description">Enter the same address here unless you want your site home page to be different from your WordPress installation directory.</p>
+        </td>
+      </tr>
+      <tr>
+        <th scope="row">Membership</th>
+        <td><fieldset>
+          <legend class="screen-reader-text"><span>Membership</span></legend>
+          <label for="users_can_register">
+            <input name="users_can_register" type="checkbox" id="users_can_register" value="1" <%= "checked" if on?("users_can_register") %>>
+            Anyone can register</label>
+        </fieldset></td>
+      </tr>
+      <tr>
+        <th scope="row"><label for="default_role">New User Default Role</label></th>
+        <td>
+          <select name="default_role" id="default_role">
+            <% selectable_roles.each do |role| %>
+              <option value="<%= role %>" <%= "selected" if current("default_role").to_s == role %>><%= role.capitalize %></option>
+            <% end %>
+          </select>
+        </td>
+      </tr>
+      <tr>
+        <th scope="row"><label for="timezone_string">Timezone</label></th>
+        <td>
+          <input name="timezone_string" type="text" id="timezone_string" value="<%= input_value("timezone_string") %>" class="regular-text code" placeholder="UTC">
+          <p class="description">Choose either a city in the same timezone as you or a UTC (Coordinated Universal Time) time offset.</p>
+        </td>
+      </tr>
+      <tr>
+        <th scope="row"><label for="date_format">Date Format</label></th>
+        <td><input name="date_format" type="text" id="date_format" value="<%= input_value("date_format") %>" class="regular-text"></td>
+      </tr>
+      <tr>
+        <th scope="row"><label for="time_format">Time Format</label></th>
+        <td><input name="time_format" type="text" id="time_format" value="<%= input_value("time_format") %>" class="regular-text"></td>
+      </tr>
+    </tbody>
+  </table>
+  <p class="submit"><input type="submit" name="submit" id="submit" class="button button-primary" value="Save Changes"></p>
+<% end %>

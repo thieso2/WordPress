@@ -1,0 +1,79 @@
+<% content_for :title, "Menus" %>
+<%# nav-menus.php in modernized mode. Tabs, the menu-name form, the add-items panel and
+    the structure tree. Every LITERAL string verbatim; the jQuery drag-drop UI is replaced
+    by explicit move controls (server-side, DEV-012 React island out of scope). -%>
+<div class="wrap">
+  <h1 class="wp-heading-inline">Menus</h1>
+  <hr class="wp-header-end">
+
+  <nav class="nav-tab-wrapper">
+    <a href="/console/menus" class="nav-tab nav-tab-active">Edit Menus</a>
+    <a href="/console/menus?action=locations" class="nav-tab">Manage Locations</a>
+  </nav>
+
+  <div class="menu-picker">
+    <% if @menus.any? %>
+      <form method="get" class="inline">
+        <label for="menu">Select a menu to edit:</label>
+        <select id="menu" name="menu_id" onchange="if(this.value)window.location='/console/menus/'+this.value">
+          <% @menus.each do |m| %>
+            <option value="<%= m.id %>" <%= "selected" if @menu && m.id == @menu.id %>><%= m.name %></option>
+          <% end %>
+        </select>
+      </form>
+    <% end %>
+  </div>
+
+  <%# Create Menu — the empty state / new-menu form. -%>
+  <div class="menu-create">
+    <form method="post" action="/console/menus" class="inline">
+      <%= hidden_field_tag(:authenticity_token, form_authenticity_token) %>
+      <label class="menu-name-label" for="menu-name">Menu Name</label>
+      <input id="menu-name" type="text" name="menu_name" value="">
+      <p class="post-body-plain" id="menu-name-desc">Give your menu a name, then click Create Menu.</p>
+      <button type="submit" class="button button-primary menu-save">Create Menu</button>
+    </form>
+  </div>
+
+  <% if @menu&.persisted? %>
+    <div class="menu-edit">
+      <h2>Add menu items</h2>
+      <%# Custom Links panel — the target arm with no picker dependency. Post and term
+          targets use the same endpoint with kind=post|term and a target_id. -%>
+      <form method="post" action="/console/menus/<%= @menu.id %>/items" class="add-custom-link">
+        <%= hidden_field_tag(:authenticity_token, form_authenticity_token) %>
+        <input type="hidden" name="kind" value="custom">
+        <p><label for="custom-menu-item-url">URL</label>
+          <input id="custom-menu-item-url" type="text" name="url" value="https://"></p>
+        <p><label for="custom-menu-item-name">Link Text</label>
+          <input id="custom-menu-item-name" type="text" name="label" value=""></p>
+        <button type="submit" class="button submit-add-to-menu">Add to Menu</button>
+      </form>
+
+      <h3>Menu Settings</h3>
+      <%# Rename — its own form so nothing is nested (the tree below carries per-item
+          forms, and HTML forbids a form inside a form). -%>
+      <form method="post" action="/console/menus/<%= @menu.id %>" class="menu-name-form">
+        <%= hidden_field_tag(:authenticity_token, form_authenticity_token) %>
+        <input type="hidden" name="_method" value="patch">
+        <label class="menu-name-label" for="menu-name-edit">Menu Name</label>
+        <input id="menu-name-edit" type="text" name="menu_name" value="<%= @menu.name %>">
+        <button type="submit" class="button button-primary menu-save">Save Menu</button>
+      </form>
+
+      <ul class="menu-structure">
+        <%= render partial: "item", collection: @menu.roots, as: :item, locals: { menu: @menu, depth: 0 } %>
+      </ul>
+      <% if @menu.menu_items.empty? %>
+        <p class="no-items">No menu items yet.</p>
+      <% end %>
+
+      <form method="post" action="/console/menus/<%= @menu.id %>" class="menu-delete"
+            data-turbo-confirm="Are you sure you want to delete this menu?">
+        <%= hidden_field_tag(:authenticity_token, form_authenticity_token) %>
+        <input type="hidden" name="_method" value="delete">
+        <button type="submit" class="button submitdelete deletion menu-delete-item">Delete Menu</button>
+      </form>
+    </div>
+  <% end %>
+</div>

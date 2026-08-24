@@ -78,7 +78,54 @@ amended so its Designer contract no longer contradicts the ruling.
 | `BR-HTTP-01` | SSRF validation, not an authorization default. Curator recommendation applied: validate by default. |
 | `BR-CAP-14` | A configuration global outranking stored superuser status, not one of the five authorization defaults. Curator recommendation applied: discard. |
 
-## DEFERRED TO CODING (8)
+## DEFERRED TO CODING (8 — 2 resolved in Wave 0, 6 open)
+
+> **Wave 0 progress, 2026-08-22 (coding agent).**
+>
+> - ✅ **D-1 RESOLVED.** `discard_log.md`'s header now reads 68 and gains a new
+>   § 4 "Discarded by owner ruling (3)" carrying `BR-OPT-04`, `BR-CAP-14` and `BR-MS-02`;
+>   `target_business_rules.md`'s prose reads "3 resolved rulings". 54 + 11 + 3 = 68.
+>   As D-1 itself noted, the rule *set* was already correct — 363 MIGRATE ids, all three
+>   rulings already handled downstream. Only the tallies were wrong.
+> - ✅ **D-4 RESOLVED.** The Wave 0 oracle was built, seeded and captured.
+>   `screens/golden/manifest.yaml` now carries `oracleAvailable: true`, an `oracleHash`,
+>   and **18/18 entries at `present: true`** with sha256 and byte count. **DEV-001 is
+>   removed from every screen's deviations list** — the condition it described
+>   ("no golden capture exists") no longer holds. The Inspector is unblocked for these
+>   screens.
+> - ⚠️ **D-7 gained evidence.** `web.attachment` is listed among the 18 literal screens
+>   but **does not render** on a default WordPress 7.2 install: `wp_attachment_pages_enabled`
+>   is `'0'` and `wp-includes/canonical.php:553` 301-redirects attachment URLs to the file.
+>   Verified against all three corpus attachments. Its golden is the redirect. This is the
+>   first confirmed discrepancy in the screen inventory and it was found by *executing*,
+>   which is exactly what D-7 says the inventory never had.
+> - ⚠️ **New, not in this log: a conflict between two specs.** `target_architecture.md`'s
+>   intended graph has no `Publishing → Library` edge, but `target_data_model.md`
+>   specifies FKs in both directions (`posts.featured_asset_id` per AD-03, and
+>   `assets.attached_to_id`). They cannot both hold. Recorded as an acknowledged cycle in
+>   `bin/check_cycles` — reported on every build rather than silenced. **Wants an owner
+>   ruling**: drop one FK, or accept the edge and say so.
+>
+> - ✅ **Waves 1–2 parity gate met, 2026-08-22.** All 25 corpus screens — the 18 literal
+>   `web.*` screens and the 7 syndication surfaces — are byte-identical to the oracle through
+>   the parity harness, across **five consecutive clean runs**, on a corpus proven
+>   reproducible across three full oracle rebuilds (`bin/parity determinism`). Per
+>   `parity_specs.md § "Parity accepted" criteria`: zero unexplained divergence. ⚠️ "Through
+>   the harness" means the manifest's declared normalizations apply, including
+>   `sortClassAttributeTokens`; class ORDER (BR-MIGRATE-201) is asserted by unit specs, two of
+>   which are `pending` on a documented gap (block style variation rulesets,
+>   `class-wp-theme-json.php:3834` step 6, not ported into `packs/styling`).
+> - ⚠️ **New legacy finding, for Wave 3.** `canonical.php:554` reads
+>   `get_query_var('attachment_id')`, which a slug-addressed attachment request never sets;
+>   the redirect target therefore comes from the global-`$post` fallback inside
+>   `wp_get_attachment_url(0)`, not from the queried object. Correct by coincidence for the
+>   single-attachment requests the corpus makes. The rebuild resolves by slug and must keep
+>   doing so; do not "fix" parity by reproducing the fallback.
+> - ⚠️ **New pipeline finding, recorded as T-12 in `data_migration_plan.md`.** Option values
+>   that carry record ids (`sticky_posts`, `page_on_front`, …) were copied verbatim and
+>   pointed at the wrong records after id remapping. Silent; found by the screen diff.
+>
+> D-2, D-3, D-5, D-6, D-7, D-8 remain open.
 
 Populated by the Inspector at the close of the pipeline. **None of these blocks implementation** —
 each is a decision that belongs to the people writing the code, recorded here so it is made

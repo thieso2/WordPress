@@ -1,0 +1,40 @@
+<% content_for :title, "Add Themes" %>
+<%# theme-install.php:166 — <h1 class="wp-heading-inline">Add Themes</h1>. Modernized:
+    the LITERAL strings (title, "Install", "Version: %s") are verbatim; the wp.org theme
+    browser JS is not reproduced. -%>
+<div class="wrap">
+  <h1 class="wp-heading-inline">Add Themes</h1>
+  <hr class="wp-header-end">
+
+  <form class="theme-directory-form" method="get" action="/console/themes/new">
+    <label for="directory">Theme directory URL</label>
+    <input type="text" id="directory" name="directory" value="<%= @directory_url %>">
+    <button type="submit" class="button">Search</button>
+  </form>
+
+  <% if @directory_error.present? %>
+    <div class="notice notice-error" role="alert"><p><%= @directory_error.html_safe %></p></div>
+  <% end %>
+
+  <% if @themes.any? %>
+    <table class="widefat theme-directory">
+      <thead>
+        <tr><th scope="col">Name</th><th scope="col">Version</th><th scope="col">Actions</th></tr>
+      </thead>
+      <tbody>
+        <% @themes.each do |theme| %>
+          <tr class="theme" data-slug="<%= theme.slug %>">
+            <td class="theme-name"><%= theme.name %></td>
+            <td class="theme-version"><%= "Version: %s" % theme.version %></td>
+            <td class="theme-actions">
+              <%= button_to "Install", "/console/themes", method: :post, class: "button button-primary theme-install",
+                    params: { install_url: theme.install_url }, form_class: "inline" %>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  <% elsif @directory_url.present? && @directory_error.blank? %>
+    <p class="no-items">No themes found. Try a different search.</p>
+  <% end %>
+</div>

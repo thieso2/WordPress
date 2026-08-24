@@ -1,0 +1,4 @@
+<%# wp_die( $message, 403 ) — the admin's "Sorry, you are not allowed to…" page,
+    modernized: the LITERAL message, a 403 status, nothing else. %>
+<% content_for(:title) { "" } %>
+<h1><%= @message %></h1>

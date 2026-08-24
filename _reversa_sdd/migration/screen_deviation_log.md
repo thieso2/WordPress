@@ -262,6 +262,24 @@ hooks into the core, so this ruling does not reopen AD-01.
    That is now settled in the direction of maximum scope. Wave 4 was already the wave with the least
    specification behind it; it is now also the wave with the most work.
 
+### DEV-009 applied — two console strings drop WordPress project-identity (coding note)
+
+⚠️ **Recorded 2026-08-23 during Wave 4.** DEV-009 drops WordPress branding and
+project-identity strings (scoped to those only; every functional string stays verbatim).
+Two console help/error strings fall squarely in that scope, so the rebuild renders a
+project-neutral form rather than the legacy verbatim — this is DEV-009 working as ruled,
+not a copy edit, and it is logged here so a reviewer does not mistake it for one:
+
+| Screen | Legacy string | Rebuild | Why |
+|---|---|---|---|
+| `console.options-general` tagline help | `In a few words, explain what this site is about. Example: "Just another WordPress site."` (options-general.php:90, `$sample_tagline`) | `In a few words, explain what this site is about.` | The example names *Just another **WordPress** site* — project-identity. The functional sentence is verbatim; the branded example is dropped. |
+| `console.theme-install` fetch error | `An unexpected error occurred. Something may be wrong with WordPress.org or this server's configuration. If you continue to have problems, please try the support forums.` (theme-install.php:63) | `An unexpected error occurred. Something may be wrong with the theme directory.` | Names WordPress.org and the WordPress.org support forums — project-identity. The lead sentence is verbatim; the WordPress.org references are dropped. |
+
+Everything else Wave 4's verifiers flagged as non-verbatim (`"No requests found."`,
+`"Awaiting confirmation"`, the GDPR label `"Email Address"`, the two site-health
+search-engine labels, two comment error strings) was a real copy edit and was **corrected
+to the legacy verbatim**, not excused under DEV-009.
+
 ## Screens with more than one deviation
 
 | Screen | IDs |
@@ -306,3 +324,29 @@ URL over-counts screens. Of 144 inventoried, roughly 92 are two patterns repeate
 at all, and 3 are aliases or internals. An adapter for this pair should cluster by `WP_List_Table`
 subclass and by `edit-form-*.php` include before counting, rather than treating one file as one
 screen.
+
+---
+
+### Wave 5 verification — two post-landing corrections (2026-08-23)
+
+- **DEV-013 — tenancy signup/confirm strings restored to verbatim.** The Wave 5 build
+  first shipped `app/views/tenancy/signups/confirm.html.erb` with invented copy
+  ("Congratulations! Your account is almost ready." / "before you can start using it").
+  These are not among the 25 golden screens, so the parity harness could not catch them;
+  an adversarial verifier did. The view now reproduces both legacy branches verbatim from
+  `wp-signup.php`: `confirm_user_signup()` (`%s is your new username` …) and
+  `confirm_blog_signup()` (`Congratulations! Your new site, %s, is almost ready.` … plus
+  the "Still waiting for your email?" tips block). The controller recovers the signup by
+  its `activation_key` to pick the correct branch.
+
+- **BR-MS-04 per-site role ENFORCEMENT wired (was assignment-only).** The signup path
+  already scoped an `administrator` role to the newly created site
+  (`role_assignments.site_id`), but `Access::BasePolicy#actor_roles` read only
+  `site_id: nil` rows, so a per-site role was never *enforced*. It now consults
+  `Tenancy.current_site` — mirroring the existing `Tenancy.super_admin?` edge on the same
+  line (Access already depends on Tenancy; Tenancy never depends on Access, so no cycle).
+  **Strictly additive:** on a single site `Tenancy.current_site` is nil, so it resolves to
+  `actor.roles(site_id: nil)` — byte-identical to Waves 0–4, proven by the 25/25 parity run
+  and `spec/tenancy/per_site_role_enforcement_spec.rb` (which also asserts a stray
+  site-scoped role does NOT leak into single-site evaluation, and that a site-A role grants
+  capabilities only while site A is the served tenant).

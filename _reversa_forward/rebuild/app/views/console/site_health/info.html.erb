@@ -1,0 +1,20 @@
+<%# console.site-health-info — site-health-info.php, modernized. h1 LITERAL. -%>
+<% @page_title = "Site Health Info" %>
+<h1 class="wp-heading-inline">Site Health Info</h1>
+<hr class="wp-header-end">
+<nav class="health-check-tabs" aria-label="Secondary menu">
+  <%= link_to "Status", "/console/tools/site-health" %>
+  <%= link_to "Info", "/console/tools/site-health/info", class: "current" %>
+</nav>
+<hr class="wp-header-end">
+
+<% @info.each do |section, rows| %>
+  <h2><%= section %></h2>
+  <table class="widefat">
+    <tbody>
+      <% rows.each do |label, value| %>
+        <tr><th scope="row"><%= label %></th><td><%= value %></td></tr>
+      <% end %>
+    </tbody>
+  </table>
+<% end %>

@@ -1,0 +1,77 @@
+<%# AuthLayout -- login_header() / login_footer(), wp-login.php:40-372, in modernized
+    mode (target_screens.md § Part 3). The document shape is the legacy's: a
+    screen-reader <h1> with the screen title, #login holding the brand mark, the
+    notices, the form and the #nav links, then #backtoblog. The strings are verbatim
+    except the product name (DEV-009): "Powered by WordPress" and the "— WordPress"
+    title suffix are branding and drop; the site name stays. -%>
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <%# login_header() :77 -- '%1$s &lsaquo; %2$s &#8212; WordPress' minus the brand. %>
+    <title><%= [@title.presence, site_title].compact.join(" ‹ ") %></title>
+    <%# wp_robots_sensitive_page(), :49: never index an auth screen. %>
+    <meta name="robots" content="noindex, noarchive">
+    <meta name="referrer" content="strict-origin-when-cross-origin">
+    <%= csrf_meta_tags %>
+    <%= javascript_include_tag "turbo.min", type: "module" %>
+    <style>
+      :root { --ink:#1d2327; --muted:#50575e; --rule:#c3c4c7; --bg:#f0f0f1; --card:#fff; --accent:#2271b1; --error:#d63638; --info:#72aee6; }
+      @media (prefers-color-scheme: dark) { :root { --ink:#e8ebef; --muted:#98a2b3; --rule:#2a2f38; --bg:#14161a; --card:#1b1f26; --accent:#7fa2ff; --info:#3b6ea5; } }
+      * { box-sizing: border-box; }
+      body.login { margin: 0; background: var(--bg); color: var(--ink); font: 14px/1.5 ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+      .screen-reader-text { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
+      #login { width: 320px; max-width: calc(100% - 2rem); margin: 6vh auto 2rem; }
+      .wp-login-logo { margin: 0 0 1.5rem; text-align: center; font-size: 1.5rem; font-weight: 650; letter-spacing: -.02em; }
+      .wp-login-logo a { color: inherit; text-decoration: none; }
+      .notice { background: var(--card); border-left: 4px solid var(--info); padding: .75rem 1rem; margin: 0 0 1rem; box-shadow: 0 1px 1px rgba(0,0,0,.04); }
+      .notice-error { border-left-color: var(--error); }
+      .notice p { margin: 0; }
+      .login-error-list { margin: 0; padding-left: 1.1rem; }
+      form { background: var(--card); padding: 1.5rem; border: 1px solid var(--rule); box-shadow: 0 1px 3px rgba(0,0,0,.04); }
+      form p, .user-pass-wrap, .user-pass1-wrap, .user-pass2-wrap { margin: 0 0 1rem; }
+      label { display: block; margin-bottom: .25rem; }
+      .input, input[type=text], input[type=password], input[type=email] { width: 100%; font-size: 1.25rem; padding: .3rem .5rem; border: 1px solid var(--rule); border-radius: 4px; background: var(--card); color: var(--ink); }
+      .wp-pwd { position: relative; }
+      .wp-pwd .input { padding-right: 2.75rem; }
+      .wp-hide-pw { position: absolute; right: 0; top: 0; height: 100%; background: none; border: none; color: var(--accent); cursor: pointer; padding: 0 .75rem; }
+      .button { font-size: .95rem; padding: .35rem 1rem; border-radius: 3px; border: 1px solid var(--accent); background: var(--card); color: var(--accent); cursor: pointer; }
+      .button-primary { background: var(--accent); color: #fff; }
+      .button[disabled] { opacity: .5; cursor: default; }
+      .submit { display: flex; justify-content: flex-end; gap: .5rem; align-items: center; margin-bottom: 0; }
+      .reset-pass-submit { justify-content: space-between; }
+      .forgetmenot { display: flex; align-items: center; gap: .5rem; }
+      .forgetmenot label { margin: 0; }
+      #pass-strength-result { margin-top: .5rem; padding: .35rem; text-align: center; border: 1px solid var(--rule); background: var(--bg); }
+      #pass-strength-result.short, #pass-strength-result.bad { border-color: var(--error); }
+      #pass-strength-result.good { border-color: #dba617; }
+      #pass-strength-result.strong { border-color: #00a32a; }
+      .pw-weak { display: none; margin: .5rem 0 0; }
+      .pw-weak.visible { display: flex; gap: .5rem; align-items: center; }
+      .description { color: var(--muted); font-size: .85rem; }
+      #nav, #backtoblog { margin: 1.25rem 0 0; text-align: left; }
+      #nav a, #backtoblog a { color: var(--muted); text-decoration: none; }
+      #nav a:hover, #backtoblog a:hover { color: var(--accent); }
+      .message.success, .confirmed { background: var(--card); padding: 1rem 1.25rem; border: 1px solid var(--rule); }
+      .confirmed p.success { font-weight: 600; }
+    </style>
+  </head>
+  <%# :189-196: body classes name the action, which is how the legacy's stylesheet and
+      scripts know which screen they are on. %>
+  <body class="login login-action-<%= @legacy_action || controller_name %>" data-screen="<%= @screen %>">
+    <% if @title.present? %>
+      <h1 class="screen-reader-text"><%= @title %></h1>
+    <% end %>
+    <div id="login">
+      <h1 role="presentation" class="wp-login-logo"><a href="<%= root_path %>"><%= site_title %></a></h1>
+      <%= yield :message %>
+      <%= render "auth/shared/notices", errors: @errors %>
+      <%= yield %>
+      <%# login_footer() :283-297: "&larr; Go to %s". %>
+      <p id="backtoblog">
+        <a href="<%= root_path %>">&larr; Go to <%= site_title %></a>
+      </p>
+    </div>
+  </body>
+</html>

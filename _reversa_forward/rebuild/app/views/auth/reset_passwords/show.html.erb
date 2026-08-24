@@ -1,0 +1,77 @@
+<%# auth.resetpass -- wp-login.php:1036-1082 (the `resetpassform`). The strength
+    meter and generator are user-profile.js + zxcvbn in the legacy; here a small
+    inline port with the same labels (script-loader.php:1232-1237). The server enforces
+    what the legacy's server enforces -- nothing beyond the two form rules -- and the
+    weak-password confirmation gates the submit button client-side as the legacy does. -%>
+<% @title = "Reset Password"; @legacy_action = "resetpass"; @screen = "auth.resetpass" %>
+<% content_for :message do %>
+  <div class="notice notice-info message reset-pass"><p>Enter your new password below or generate one.</p></div>
+<% end %>
+<%= form_with url: reset_password_path, method: :post, id: "resetpassform", html: { name: "resetpassform", autocomplete: "off" } do |f| %>
+  <input type="hidden" id="user_login" value="<%= @rp_login %>" autocomplete="off">
+  <div class="user-pass1-wrap">
+    <p><label for="pass1">New password</label></p>
+    <div class="wp-pwd">
+      <input type="password" name="pass1" id="pass1" class="input password-input ltr" size="24" value="" autocomplete="new-password" spellcheck="false" data-reveal="1" aria-describedby="pass-strength-result" autofocus>
+      <button type="button" class="button button-secondary wp-hide-pw" data-toggle="0" aria-label="Hide password" data-label-show="Show password" data-label-hide="Hide password">
+        <span aria-hidden="true">&#128065;</span>
+      </button>
+      <div id="pass-strength-result" aria-live="polite">Strength indicator</div>
+    </div>
+    <div class="pw-weak">
+      <input type="checkbox" name="pw_weak" id="pw-weak" class="pw-checkbox">
+      <label for="pw-weak">Confirm use of weak password</label>
+    </div>
+  </div>
+  <p class="user-pass2-wrap">
+    <label for="pass2">Confirm new password</label>
+    <input type="password" name="pass2" id="pass2" class="input" size="20" value="" autocomplete="new-password" spellcheck="false">
+  </p>
+  <%# wp_get_password_hint(), user.php:3078. %>
+  <p class="description indicator-hint">Hint: The password should be at least twelve characters long. To make it stronger, use upper and lower case letters, numbers, and symbols like ! " ? $ % ^ &amp; ).</p>
+  <input type="hidden" name="rp_key" value="<%= @rp_key %>">
+  <p class="submit reset-pass-submit">
+    <button type="button" class="button wp-generate-pw">Generate Password</button>
+    <input type="submit" name="wp-submit" id="wp-submit" class="button button-primary button-large" value="Save Password" data-disable-with="Save Password">
+  </p>
+<% end %>
+<%= render "auth/shared/nav", links: %i[login register] %>
+<script>
+  (function () {
+    var form = document.getElementById('resetpassform'), p1 = document.getElementById('pass1'), p2 = document.getElementById('pass2');
+    var result = document.getElementById('pass-strength-result'), weak = form.querySelector('.pw-weak'), weakBox = document.getElementById('pw-weak');
+    var submit = document.getElementById('wp-submit'), toggle = form.querySelector('.wp-hide-pw'), gen = form.querySelector('.wp-generate-pw');
+    // script-loader.php:1232-1237 -- the meter's labels, verbatim.
+    var LABELS = { unknown: 'Password strength unknown', short: 'Very weak', bad: 'Weak', good: 'Medium', strong: 'Strong', mismatch: 'Mismatch' };
+    function score(pw) {
+      if (!pw) return 'unknown';
+      var classes = [/[a-z]/, /[A-Z]/, /[0-9]/, /[^A-Za-z0-9]/].filter(function (r) { return r.test(pw); }).length;
+      if (pw.length < 8) return 'short';
+      if (pw.length < 12 || classes < 2) return 'bad';
+      if (pw.length < 16 && classes < 4) return 'good';
+      return 'strong';
+    }
+    function meter() {
+      var s = score(p1.value);
+      if (p1.value && p2.value && p1.value !== p2.value) s = 'mismatch';
+      result.className = s;
+      result.textContent = LABELS[s];
+      var isWeak = s === 'short' || s === 'bad';
+      weak.classList.toggle('visible', isWeak);
+      submit.disabled = isWeak && !weakBox.checked;
+    }
+    p1.addEventListener('input', meter); p2.addEventListener('input', meter); weakBox.addEventListener('change', meter);
+    toggle.addEventListener('click', function () {
+      var show = p1.type === 'password';
+      p1.type = show ? 'text' : 'password';
+      toggle.setAttribute('aria-label', show ? toggle.dataset.labelHide : toggle.dataset.labelShow);
+    });
+    // wp_generate_password( 16 ): the legacy's alphabet with the default special characters.
+    gen.addEventListener('click', function () {
+      var chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()', out = '', buf = new Uint32Array(16);
+      (window.crypto || window.msCrypto).getRandomValues(buf);
+      for (var i = 0; i < 16; i++) out += chars[buf[i] % chars.length];
+      p1.value = out; p2.value = out; p1.type = 'text'; meter();
+    });
+  })();
+</script>

@@ -1,0 +1,64 @@
+<%# console.options-media — options-media.php, modernized. Binds to Library::Variant
+    size names (thumbnail/medium/large). Fields DECLARED. -%>
+<% @page_title = "Media Settings" %>
+<h1 class="wp-heading-inline">Media Settings</h1>
+<hr class="wp-header-end">
+<%= render "console/settings/nav" %>
+
+<%= form_with url: settings_path_for("media"), method: :post do %>
+  <h2 class="title">Image sizes</h2>
+  <p>The sizes listed below determine the maximum dimensions in pixels to use when adding an image to the Media Library.</p>
+  <table class="form-table" role="presentation">
+    <tbody>
+      <tr>
+        <th scope="row">Thumbnail size</th>
+        <td><fieldset>
+          <legend class="screen-reader-text"><span>Thumbnail size</span></legend>
+          <label for="thumbnail_size_w">Width</label>
+          <input name="thumbnail_size_w" type="number" step="1" min="0" id="thumbnail_size_w" value="<%= input_value("thumbnail_size_w") %>" class="small-text">
+          <label for="thumbnail_size_h">Height</label>
+          <input name="thumbnail_size_h" type="number" step="1" min="0" id="thumbnail_size_h" value="<%= input_value("thumbnail_size_h") %>" class="small-text"><br>
+          <label for="thumbnail_crop">
+            <input name="thumbnail_crop" type="checkbox" id="thumbnail_crop" value="1" <%= "checked" if on?("thumbnail_crop") %>>
+            Crop thumbnail to exact dimensions (normally thumbnails are proportional)</label>
+        </fieldset></td>
+      </tr>
+      <tr>
+        <th scope="row">Medium size</th>
+        <td><fieldset>
+          <legend class="screen-reader-text"><span>Medium size</span></legend>
+          <label for="medium_size_w">Max Width</label>
+          <input name="medium_size_w" type="number" step="1" min="0" id="medium_size_w" value="<%= input_value("medium_size_w") %>" class="small-text">
+          <label for="medium_size_h">Max Height</label>
+          <input name="medium_size_h" type="number" step="1" min="0" id="medium_size_h" value="<%= input_value("medium_size_h") %>" class="small-text">
+        </fieldset></td>
+      </tr>
+      <tr>
+        <th scope="row">Large size</th>
+        <td><fieldset>
+          <legend class="screen-reader-text"><span>Large size</span></legend>
+          <label for="large_size_w">Max Width</label>
+          <input name="large_size_w" type="number" step="1" min="0" id="large_size_w" value="<%= input_value("large_size_w") %>" class="small-text">
+          <label for="large_size_h">Max Height</label>
+          <input name="large_size_h" type="number" step="1" min="0" id="large_size_h" value="<%= input_value("large_size_h") %>" class="small-text">
+        </fieldset></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2 class="title">Uploading Files</h2>
+  <table class="form-table" role="presentation">
+    <tbody>
+      <tr>
+        <th scope="row">Uploading Files</th>
+        <td><fieldset>
+          <legend class="screen-reader-text"><span>Uploading Files</span></legend>
+          <label for="uploads_use_yearmonth_folders">
+            <input name="uploads_use_yearmonth_folders" type="checkbox" id="uploads_use_yearmonth_folders" value="1" <%= "checked" if on?("uploads_use_yearmonth_folders") %>>
+            Organize my uploads into month- and year-based folders</label>
+        </fieldset></td>
+      </tr>
+    </tbody>
+  </table>
+  <p class="submit"><input type="submit" name="submit" id="submit" class="button button-primary" value="Save Changes"></p>
+<% end %>

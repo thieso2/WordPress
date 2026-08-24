@@ -1,0 +1,278 @@
+<?xml version="1.0" encoding="UTF-8"?><feed
+	xmlns="http://www.w3.org/2005/Atom"
+	xmlns:thr="http://purl.org/syndication/thread/1.0"
+	xml:lang="en-US"
+	>
+	<title type="text">Reversa Oracle &quot;7.2&quot; 😀</title>
+	<subtitle type="text">He said &#34;it&#039;s a test&#34; -- she replied &#039;&#34;nested&#34;&#039; ... 5&#039;9&#34; tall, 3&#34; wide « French » 「日本語」 ‘curly’ “already curly”</subtitle>
+
+	<updated><TIME></updated>
+
+	<link rel="alternate" type="text/html" href="<SITE>" />
+	<id><SITE>/feed/atom/</id>
+	<link rel="self" type="application/atom+xml" href="<SITE>/feed/atom/" />
+
+	<generator uri="https://wordpress.org/" version="7.2-alpha-63330">WordPress</generator>
+	<entry>
+		<author>
+			<name>oracle_admin</name>
+							<uri><SITE></uri>
+						</author>
+
+		<title type="html"><![CDATA[Hello world!]]></title>
+		<link rel="alternate" type="text/html" href="<SITE>/2026/03/hello-world/" />
+
+<GUID>
+		<updated><TIME></updated>
+		<published><TIME></published>
+		<category scheme="<SITE>" term="Uncategorized" />
+		<summary type="html"><![CDATA[Welcome to WordPress. This is your first post. Edit or delete it, then start writing!]]></summary>
+
+					<content type="html" xml:base="<SITE>/2026/03/hello-world/"><![CDATA[
+<p class="wp-block-paragraph">Welcome to WordPress. This is your first post. Edit or delete it, then start writing!</p>
+]]></content>
+		
+					<link rel="replies" type="text/html" href="<SITE>/2026/03/hello-world/#comments" thr:count="1" />
+			<link rel="replies" type="application/atom+xml" href="<SITE>/2026/03/hello-world/feed/atom/" thr:count="1" />
+			<thr:total>1</thr:total>
+			</entry>
+		<entry>
+		<author>
+			<name>Author O'Brien "the tester" 😀</name>
+							<uri>https://example.com/~author</uri>
+						</author>
+
+		<title type="html"><![CDATA[Published article with He said &#8220;it&#8217;s a test&#8221; &#8212; she replied &#8216;&#8221;nested&#8221;&#8216; &#8230; 5&#8217;9&#8243; tall, 3&#8243; wide « French » 「日本語」 ‘curly’ “already curly”]]></title>
+		<link rel="alternate" type="text/html" href="<SITE>/2026/03/published-article-with-he-said-its-a-test-she-replied-nested-59-tall-3-wide-french-%e3%80%8c%e6%97%a5%e6%9c%ac%e8%aa%9e%e3%80%8d-curly/" />
+
+<GUID>
+		<updated><TIME></updated>
+		<published><TIME></published>
+		<category scheme="<SITE>" term="Leaf Category" /><category scheme="<SITE>" term="Tag 0 Emoji 😀🧬🚀 · Math 𝔘𝔫𝔦𝔠𝔬𝔡𝔢 𝕬𝖑𝖌𝖊𝖇𝖗𝖆 · CJK-Ext-B 𠜎𠜱𠝹 · ZWJ 👨‍👩‍👧‍👦 · Flag 🇯🇵" /><category scheme="<SITE>" term="Tag 1 Emoji 😀🧬🚀 · Math 𝔘𝔫𝔦𝔠𝔬𝔡𝔢 𝕬𝖑𝖌𝖊𝖇𝖗𝖆 · CJK-Ext-B 𠜎𠜱𠝹 · ZWJ 👨‍👩‍👧‍👦 · Flag 🇯🇵" /><category scheme="<SITE>" term="Tag 2 Emoji 😀🧬🚀 · Math 𝔘𝔫𝔦𝔠𝔬𝔡𝔢 𝕬𝖑𝖌𝖊𝖇𝖗𝖆 · CJK-Ext-B 𠜎𠜱𠝹 · ZWJ 👨‍👩‍👧‍👦 · Flag 🇯🇵" /><category scheme="<SITE>" term="Tag 3 Emoji 😀🧬🚀 · Math 𝔘𝔫𝔦𝔠𝔬𝔡𝔢 𝕬𝖑𝖌𝖊𝖇𝖗𝖆 · CJK-Ext-B 𠜎𠜱𠝹 · ZWJ 👨‍👩‍👧‍👦 · Flag 🇯🇵" />
+		<summary type="html"><![CDATA[Excerpt 0 — He said "it's a test" -- she replied '"nested"' ... 5'9" tall, 3" wide « French » 「日本語」 ‘curly’ “already curly”]]></summary>
+
+					<content type="html" xml:base="<SITE>/2026/03/published-article-with-he-said-its-a-test-she-replied-nested-59-tall-3-wide-french-%e3%80%8c%e6%97%a5%e6%9c%ac%e8%aa%9e%e3%80%8d-curly/"><![CDATA[<p>Revision 3 body Emoji <img src="https://s.w.org/images/core/emoji/17.0.2/72x72/1f600.png" alt="😀" class="wp-smiley" style="height: 1em; max-height: 1em;" /><img src="https://s.w.org/images/core/emoji/17.0.2/72x72/1f9ec.png" alt="🧬" class="wp-smiley" style="height: 1em; max-height: 1em;" /><img src="https://s.w.org/images/core/emoji/17.0.2/72x72/1f680.png" alt="🚀" class="wp-smiley" style="height: 1em; max-height: 1em;" /> · Math 𝔘𝔫𝔦𝔠𝔬𝔡𝔢 𝕬𝖑𝖌𝖊𝖇𝖗𝖆 · CJK-Ext-B 𠜎𠜱𠝹 · ZWJ <img src="https://s.w.org/images/core/emoji/17.0.2/72x72/1f468-200d-1f469-200d-1f467-200d-1f466.png" alt="👨‍👩‍👧‍👦" class="wp-smiley" style="height: 1em; max-height: 1em;" /> · Flag <img src="https://s.w.org/images/core/emoji/17.0.2/72x72/1f1ef-1f1f5.png" alt="🇯🇵" class="wp-smiley" style="height: 1em; max-height: 1em;" /></p>
+]]></content>
+		
+					<link rel="replies" type="text/html" href="<SITE>/2026/03/published-article-with-he-said-its-a-test-she-replied-nested-59-tall-3-wide-french-%e3%80%8c%e6%97%a5%e6%9c%ac%e8%aa%9e%e3%80%8d-curly/#comments" thr:count="7" />
+			<link rel="replies" type="application/atom+xml" href="<SITE>/2026/03/published-article-with-he-said-its-a-test-she-replied-nested-59-tall-3-wide-french-%e3%80%8c%e6%97%a5%e6%9c%ac%e8%aa%9e%e3%80%8d-curly/feed/atom/" thr:count="7" />
+			<thr:total>7</thr:total>
+			</entry>
+		<entry>
+		<author>
+			<name>Author O'Brien "the tester" 😀</name>
+							<uri>https://example.com/~author</uri>
+						</author>
+
+		<title type="html"><![CDATA[Protected: Password protected]]></title>
+		<link rel="alternate" type="text/html" href="<SITE>/2026/03/password-protected/" />
+
+<GUID>
+		<updated><TIME></updated>
+		<published><TIME></published>
+		<category scheme="<SITE>" term="Leaf Category" /><category scheme="<SITE>" term="Tag 0 Emoji 😀🧬🚀 · Math 𝔘𝔫𝔦𝔠𝔬𝔡𝔢 𝕬𝖑𝖌𝖊𝖇𝖗𝖆 · CJK-Ext-B 𠜎𠜱𠝹 · ZWJ 👨‍👩‍👧‍👦 · Flag 🇯🇵" /><category scheme="<SITE>" term="Tag 1 Emoji 😀🧬🚀 · Math 𝔘𝔫𝔦𝔠𝔬𝔡𝔢 𝕬𝖑𝖌𝖊𝖇𝖗𝖆 · CJK-Ext-B 𠜎𠜱𠝹 · ZWJ 👨‍👩‍👧‍👦 · Flag 🇯🇵" /><category scheme="<SITE>" term="Tag 2 Emoji 😀🧬🚀 · Math 𝔘𝔫𝔦𝔠𝔬𝔡𝔢 𝕬𝖑𝖌𝖊𝖇𝖗𝖆 · CJK-Ext-B 𠜎𠜱𠝹 · ZWJ 👨‍👩‍👧‍👦 · Flag 🇯🇵" /><category scheme="<SITE>" term="Tag 3 Emoji 😀🧬🚀 · Math 𝔘𝔫𝔦𝔠𝔬𝔡𝔢 𝕬𝖑𝖌𝖊𝖇𝖗𝖆 · CJK-Ext-B 𠜎𠜱𠝹 · ZWJ 👨‍👩‍👧‍👦 · Flag 🇯🇵" />
+		<summary type="html"><![CDATA[There is no excerpt because this is a protected post.]]></summary>
+
+					<content type="html" xml:base="<SITE>/2026/03/password-protected/"><![CDATA[<form action="<SITE>/wp-login.php?action=postpass" class="post-password-form" method="post"><input type="hidden" name="redirect_to" value="<SITE>/2026/03/password-protected/" /></p>
+<p>This content is password-protected. To view it, please enter the password below.</p>
+<p><label for="pwbox-<ID>">Password: <input name="post_password" id="pwbox-<ID>" type="password" spellcheck="false" required size="20" /></label> <span class="wp-block-button"><input type="submit" name="Submit" class="wp-block-button__link wp-element-button" value="Enter" /></span></p>
+</form>
+]]></content>
+		
+					<link rel="replies" type="text/html" href="<SITE>/2026/03/password-protected/#comments" thr:count="0" />
+			<link rel="replies" type="application/atom+xml" href="<SITE>/2026/03/password-protected/feed/atom/" thr:count="0" />
+			<thr:total>0</thr:total>
+			</entry>
+		<entry>
+		<author>
+			<name>Author O'Brien "the tester" 😀</name>
+							<uri>https://example.com/~author</uri>
+						</author>
+
+		<title type="html"><![CDATA[Emoji 😀🧬🚀 · Math 𝔘𝔫𝔦𝔠𝔬𝔡𝔢 𝕬𝖑𝖌𝖊𝖇𝖗𝖆 · CJK-Ext-B 𠜎𠜱𠝹 · ZWJ 👨‍👩‍👧‍👦 · Flag 🇯🇵]]></title>
+		<link rel="alternate" type="text/html" href="<SITE>/2026/03/emoji-%f0%9f%98%80%f0%9f%a7%ac%f0%9f%9a%80-%c2%b7-math-%f0%9d%94%98%f0%9d%94%ab%f0%9d%94%a6%f0%9d%94%a0%f0%9d%94%ac%f0%9d%94%a1%f0%9d%94%a2-%f0%9d%95%ac%f0%9d%96%91%f0%9d%96%8c%f0%9d%96%8a%f0%9d%96%87/" />
+
+<GUID>
+		<updated><TIME></updated>
+		<published><TIME></published>
+		<category scheme="<SITE>" term="Leaf Category" /><category scheme="<SITE>" term="Tag 0 Emoji 😀🧬🚀 · Math 𝔘𝔫𝔦𝔠𝔬𝔡𝔢 𝕬𝖑𝖌𝖊𝖇𝖗𝖆 · CJK-Ext-B 𠜎𠜱𠝹 · ZWJ 👨‍👩‍👧‍👦 · Flag 🇯🇵" /><category scheme="<SITE>" term="Tag 1 Emoji 😀🧬🚀 · Math 𝔘𝔫𝔦𝔠𝔬𝔡𝔢 𝕬𝖑𝖌𝖊𝖇𝖗𝖆 · CJK-Ext-B 𠜎𠜱𠝹 · ZWJ 👨‍👩‍👧‍👦 · Flag 🇯🇵" /><category scheme="<SITE>" term="Tag 2 Emoji 😀🧬🚀 · Math 𝔘𝔫𝔦𝔠𝔬𝔡𝔢 𝕬𝖑𝖌𝖊𝖇𝖗𝖆 · CJK-Ext-B 𠜎𠜱𠝹 · ZWJ 👨‍👩‍👧‍👦 · Flag 🇯🇵" /><category scheme="<SITE>" term="Tag 3 Emoji 😀🧬🚀 · Math 𝔘𝔫𝔦𝔠𝔬𝔡𝔢 𝕬𝖑𝖌𝖊𝖇𝖗𝖆 · CJK-Ext-B 𠜎𠜱𠝹 · ZWJ 👨‍👩‍👧‍👦 · Flag 🇯🇵" />
+		<summary type="html"><![CDATA[Excerpt 7 — He said "it's a test" -- she replied '"nested"' ... 5'9" tall, 3" wide « French » 「日本語」 ‘curly’ “already curly”]]></summary>
+
+					<content type="html" xml:base="<SITE>/2026/03/emoji-%f0%9f%98%80%f0%9f%a7%ac%f0%9f%9a%80-%c2%b7-math-%f0%9d%94%98%f0%9d%94%ab%f0%9d%94%a6%f0%9d%94%a0%f0%9d%94%ac%f0%9d%94%a1%f0%9d%94%a2-%f0%9d%95%ac%f0%9d%96%91%f0%9d%96%8c%f0%9d%96%8a%f0%9d%96%87/"><![CDATA[<p>Body 7</p>
+<p>Emoji <img src="https://s.w.org/images/core/emoji/17.0.2/72x72/1f600.png" alt="😀" class="wp-smiley" style="height: 1em; max-height: 1em;" /><img src="https://s.w.org/images/core/emoji/17.0.2/72x72/1f9ec.png" alt="🧬" class="wp-smiley" style="height: 1em; max-height: 1em;" /><img src="https://s.w.org/images/core/emoji/17.0.2/72x72/1f680.png" alt="🚀" class="wp-smiley" style="height: 1em; max-height: 1em;" /> · Math 𝔘𝔫𝔦𝔠𝔬𝔡𝔢 𝕬𝖑𝖌𝖊𝖇𝖗𝖆 · CJK-Ext-B 𠜎𠜱𠝹 · ZWJ <img src="https://s.w.org/images/core/emoji/17.0.2/72x72/1f468-200d-1f469-200d-1f467-200d-1f466.png" alt="👨‍👩‍👧‍👦" class="wp-smiley" style="height: 1em; max-height: 1em;" /> · Flag <img src="https://s.w.org/images/core/emoji/17.0.2/72x72/1f1ef-1f1f5.png" alt="🇯🇵" class="wp-smiley" style="height: 1em; max-height: 1em;" /></p>
+<p>Windows path C:\Users\thies\file.txt — regex \d+\s*\\ — literal \n not a newline — LaTeX \frac{1}{2} — escaped quote \&#8221; and \&#8217;</p>
+<p>He said &#8220;it&#8217;s a test&#8221; &#8212; she replied &#8216;&#8221;nested&#8221;&#8216; &#8230; 5&#8217;9&#8243; tall, 3&#8243; wide « French » 「日本語」 ‘curly’ “already curly”</p>
+]]></content>
+		
+					<link rel="replies" type="text/html" href="<SITE>/2026/03/emoji-%f0%9f%98%80%f0%9f%a7%ac%f0%9f%9a%80-%c2%b7-math-%f0%9d%94%98%f0%9d%94%ab%f0%9d%94%a6%f0%9d%94%a0%f0%9d%94%ac%f0%9d%94%a1%f0%9d%94%a2-%f0%9d%95%ac%f0%9d%96%91%f0%9d%96%8c%f0%9d%96%8a%f0%9d%96%87/#comments" thr:count="0" />
+			<link rel="replies" type="application/atom+xml" href="<SITE>/2026/03/emoji-%f0%9f%98%80%f0%9f%a7%ac%f0%9f%9a%80-%c2%b7-math-%f0%9d%94%98%f0%9d%94%ab%f0%9d%94%a6%f0%9d%94%a0%f0%9d%94%ac%f0%9d%94%a1%f0%9d%94%a2-%f0%9d%95%ac%f0%9d%96%91%f0%9d%96%8c%f0%9d%96%8a%f0%9d%96%87/feed/atom/" thr:count="0" />
+			<thr:total>0</thr:total>
+			</entry>
+		<entry>
+		<author>
+			<name>Author O'Brien "the tester" 😀</name>
+							<uri>https://example.com/~author</uri>
+						</author>
+
+		<title type="html"><![CDATA[Backslash title Windows path C:\Users\thies\file.txt — regex \d+\s*\\ — literal \n not a newline — LaTeX \frac{1}{2} — escaped quote \&#8221; and \&#8217;]]></title>
+		<link rel="alternate" type="text/html" href="<SITE>/2026/03/backslash-title-windows-path-cusersthiesfile-txt-regex-ds-literal-n-not-a-newline-latex-frac12-escaped-quote-and/" />
+
+<GUID>
+		<updated><TIME></updated>
+		<published><TIME></published>
+		<category scheme="<SITE>" term="Leaf Category" /><category scheme="<SITE>" term="Tag 0 Emoji 😀🧬🚀 · Math 𝔘𝔫𝔦𝔠𝔬𝔡𝔢 𝕬𝖑𝖌𝖊𝖇𝖗𝖆 · CJK-Ext-B 𠜎𠜱𠝹 · ZWJ 👨‍👩‍👧‍👦 · Flag 🇯🇵" /><category scheme="<SITE>" term="Tag 1 Emoji 😀🧬🚀 · Math 𝔘𝔫𝔦𝔠𝔬𝔡𝔢 𝕬𝖑𝖌𝖊𝖇𝖗𝖆 · CJK-Ext-B 𠜎𠜱𠝹 · ZWJ 👨‍👩‍👧‍👦 · Flag 🇯🇵" /><category scheme="<SITE>" term="Tag 2 Emoji 😀🧬🚀 · Math 𝔘𝔫𝔦𝔠𝔬𝔡𝔢 𝕬𝖑𝖌𝖊𝖇𝖗𝖆 · CJK-Ext-B 𠜎𠜱𠝹 · ZWJ 👨‍👩‍👧‍👦 · Flag 🇯🇵" /><category scheme="<SITE>" term="Tag 3 Emoji 😀🧬🚀 · Math 𝔘𝔫𝔦𝔠𝔬𝔡𝔢 𝕬𝖑𝖌𝖊𝖇𝖗𝖆 · CJK-Ext-B 𠜎𠜱𠝹 · ZWJ 👨‍👩‍👧‍👦 · Flag 🇯🇵" />
+		<summary type="html"><![CDATA[Excerpt 8 — He said "it's a test" -- she replied '"nested"' ... 5'9" tall, 3" wide « French » 「日本語」 ‘curly’ “already curly”]]></summary>
+
+					<content type="html" xml:base="<SITE>/2026/03/backslash-title-windows-path-cusersthiesfile-txt-regex-ds-literal-n-not-a-newline-latex-frac12-escaped-quote-and/"><![CDATA[<p>Body 8</p>
+<p>Emoji <img src="https://s.w.org/images/core/emoji/17.0.2/72x72/1f600.png" alt="😀" class="wp-smiley" style="height: 1em; max-height: 1em;" /><img src="https://s.w.org/images/core/emoji/17.0.2/72x72/1f9ec.png" alt="🧬" class="wp-smiley" style="height: 1em; max-height: 1em;" /><img src="https://s.w.org/images/core/emoji/17.0.2/72x72/1f680.png" alt="🚀" class="wp-smiley" style="height: 1em; max-height: 1em;" /> · Math 𝔘𝔫𝔦𝔠𝔬𝔡𝔢 𝕬𝖑𝖌𝖊𝖇𝖗𝖆 · CJK-Ext-B 𠜎𠜱𠝹 · ZWJ <img src="https://s.w.org/images/core/emoji/17.0.2/72x72/1f468-200d-1f469-200d-1f467-200d-1f466.png" alt="👨‍👩‍👧‍👦" class="wp-smiley" style="height: 1em; max-height: 1em;" /> · Flag <img src="https://s.w.org/images/core/emoji/17.0.2/72x72/1f1ef-1f1f5.png" alt="🇯🇵" class="wp-smiley" style="height: 1em; max-height: 1em;" /></p>
+<p>Windows path C:\Users\thies\file.txt — regex \d+\s*\\ — literal \n not a newline — LaTeX \frac{1}{2} — escaped quote \&#8221; and \&#8217;</p>
+<p>He said &#8220;it&#8217;s a test&#8221; &#8212; she replied &#8216;&#8221;nested&#8221;&#8216; &#8230; 5&#8217;9&#8243; tall, 3&#8243; wide « French » 「日本語」 ‘curly’ “already curly”</p>
+]]></content>
+		
+					<link rel="replies" type="text/html" href="<SITE>/2026/03/backslash-title-windows-path-cusersthiesfile-txt-regex-ds-literal-n-not-a-newline-latex-frac12-escaped-quote-and/#comments" thr:count="0" />
+			<link rel="replies" type="application/atom+xml" href="<SITE>/2026/03/backslash-title-windows-path-cusersthiesfile-txt-regex-ds-literal-n-not-a-newline-latex-frac12-escaped-quote-and/feed/atom/" thr:count="0" />
+			<thr:total>0</thr:total>
+			</entry>
+		<entry>
+		<author>
+			<name>Author O'Brien "the tester" 😀</name>
+							<uri>https://example.com/~author</uri>
+						</author>
+
+		<title type="html"><![CDATA[KSES payload carrier]]></title>
+		<link rel="alternate" type="text/html" href="<SITE>/2026/03/kses-payload-carrier/" />
+
+<GUID>
+		<updated><TIME></updated>
+		<published><TIME></published>
+		<category scheme="<SITE>" term="Leaf Category" /><category scheme="<SITE>" term="Tag 0 Emoji 😀🧬🚀 · Math 𝔘𝔫𝔦𝔠𝔬𝔡𝔢 𝕬𝖑𝖌𝖊𝖇𝖗𝖆 · CJK-Ext-B 𠜎𠜱𠝹 · ZWJ 👨‍👩‍👧‍👦 · Flag 🇯🇵" /><category scheme="<SITE>" term="Tag 1 Emoji 😀🧬🚀 · Math 𝔘𝔫𝔦𝔠𝔬𝔡𝔢 𝕬𝖑𝖌𝖊𝖇𝖗𝖆 · CJK-Ext-B 𠜎𠜱𠝹 · ZWJ 👨‍👩‍👧‍👦 · Flag 🇯🇵" /><category scheme="<SITE>" term="Tag 2 Emoji 😀🧬🚀 · Math 𝔘𝔫𝔦𝔠𝔬𝔡𝔢 𝕬𝖑𝖌𝖊𝖇𝖗𝖆 · CJK-Ext-B 𠜎𠜱𠝹 · ZWJ 👨‍👩‍👧‍👦 · Flag 🇯🇵" /><category scheme="<SITE>" term="Tag 3 Emoji 😀🧬🚀 · Math 𝔘𝔫𝔦𝔠𝔬𝔡𝔢 𝕬𝖑𝖌𝖊𝖇𝖗𝖆 · CJK-Ext-B 𠜎𠜱𠝹 · ZWJ 👨‍👩‍👧‍👦 · Flag 🇯🇵" />
+		<summary type="html"><![CDATA[Excerpt 9 — He said "it's a test" -- she replied '"nested"' ... 5'9" tall, 3" wide « French » 「日本語」 ‘curly’ “already curly”]]></summary>
+
+					<content type="html" xml:base="<SITE>/2026/03/kses-payload-carrier/"><![CDATA[<p>Safe paragraph with <strong>bold</strong> and <em>emphasis</em>.</p>
+<p>alert(&#8216;xss&#8217;)<br />
+<a href="alert(1)">plain colon</a><br />
+<a href="alert(2)">numeric entity colon</a><br />
+<a href="alert(3)">hex entity colon</a><br />
+<a href="alert(4)">named entity colon</a><br />
+<a href="alert(5)">truncated colon entity</a><br />
+<a href="feed:alert(6)">feed prefix, one level</a><br />
+<a href="feed:feed:alert(7)">feed prefix, two levels</a><br />
+<a href="alert(8)">mixed case scheme</a><br />
+<a href="alert(9)">leading whitespace scheme</a><br />
+<a href="alert(10)">null byte in scheme</a><br />
+<img decoding="async" src="x" /></p>
+<div>style payload</div>
+<p><a href="https://example.com/ok" title="a &quot;quoted&quot; title">legitimate link</a></p>
+<p>Unclosed tag <b>bold forever</p>
+<table>
+<tr>
+<td>cell</td>
+</tr>
+</table>
+]]></content>
+		
+					<link rel="replies" type="text/html" href="<SITE>/2026/03/kses-payload-carrier/#comments" thr:count="0" />
+			<link rel="replies" type="application/atom+xml" href="<SITE>/2026/03/kses-payload-carrier/feed/atom/" thr:count="0" />
+			<thr:total>0</thr:total>
+			</entry>
+		<entry>
+		<author>
+			<name>Author O'Brien "the tester" 😀</name>
+							<uri>https://example.com/~author</uri>
+						</author>
+
+		<title type="html"><![CDATA[Sticky front-page article]]></title>
+		<link rel="alternate" type="text/html" href="<SITE>/2026/03/sticky-front-page-article/" />
+
+<GUID>
+		<updated><TIME></updated>
+		<published><TIME></published>
+		<category scheme="<SITE>" term="Leaf Category" /><category scheme="<SITE>" term="Tag 0 Emoji 😀🧬🚀 · Math 𝔘𝔫𝔦𝔠𝔬𝔡𝔢 𝕬𝖑𝖌𝖊𝖇𝖗𝖆 · CJK-Ext-B 𠜎𠜱𠝹 · ZWJ 👨‍👩‍👧‍👦 · Flag 🇯🇵" /><category scheme="<SITE>" term="Tag 1 Emoji 😀🧬🚀 · Math 𝔘𝔫𝔦𝔠𝔬𝔡𝔢 𝕬𝖑𝖌𝖊𝖇𝖗𝖆 · CJK-Ext-B 𠜎𠜱𠝹 · ZWJ 👨‍👩‍👧‍👦 · Flag 🇯🇵" /><category scheme="<SITE>" term="Tag 2 Emoji 😀🧬🚀 · Math 𝔘𝔫𝔦𝔠𝔬𝔡𝔢 𝕬𝖑𝖌𝖊𝖇𝖗𝖆 · CJK-Ext-B 𠜎𠜱𠝹 · ZWJ 👨‍👩‍👧‍👦 · Flag 🇯🇵" /><category scheme="<SITE>" term="Tag 3 Emoji 😀🧬🚀 · Math 𝔘𝔫𝔦𝔠𝔬𝔡𝔢 𝕬𝖑𝖌𝖊𝖇𝖗𝖆 · CJK-Ext-B 𠜎𠜱𠝹 · ZWJ 👨‍👩‍👧‍👦 · Flag 🇯🇵" />
+		<summary type="html"><![CDATA[Excerpt 10 — He said "it's a test" -- she replied '"nested"' ... 5'9" tall, 3" wide « French » 「日本語」 ‘curly’ “already curly”]]></summary>
+
+					<content type="html" xml:base="<SITE>/2026/03/sticky-front-page-article/"><![CDATA[<p>Body 10</p>
+<p>Emoji <img src="https://s.w.org/images/core/emoji/17.0.2/72x72/1f600.png" alt="😀" class="wp-smiley" style="height: 1em; max-height: 1em;" /><img src="https://s.w.org/images/core/emoji/17.0.2/72x72/1f9ec.png" alt="🧬" class="wp-smiley" style="height: 1em; max-height: 1em;" /><img src="https://s.w.org/images/core/emoji/17.0.2/72x72/1f680.png" alt="🚀" class="wp-smiley" style="height: 1em; max-height: 1em;" /> · Math 𝔘𝔫𝔦𝔠𝔬𝔡𝔢 𝕬𝖑𝖌𝖊𝖇𝖗𝖆 · CJK-Ext-B 𠜎𠜱𠝹 · ZWJ <img src="https://s.w.org/images/core/emoji/17.0.2/72x72/1f468-200d-1f469-200d-1f467-200d-1f466.png" alt="👨‍👩‍👧‍👦" class="wp-smiley" style="height: 1em; max-height: 1em;" /> · Flag <img src="https://s.w.org/images/core/emoji/17.0.2/72x72/1f1ef-1f1f5.png" alt="🇯🇵" class="wp-smiley" style="height: 1em; max-height: 1em;" /></p>
+<p>Windows path C:\Users\thies\file.txt — regex \d+\s*\\ — literal \n not a newline — LaTeX \frac{1}{2} — escaped quote \&#8221; and \&#8217;</p>
+<p>He said &#8220;it&#8217;s a test&#8221; &#8212; she replied &#8216;&#8221;nested&#8221;&#8216; &#8230; 5&#8217;9&#8243; tall, 3&#8243; wide « French » 「日本語」 ‘curly’ “already curly”</p>
+]]></content>
+		
+					<link rel="replies" type="text/html" href="<SITE>/2026/03/sticky-front-page-article/#comments" thr:count="0" />
+			<link rel="replies" type="application/atom+xml" href="<SITE>/2026/03/sticky-front-page-article/feed/atom/" thr:count="0" />
+			<thr:total>0</thr:total>
+			</entry>
+		<entry>
+		<author>
+			<name>Author O'Brien "the tester" 😀</name>
+							<uri>https://example.com/~author</uri>
+						</author>
+
+		<title type="html"><![CDATA[long-slug-segment-long-slug-segment-long-slug-segment-long-slug-segment-long-slug-segment-long-slug-segment-long-slug-segment-long-slug-segment-long-slug-segment-long-slug-segment-long-slug-segment-long-slug-segment-long-slug-segment-long-slug-segment-long-slug-segment-long-slug-segment-long-slug-segment-long-slug-segment-long-slug-segment-long-slug-segment-]]></title>
+		<link rel="alternate" type="text/html" href="<SITE>/2026/03/long-slug-segment-long-slug-segment-long-slug-segment-long-slug-segment-long-slug-segment-long-slug-segment-long-slug-segment-long-slug-segment-long-slug-segment-long-slug-segment-long-slug-segment-lo/" />
+
+<GUID>
+		<updated><TIME></updated>
+		<published><TIME></published>
+		<category scheme="<SITE>" term="Leaf Category" /><category scheme="<SITE>" term="Tag 0 Emoji 😀🧬🚀 · Math 𝔘𝔫𝔦𝔠𝔬𝔡𝔢 𝕬𝖑𝖌𝖊𝖇𝖗𝖆 · CJK-Ext-B 𠜎𠜱𠝹 · ZWJ 👨‍👩‍👧‍👦 · Flag 🇯🇵" /><category scheme="<SITE>" term="Tag 1 Emoji 😀🧬🚀 · Math 𝔘𝔫𝔦𝔠𝔬𝔡𝔢 𝕬𝖑𝖌𝖊𝖇𝖗𝖆 · CJK-Ext-B 𠜎𠜱𠝹 · ZWJ 👨‍👩‍👧‍👦 · Flag 🇯🇵" /><category scheme="<SITE>" term="Tag 2 Emoji 😀🧬🚀 · Math 𝔘𝔫𝔦𝔠𝔬𝔡𝔢 𝕬𝖑𝖌𝖊𝖇𝖗𝖆 · CJK-Ext-B 𠜎𠜱𠝹 · ZWJ 👨‍👩‍👧‍👦 · Flag 🇯🇵" /><category scheme="<SITE>" term="Tag 3 Emoji 😀🧬🚀 · Math 𝔘𝔫𝔦𝔠𝔬𝔡𝔢 𝕬𝖑𝖌𝖊𝖇𝖗𝖆 · CJK-Ext-B 𠜎𠜱𠝹 · ZWJ 👨‍👩‍👧‍👦 · Flag 🇯🇵" />
+		<summary type="html"><![CDATA[Excerpt 11 — He said "it's a test" -- she replied '"nested"' ... 5'9" tall, 3" wide « French » 「日本語」 ‘curly’ “already curly”]]></summary>
+
+					<content type="html" xml:base="<SITE>/2026/03/long-slug-segment-long-slug-segment-long-slug-segment-long-slug-segment-long-slug-segment-long-slug-segment-long-slug-segment-long-slug-segment-long-slug-segment-long-slug-segment-long-slug-segment-lo/"><![CDATA[<p>Body 11</p>
+<p>Emoji <img src="https://s.w.org/images/core/emoji/17.0.2/72x72/1f600.png" alt="😀" class="wp-smiley" style="height: 1em; max-height: 1em;" /><img src="https://s.w.org/images/core/emoji/17.0.2/72x72/1f9ec.png" alt="🧬" class="wp-smiley" style="height: 1em; max-height: 1em;" /><img src="https://s.w.org/images/core/emoji/17.0.2/72x72/1f680.png" alt="🚀" class="wp-smiley" style="height: 1em; max-height: 1em;" /> · Math 𝔘𝔫𝔦𝔠𝔬𝔡𝔢 𝕬𝖑𝖌𝖊𝖇𝖗𝖆 · CJK-Ext-B 𠜎𠜱𠝹 · ZWJ <img src="https://s.w.org/images/core/emoji/17.0.2/72x72/1f468-200d-1f469-200d-1f467-200d-1f466.png" alt="👨‍👩‍👧‍👦" class="wp-smiley" style="height: 1em; max-height: 1em;" /> · Flag <img src="https://s.w.org/images/core/emoji/17.0.2/72x72/1f1ef-1f1f5.png" alt="🇯🇵" class="wp-smiley" style="height: 1em; max-height: 1em;" /></p>
+<p>Windows path C:\Users\thies\file.txt — regex \d+\s*\\ — literal \n not a newline — LaTeX \frac{1}{2} — escaped quote \&#8221; and \&#8217;</p>
+<p>He said &#8220;it&#8217;s a test&#8221; &#8212; she replied &#8216;&#8221;nested&#8221;&#8216; &#8230; 5&#8217;9&#8243; tall, 3&#8243; wide « French » 「日本語」 ‘curly’ “already curly”</p>
+]]></content>
+		
+					<link rel="replies" type="text/html" href="<SITE>/2026/03/long-slug-segment-long-slug-segment-long-slug-segment-long-slug-segment-long-slug-segment-long-slug-segment-long-slug-segment-long-slug-segment-long-slug-segment-long-slug-segment-long-slug-segment-lo/#comments" thr:count="0" />
+			<link rel="replies" type="application/atom+xml" href="<SITE>/2026/03/long-slug-segment-long-slug-segment-long-slug-segment-long-slug-segment-long-slug-segment-long-slug-segment-long-slug-segment-long-slug-segment-long-slug-segment-long-slug-segment-long-slug-segment-lo/feed/atom/" thr:count="0" />
+			<thr:total>0</thr:total>
+			</entry>
+		<entry>
+		<author>
+			<name>Author O'Brien "the tester" 😀</name>
+							<uri>https://example.com/~author</uri>
+						</author>
+
+		<title type="html"><![CDATA[Duplicate slug candidate]]></title>
+		<link rel="alternate" type="text/html" href="<SITE>/2026/03/duplicate-slug-candidate/" />
+
+<GUID>
+		<updated><TIME></updated>
+		<published><TIME></published>
+		<category scheme="<SITE>" term="Leaf Category" /><category scheme="<SITE>" term="Tag 0 Emoji 😀🧬🚀 · Math 𝔘𝔫𝔦𝔠𝔬𝔡𝔢 𝕬𝖑𝖌𝖊𝖇𝖗𝖆 · CJK-Ext-B 𠜎𠜱𠝹 · ZWJ 👨‍👩‍👧‍👦 · Flag 🇯🇵" /><category scheme="<SITE>" term="Tag 1 Emoji 😀🧬🚀 · Math 𝔘𝔫𝔦𝔠𝔬𝔡𝔢 𝕬𝖑𝖌𝖊𝖇𝖗𝖆 · CJK-Ext-B 𠜎𠜱𠝹 · ZWJ 👨‍👩‍👧‍👦 · Flag 🇯🇵" /><category scheme="<SITE>" term="Tag 2 Emoji 😀🧬🚀 · Math 𝔘𝔫𝔦𝔠𝔬𝔡𝔢 𝕬𝖑𝖌𝖊𝖇𝖗𝖆 · CJK-Ext-B 𠜎𠜱𠝹 · ZWJ 👨‍👩‍👧‍👦 · Flag 🇯🇵" /><category scheme="<SITE>" term="Tag 3 Emoji 😀🧬🚀 · Math 𝔘𝔫𝔦𝔠𝔬𝔡𝔢 𝕬𝖑𝖌𝖊𝖇𝖗𝖆 · CJK-Ext-B 𠜎𠜱𠝹 · ZWJ 👨‍👩‍👧‍👦 · Flag 🇯🇵" />
+		<summary type="html"><![CDATA[Excerpt 12 — He said "it's a test" -- she replied '"nested"' ... 5'9" tall, 3" wide « French » 「日本語」 ‘curly’ “already curly”]]></summary>
+
+					<content type="html" xml:base="<SITE>/2026/03/duplicate-slug-candidate/"><![CDATA[<p>Body 12</p>
+<p>Emoji <img src="https://s.w.org/images/core/emoji/17.0.2/72x72/1f600.png" alt="😀" class="wp-smiley" style="height: 1em; max-height: 1em;" /><img src="https://s.w.org/images/core/emoji/17.0.2/72x72/1f9ec.png" alt="🧬" class="wp-smiley" style="height: 1em; max-height: 1em;" /><img src="https://s.w.org/images/core/emoji/17.0.2/72x72/1f680.png" alt="🚀" class="wp-smiley" style="height: 1em; max-height: 1em;" /> · Math 𝔘𝔫𝔦𝔠𝔬𝔡𝔢 𝕬𝖑𝖌𝖊𝖇𝖗𝖆 · CJK-Ext-B 𠜎𠜱𠝹 · ZWJ <img src="https://s.w.org/images/core/emoji/17.0.2/72x72/1f468-200d-1f469-200d-1f467-200d-1f466.png" alt="👨‍👩‍👧‍👦" class="wp-smiley" style="height: 1em; max-height: 1em;" /> · Flag <img src="https://s.w.org/images/core/emoji/17.0.2/72x72/1f1ef-1f1f5.png" alt="🇯🇵" class="wp-smiley" style="height: 1em; max-height: 1em;" /></p>
+<p>Windows path C:\Users\thies\file.txt — regex \d+\s*\\ — literal \n not a newline — LaTeX \frac{1}{2} — escaped quote \&#8221; and \&#8217;</p>
+<p>He said &#8220;it&#8217;s a test&#8221; &#8212; she replied &#8216;&#8221;nested&#8221;&#8216; &#8230; 5&#8217;9&#8243; tall, 3&#8243; wide « French » 「日本語」 ‘curly’ “already curly”</p>
+]]></content>
+		
+					<link rel="replies" type="text/html" href="<SITE>/2026/03/duplicate-slug-candidate/#comments" thr:count="0" />
+			<link rel="replies" type="application/atom+xml" href="<SITE>/2026/03/duplicate-slug-candidate/feed/atom/" thr:count="0" />
+			<thr:total>0</thr:total>
+			</entry>
+		<entry>
+		<author>
+			<name>Author O'Brien "the tester" 😀</name>
+							<uri>https://example.com/~author</uri>
+						</author>
+
+		<title type="html"><![CDATA[Duplicate slug candidate]]></title>
+		<link rel="alternate" type="text/html" href="<SITE>/2026/03/duplicate-slug-candidate-2/" />
+
+<GUID>
+		<updated><TIME></updated>
+		<published><TIME></published>
+		<category scheme="<SITE>" term="Leaf Category" /><category scheme="<SITE>" term="Tag 0 Emoji 😀🧬🚀 · Math 𝔘𝔫𝔦𝔠𝔬𝔡𝔢 𝕬𝖑𝖌𝖊𝖇𝖗𝖆 · CJK-Ext-B 𠜎𠜱𠝹 · ZWJ 👨‍👩‍👧‍👦 · Flag 🇯🇵" /><category scheme="<SITE>" term="Tag 1 Emoji 😀🧬🚀 · Math 𝔘𝔫𝔦𝔠𝔬𝔡𝔢 𝕬𝖑𝖌𝖊𝖇𝖗𝖆 · CJK-Ext-B 𠜎𠜱𠝹 · ZWJ 👨‍👩‍👧‍👦 · Flag 🇯🇵" /><category scheme="<SITE>" term="Tag 2 Emoji 😀🧬🚀 · Math 𝔘𝔫𝔦𝔠𝔬𝔡𝔢 𝕬𝖑𝖌𝖊𝖇𝖗𝖆 · CJK-Ext-B 𠜎𠜱𠝹 · ZWJ 👨‍👩‍👧‍👦 · Flag 🇯🇵" /><category scheme="<SITE>" term="Tag 3 Emoji 😀🧬🚀 · Math 𝔘𝔫𝔦𝔠𝔬𝔡𝔢 𝕬𝖑𝖌𝖊𝖇𝖗𝖆 · CJK-Ext-B 𠜎𠜱𠝹 · ZWJ 👨‍👩‍👧‍👦 · Flag 🇯🇵" />
+		<summary type="html"><![CDATA[Excerpt 13 — He said "it's a test" -- she replied '"nested"' ... 5'9" tall, 3" wide « French » 「日本語」 ‘curly’ “already curly”]]></summary>
+
+					<content type="html" xml:base="<SITE>/2026/03/duplicate-slug-candidate-2/"><![CDATA[<p>Body 13</p>
+<p>Emoji <img src="https://s.w.org/images/core/emoji/17.0.2/72x72/1f600.png" alt="😀" class="wp-smiley" style="height: 1em; max-height: 1em;" /><img src="https://s.w.org/images/core/emoji/17.0.2/72x72/1f9ec.png" alt="🧬" class="wp-smiley" style="height: 1em; max-height: 1em;" /><img src="https://s.w.org/images/core/emoji/17.0.2/72x72/1f680.png" alt="🚀" class="wp-smiley" style="height: 1em; max-height: 1em;" /> · Math 𝔘𝔫𝔦𝔠𝔬𝔡𝔢 𝕬𝖑𝖌𝖊𝖇𝖗𝖆 · CJK-Ext-B 𠜎𠜱𠝹 · ZWJ <img src="https://s.w.org/images/core/emoji/17.0.2/72x72/1f468-200d-1f469-200d-1f467-200d-1f466.png" alt="👨‍👩‍👧‍👦" class="wp-smiley" style="height: 1em; max-height: 1em;" /> · Flag <img src="https://s.w.org/images/core/emoji/17.0.2/72x72/1f1ef-1f1f5.png" alt="🇯🇵" class="wp-smiley" style="height: 1em; max-height: 1em;" /></p>
+<p>Windows path C:\Users\thies\file.txt — regex \d+\s*\\ — literal \n not a newline — LaTeX \frac{1}{2} — escaped quote \&#8221; and \&#8217;</p>
+<p>He said &#8220;it&#8217;s a test&#8221; &#8212; she replied &#8216;&#8221;nested&#8221;&#8216; &#8230; 5&#8217;9&#8243; tall, 3&#8243; wide « French » 「日本語」 ‘curly’ “already curly”</p>
+]]></content>
+		
+					<link rel="replies" type="text/html" href="<SITE>/2026/03/duplicate-slug-candidate-2/#comments" thr:count="0" />
+			<link rel="replies" type="application/atom+xml" href="<SITE>/2026/03/duplicate-slug-candidate-2/feed/atom/" thr:count="0" />
+			<thr:total>0</thr:total>
+			</entry>
+	</feed>

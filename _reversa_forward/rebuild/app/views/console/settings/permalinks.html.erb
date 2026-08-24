@@ -1,0 +1,57 @@
+<%# console.options-permalink — options-permalink.php, modernized. ⚠️ changing the
+    structure changes which slugs are legal (BR-POST-07, F-RW-06): the write goes
+    through Routing::PermalinkStructure.change_to, which recomputes the reserved-segment
+    set and REFUSES a structure that would shadow an already-published slug — a
+    deviation from the legacy, which resolves such a clash silently. -%>
+<% @page_title = "Permalink Settings" %>
+<% structure = current("permalink_structure").to_s %>
+<h1 class="wp-heading-inline">Permalink Settings</h1>
+<hr class="wp-header-end">
+<%= render "console/settings/nav" %>
+
+<% if @permalink_conflicts&.any? %>
+  <div class="notice notice-error" role="alert" style="border-left-color:var(--error)">
+    <p><strong>The permalink structure was not changed.</strong> It would make these already-published slugs unreachable:</p>
+    <ul>
+      <% @permalink_conflicts.each do |post| %>
+        <li><code><%= post.slug %></code> &mdash; <%= post.title %></li>
+      <% end %>
+    </ul>
+    <p>Nothing here renames a published record behind its author&#8217;s back. Resolve the collision first, or choose a different structure.</p>
+  </div>
+<% end %>
+
+<p>WordPress offers you the ability to create a custom URL structure for your permalinks and archives. Custom URL structures can improve the aesthetics, usability, and forward-compatibility of your links.</p>
+
+<%= form_with url: settings_path_for("permalinks"), method: :post do %>
+  <h2 class="title">Common Settings</h2>
+  <table class="form-table permalink-structure" role="presentation">
+    <tbody>
+      <% preset_values = permalink_presets.map { |(_l, v, _e)| v } %>
+      <% permalink_presets.each do |label, value, example| %>
+        <tr>
+          <th scope="row">
+            <label>
+              <input name="selection" type="radio" value="<%= value.presence || "" %>" <%= "checked" if structure == value %>>
+              <%= label %>
+            </label>
+          </th>
+          <td><code><%= example %></code></td>
+        </tr>
+      <% end %>
+      <tr>
+        <th scope="row">
+          <label>
+            <input name="selection" type="radio" value="custom" <%= "checked" unless preset_values.include?(structure) %>>
+            Custom Structure
+          </label>
+        </th>
+        <td>
+          <code><%= site_url %></code>
+          <input name="permalink_structure" type="text" value="<%= structure %>" class="regular-text code" aria-label="Custom permalink structure">
+        </td>
+      </tr>
+    </tbody>
+  </table>
+  <p class="submit"><input type="submit" name="submit" id="submit" class="button button-primary" value="Save Changes"></p>
+<% end %>

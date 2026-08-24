@@ -1,0 +1,19 @@
+<%# login_header(), wp-login.php:233-282: messages with the 'message' severity go into
+    #login-message (info); everything else into #login_error, as a list when there is
+    more than one. The strings are the legacy's own HTML and are printed raw; the only
+    user-supplied fragments inside them were esc_html()ed where they were built. The
+    markup is emitted without whitespace between the elements, as the legacy's string
+    concatenation does (:257-267). -%>
+<% errors ||= nil -%>
+<% if errors&.any? -%>
+<% error_list = errors.error_messages -%>
+<% if error_list.length > 1 -%>
+<div id="login_error" class="notice notice-error"><ul class="login-error-list"><% error_list.each do |item| %><li><%= item.html_safe %></li><% end %></ul></div>
+<% elsif error_list.length == 1 -%>
+<div id="login_error" class="notice notice-error"><p><%= error_list.first.html_safe %></p></div>
+<% end -%>
+<% messages = errors.info_messages -%>
+<% if messages.any? -%>
+<div id="login-message" class="notice notice-info message"><% messages.each do |item| %><p><%= item.html_safe %></p><% end %></div>
+<% end -%>
+<% end -%>

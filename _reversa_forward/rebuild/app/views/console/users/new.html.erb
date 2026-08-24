@@ -1,0 +1,47 @@
+<%# console.user-new — user-new.php (single-site "Add User") in modernized mode. Surviving
+    fields: Username, Email, Website, Language, Password, Repeat Password, Role, Send User
+    Notification. Dropped (no column): First/Last Name. LITERAL labels throughout. %>
+<h1 id="add-new-user"><%= @page_title %></h1>
+<%= render "console/shared/form_errors", form_errors: @form_errors %>
+
+<%= form_with url: "/console/users", method: :post, local: true do |f| %>
+  <table class="form-table" role="presentation"><tbody>
+    <tr class="form-field form-required">
+      <th scope="row"><label for="user_login"><%= "Username" %> <span class="description"><%= "(required)" %></span></label></th>
+      <td><input type="text" name="user_login" id="user_login" value="<%= params[:user_login] %>" /></td>
+    </tr>
+    <tr class="form-field form-required">
+      <th scope="row"><label for="email"><%= "Email" %> <span class="description"><%= "(required)" %></span></label></th>
+      <td><input type="email" name="email" id="email" value="<%= params[:email] %>" /></td>
+    </tr>
+    <tr class="form-field">
+      <th scope="row"><label for="url"><%= "Website" %></label></th>
+      <td><input type="url" name="url" id="url" value="<%= params[:url] %>" /></td>
+    </tr>
+    <tr class="form-field">
+      <th scope="row"><label for="locale"><%= "Language" %></label></th>
+      <td><%= render "console/shared/language_select", current_locale: params[:locale] %></td>
+    </tr>
+    <tr class="form-field form-required">
+      <th scope="row"><label for="pass1"><%= "Password" %> <span class="description"><%= "(required)" %></span></label></th>
+      <td><input type="password" name="pass1" id="pass1" autocomplete="new-password" /></td>
+    </tr>
+    <tr class="form-field form-required">
+      <th scope="row"><label for="pass2"><%= "Repeat Password" %> <span class="description"><%= "(required)" %></span></label></th>
+      <td><input type="password" name="pass2" id="pass2" autocomplete="new-password" /></td>
+    </tr>
+    <tr>
+      <th scope="row"><%= "Send User Notification" %></th>
+      <td><label><input type="checkbox" name="send_user_notification" value="1" /> <%= "Send the new user an email about their account" %></label></td>
+    </tr>
+    <tr class="form-field">
+      <th scope="row"><label for="role"><%= "Role" %></label></th>
+      <td><%= render "console/shared/role_select", selected_role: @new_user_role %></td>
+    </tr>
+  </tbody></table>
+
+  <div class="submit">
+    <button type="submit" name="createuser" class="button button-primary"><%= "Add User" %></button>
+    <a class="button button-link" href="/console/users"><%= "Cancel" %></a>
+  </div>
+<% end %>

@@ -1,0 +1,8 @@
+<%# Flash notices — success after a save, error when a save was refused. The success and
+    error strings are set by the controller and are LITERAL where the legacy has one. %>
+<% if flash[:success].present? %>
+  <div class="notice notice-success" role="status"><p><%= flash[:success] %></p></div>
+<% end %>
+<% if flash[:error].present? %>
+  <div class="notice notice-error" role="alert"><p><%= flash[:error] %></p></div>
+<% end %>

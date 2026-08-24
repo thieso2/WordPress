@@ -1,0 +1,4 @@
+<select name="locale" id="locale">
+  <option value="site-default" <%= "selected" if current_locale.blank? %>><%= "Site Default" %></option>
+  <option value="en_US" <%= "selected" if current_locale == "en_US" %>><%= "English (United States)" %></option>
+</select>

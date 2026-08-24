@@ -1,0 +1,36 @@
+<%# console.export-personal-data / .erase-personal-data — a P-LIST over
+    Identity::DataRequest. Columns LITERAL (class-wp-privacy-requests-table.php:43-46). -%>
+<% export = @kind == "export" %>
+<% @page_title = (export ? "Export Personal Data" : "Erase Personal Data") %>
+<h1 class="wp-heading-inline"><%= export ? "Export Personal Data" : "Erase Personal Data" %></h1>
+<hr class="wp-header-end">
+
+<h2><%= export ? "Add Data Export Request" : "Add Data Erasure Request" %></h2>
+<%= form_with url: path_for(@kind == "export" ? "export" : "erasure"), method: :post do %>
+  <input type="hidden" name="kind" value="<%= @kind %>">
+  <p>
+    <label for="username_or_email_for_privacy_request">Username or email address</label>
+    <input type="text" name="username_or_email" id="username_or_email_for_privacy_request" class="regular-text" required>
+    <button type="submit" class="button button-primary">Send Request</button>
+  </p>
+<% end %>
+
+<table class="widefat">
+  <thead>
+    <tr><th>Requester</th><th>Status</th><th>Requested</th><th>Next steps</th></tr>
+  </thead>
+  <tbody>
+    <% if @requests.any? %>
+      <% @requests.each do |req| %>
+        <tr>
+          <td><%= req.email %></td>
+          <td><%= status_label(req.status) %></td>
+          <td><%= req.created_at&.strftime("%Y/%m/%d") %></td>
+          <td class="row-actions"><%= req.status == "confirmed" ? (export ? "Download personal data" : "Erase personal data") : "Waiting for confirmation" %></td>
+        </tr>
+      <% end %>
+    <% else %>
+      <tr><td colspan="4" class="no-items">No items found.</td></tr>
+    <% end %>
+  </tbody>
+</table>

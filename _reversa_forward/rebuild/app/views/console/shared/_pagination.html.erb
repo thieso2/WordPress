@@ -1,0 +1,36 @@
+<%# Pagination — WP_List_Table::pagination(). `page` is a Retrieval::Page; its total is
+    exact or estimated per the screen's P-LIST declaration (DEV-003). The count line and
+    the page nav use the legacy's own strings. `which` distinguishes the top/bottom pager
+    so their control ids stay unique. -%>
+<% list = local_assigns.fetch(:list) %>
+<% page = list.page %>
+<% which = local_assigns.fetch(:which, "top") %>
+<div class="tablenav-pages">
+  <%# class-wp-list-table.php:1024 — _n( '%s item', '%s items', total ). On an estimated
+      screen the number is an estimate (DEV-003), flagged for the reader, out of parity scope. %>
+  <span class="displaying-num">
+    <%= number_with_delimiter(list.total) %> <%= list.total == 1 ? "item" : "items" %><%= " (estimated)" if list.strategy == :estimated %>
+  </span>
+  <% if page.total_pages > 1 %>
+    <span class="pagination-links">
+      <% if page.first? %>
+        <span class="tablenav-pages-navspan button disabled" aria-hidden="true">&lsaquo;</span>
+      <% else %>
+        <%= link_to "‹".html_safe, list_url(list, list.query.merge("paged" => page.previous_number)),
+                    class: "prev-page button", "aria-label": "Previous page" %>
+      <% end %>
+      <span class="paging-input">
+        <span class="tablenav-paging-text">
+          <%# class-wp-list-table.php:1096 — '%1$s of %2$s' %>
+          <%= page.number %> of <span class="total-pages"><%= page.total_pages %></span>
+        </span>
+      </span>
+      <% if page.last? %>
+        <span class="tablenav-pages-navspan button disabled" aria-hidden="true">&rsaquo;</span>
+      <% else %>
+        <%= link_to "›".html_safe, list_url(list, list.query.merge("paged" => page.next_number)),
+                    class: "next-page button", "aria-label": "Next page" %>
+      <% end %>
+    </span>
+  <% end %>
+</div>

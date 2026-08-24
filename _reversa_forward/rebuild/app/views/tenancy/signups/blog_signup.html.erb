@@ -1,0 +1,39 @@
+<%# tenancy.blog_signup — wp-signup.php signup_blog() (:150-260). Site address, title,
+    privacy. Carries the account fields forward as hidden inputs. -%>
+<% @title = "Create Your Site" %>
+<h2>Create Your Site</h2>
+
+<%= render "tenancy/shared/errors", errors: @errors %>
+
+<%= form_with url: signup_path, method: :post, id: "setupform" do %>
+  <input type="hidden" name="signup_for" value="blog">
+  <input type="hidden" name="user_name" value="<%= @user_login %>">
+  <input type="hidden" name="user_email" value="<%= @user_email %>">
+  <p>
+    <label for="blogname">Site Domain:</label>
+    <input name="blogname" type="text" id="blogname" value="<%= @blog_domain %>" autofocus>
+  </p>
+  <p>
+    <label for="blog_title">Site Title:</label>
+    <input name="blog_title" type="text" id="blog_title" value="<%= @blog_title %>">
+  </p>
+  <div id="privacy">
+    <fieldset class="privacy-intro">
+      <legend>
+        <span class="label-heading">Privacy:</span>
+        Allow search engines to index this site.
+      </legend>
+      <p class="wp-signup-radio-buttons">
+        <span class="wp-signup-radio-button">
+          <input type="radio" id="blog_public_on" name="blog_public" value="1" <%= "checked" if @blog_public != "0" %>>
+          <label class="checkbox" for="blog_public_on">Yes</label>
+        </span>
+        <span class="wp-signup-radio-button">
+          <input type="radio" id="blog_public_off" name="blog_public" value="0" <%= "checked" if @blog_public == "0" %>>
+          <label class="checkbox" for="blog_public_off">No</label>
+        </span>
+      </p>
+    </fieldset>
+  </div>
+  <p class="submit"><input type="submit" name="submit" class="submit" value="Sign up"></p>
+<% end %>

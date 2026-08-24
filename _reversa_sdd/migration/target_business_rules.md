@@ -25,7 +25,13 @@ hash: "sha256:2dad2e05d56524ae6346676cba23b157cfcd7abfe4f048f05829b2800c259165"
 | **Total analysed** | **431** | 100%% |
 
 All 22 human-decision items were resolved at the post-Curator pause. Of the 68 discarded,
-**54 are paradigm-related**, **11 are out of declared scope**, and 1 is a resolved ruling.
+**54 are paradigm-related**, **11 are out of declared scope**, and **3 are resolved rulings**
+(`BR-OPT-04`, `BR-CAP-14`, `BR-MS-02`).
+
+> ⚠️ Corrected 2026-08-22 by the coding agent (deferred item D-1); the prose read "1".
+> 54 + 11 + 3 = 68, reconciling with `discard_log.md` § 4. The rule *set* was already
+> correct — 363 MIGRATE ids are enumerated below and all three rulings were already
+> handled downstream. Only the tally was wrong.
 
 ---
 

@@ -1,0 +1,54 @@
+<%# EditorLayout — target_screens.md § The editor, `spec.layout: EditorLayout` (full-bleed;
+    the console chrome is deliberately suppressed). wp-admin/edit-form-blocks.php renders the
+    block editor into a bare, full-viewport host; this is the modernized equivalent — a
+    minimal shell that gives the deferred React island a full-bleed canvas to mount into and,
+    until it exists, frames the honest placeholder. DEV-009: branding (the "— WordPress"
+    title suffix) drops; every other string is the legacy's. %>
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= [@title.presence, site_name].compact.join(" ‹ ") %></title>
+    <%# wp_robots_sensitive_page() — an admin screen is never indexed. %>
+    <meta name="robots" content="noindex, noarchive">
+    <meta name="referrer" content="strict-origin-when-cross-origin">
+    <%= csrf_meta_tags %>
+    <%= javascript_include_tag "turbo.min", type: "module" %>
+    <style>
+      :root { --ink:#1d2327; --muted:#50575e; --rule:#c3c4c7; --bg:#f0f0f1; --card:#fff; --accent:#2271b1; --error:#d63638; --ok:#00a32a; --bar:#fff; }
+      @media (prefers-color-scheme: dark) { :root { --ink:#e8ebef; --muted:#98a2b3; --rule:#2a2f38; --bg:#14161a; --card:#1b1f26; --accent:#7fa2ff; --error:#f0868a; --ok:#68de8b; --bar:#1b1f26; } }
+      * { box-sizing: border-box; }
+      html, body { margin: 0; height: 100%; }
+      body.editor { background: var(--bg); color: var(--ink); font: 14px/1.6 ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; display: flex; flex-direction: column; min-height: 100vh; }
+      .screen-reader-text { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
+      .edit-bar { display: flex; align-items: center; gap: .75rem; padding: .5rem 1rem; background: var(--bar); border-bottom: 1px solid var(--rule); position: sticky; top: 0; z-index: 10; flex-wrap: wrap; }
+      .edit-bar .title { font-weight: 650; letter-spacing: -.01em; margin-right: auto; }
+      .edit-bar form { display: inline; margin: 0; }
+      .edit-bar .status { color: var(--muted); font-size: .85rem; }
+      .button { font: inherit; font-size: .9rem; padding: .35rem .9rem; border-radius: 3px; border: 1px solid var(--accent); background: var(--card); color: var(--accent); cursor: pointer; text-decoration: none; }
+      .button-primary { background: var(--accent); color: #fff; }
+      .button-link { border-color: transparent; background: none; }
+      .notice { margin: 1rem auto 0; max-width: 780px; padding: .75rem 1rem; background: var(--card); border-left: 4px solid var(--accent); }
+      .notice-error { border-left-color: var(--error); }
+      .notice-success { border-left-color: var(--ok); }
+      .notice ul { margin: 0; padding-left: 1.1rem; }
+      main.canvas { flex: 1; width: 100%; }
+      .placeholder-note { max-width: 780px; margin: 1rem auto 0; padding: .6rem .9rem; border: 1px dashed var(--rule); border-radius: 4px; color: var(--muted); font-size: .85rem; background: var(--card); }
+      .doc { max-width: 780px; margin: 1.25rem auto 3rem; }
+      .doc input.title-input { width: 100%; font-size: 2rem; font-weight: 650; letter-spacing: -.02em; border: none; background: none; color: var(--ink); padding: .25rem 0; }
+      .doc input.title-input::placeholder { color: var(--muted); opacity: .7; }
+      .doc textarea.block-canvas { width: 100%; min-height: 55vh; margin-top: 1rem; font: 13px/1.6 ui-monospace, SFMono-Regular, Menlo, monospace; padding: 1rem; border: 1px solid var(--rule); border-radius: 4px; background: var(--card); color: var(--ink); resize: vertical; }
+      .doc textarea::placeholder { color: var(--muted); }
+      .field { margin-top: 1rem; }
+      .field label { display: block; font-size: .85rem; color: var(--muted); margin-bottom: .25rem; }
+      .field input[type=text], .field input[type=datetime-local] { font: inherit; padding: .3rem .5rem; border: 1px solid var(--rule); border-radius: 4px; background: var(--card); color: var(--ink); }
+      .locked-box { max-width: 560px; margin: 12vh auto; background: var(--card); border: 1px solid var(--rule); border-radius: 4px; padding: 1.5rem; }
+      .locked-box .buttons { display: flex; gap: .5rem; margin-top: 1.25rem; }
+    </style>
+  </head>
+  <body class="editor" data-screen="<%= @screen %>">
+    <h1 class="screen-reader-text"><%= @title %></h1>
+    <%= yield %>
+  </body>
+</html>

@@ -1,0 +1,155 @@
+<%# P-LIST — the one shared rendering of every filtered, paginated, bulk-actionable list
+    (target_screens.md § Part 1). Driven entirely by a Console::ListModel the controller
+    built; this partial adds no data and asks Access nothing (the controller resolved every
+    policy question already, BR-CAP-05). LITERAL strings — title, column headers, tab
+    labels, bulk-action labels, empty-state — arrive verbatim and are printed as given.
+    Styles are scoped here so the list renders the same under any console layout revision. -%>
+<% list = local_assigns.fetch(:list) %>
+<style>
+  .wp-list-table { width: 100%; border-collapse: collapse; background: var(--card, #fff); border: 1px solid var(--rule, #dcdcde); }
+  .wp-list-table th, .wp-list-table td { text-align: left; padding: .5rem .6rem; border-bottom: 1px solid var(--rule, #dcdcde); vertical-align: top; }
+  .wp-list-table thead th { font-weight: 600; }
+  .wp-list-table th.sortable a { text-decoration: none; color: inherit; }
+  .wp-list-table .check-column { width: 1.5rem; }
+  .row-title { font-weight: 600; }
+  .row-actions { color: var(--muted, #50575e); font-size: .85rem; margin-top: .2rem; display: flex; gap: .5rem; flex-wrap: wrap; }
+  .row-actions form { display: inline; margin: 0; }
+  .row-actions a, .row-actions button.button-link { color: var(--accent, #2271b1); background: none; border: 0; padding: 0; cursor: pointer; font: inherit; }
+  .row-actions .destructive a, .row-actions .destructive button { color: var(--error, #d63638); }
+  .subsubsub { list-style: none; margin: .5rem 0; padding: 0; font-size: .85rem; color: var(--muted, #50575e); }
+  .subsubsub li { display: inline; }
+  .subsubsub li::after { content: " |"; color: var(--rule, #dcdcde); }
+  .subsubsub li:last-child::after { content: ""; }
+  .subsubsub a { text-decoration: none; }
+  .subsubsub a.current { font-weight: 600; color: var(--ink, #1d2327); }
+  .tablenav { display: flex; align-items: center; gap: .5rem; margin: .75rem 0; flex-wrap: wrap; }
+  .tablenav .actions { display: flex; gap: .35rem; align-items: center; }
+  .tablenav-pages { margin-left: auto; color: var(--muted, #50575e); display: flex; align-items: center; gap: .4rem; }
+  .displaying-num { margin-right: .5rem; }
+  .search-box { display: flex; gap: .35rem; }
+  .table-scroll { overflow-x: auto; }
+  .no-items td { padding: 1.25rem; text-align: center; color: var(--muted, #50575e); }
+  .page-title-action { display: inline-block; margin-left: .5rem; padding: .2rem .7rem; border: 1px solid var(--accent, #2271b1); border-radius: 3px; color: var(--accent, #2271b1); text-decoration: none; font-size: .85rem; vertical-align: middle; }
+</style>
+
+<h1 class="wp-heading-inline"><%= list.title %></h1>
+<% if list.primary_action %>
+  <%= link_to list.primary_action[:label], list.primary_action[:path], class: "page-title-action" %>
+<% end %>
+<% if list.search_query.present? %>
+  <span class="subtitle"><%# edit.php:427 — "Search results for: %s" %>Search results for: <strong><%= list.search_query %></strong></span>
+<% end %>
+<hr class="wp-header-end">
+
+<%# StatusTabs — WP_List_Table::get_views, "All | Published | Draft | Trash". The label
+    markup (e.g. 'All <span class="count">(3)</span>') is LITERAL and already escaped. %>
+<% if list.tabs? %>
+  <ul class="subsubsub">
+    <% list.tabs.each do |tab| %>
+      <li class="<%= tab.key %>">
+        <%= link_to list_url(list, tab.query), class: (tab.current? ? "current" : nil),
+                    "aria-current": (tab.current? ? "page" : nil) do %><%= raw tab.label %><% end %>
+      </li>
+    <% end %>
+  </ul>
+<% end %>
+
+<%= form_with url: list.bulk_path, method: :post, data: { turbo: false } do |f| %>
+  <div class="tablenav top">
+    <% if list.bulk_actions? %>
+      <div class="actions bulkactions">
+        <label for="bulk-action-selector-top" class="screen-reader-text">Select bulk action</label>
+        <select name="bulk_action" id="bulk-action-selector-top">
+          <%# class-wp-list-table.php:614 — "Bulk actions" %>
+          <option value="-1">Bulk actions</option>
+          <% list.bulk_actions.each do |action| %>
+            <option value="<%= action.value %>"><%= action.label %></option>
+          <% end %>
+        </select>
+        <%# class-wp-list-table.php:635 — submit_button( 'Apply' ) %>
+        <button type="submit" class="button action">Apply</button>
+      </div>
+    <% end %>
+    <% if list.filters.any? { |flt| flt.kind == :search } %>
+      <div class="search-box">
+        <% search = list.filters.find { |flt| flt.kind == :search } %>
+        <%= form_with url: list.base_path, method: :get, data: { turbo: false } do %>
+          <% list.query.except("s", "paged", :s, :paged).each do |k, v| %>
+            <%= hidden_field_tag k, v %>
+          <% end %>
+          <label class="screen-reader-text" for="post-search-input"><%= search.label %></label>
+          <input type="search" id="post-search-input" name="s" value="<%= search.value %>">
+          <button type="submit" class="button"><%= search.label %></button>
+        <% end %>
+      </div>
+    <% end %>
+    <%= render "console/shared/pagination", list: list, which: "top" %>
+  </div>
+
+  <div class="table-scroll">
+    <table class="wp-list-table widefat fixed striped">
+      <thead>
+        <tr>
+          <% if list.bulk_actions? %>
+            <td class="manage-column column-cb check-column">
+              <label class="screen-reader-text" for="cb-select-all-1">Select All</label>
+              <input id="cb-select-all-1" type="checkbox" onclick="this.closest('table').querySelectorAll('input[name=\'ids[]\']').forEach(c=>c.checked=this.checked)">
+            </td>
+          <% end %>
+          <% list.columns.each do |col| %>
+            <th scope="col" class="manage-column column-<%= col.key %> <%= 'sortable' if col.sortable? %>">
+              <% if col.sortable? %>
+                <%= link_to list_url(list, sort_query(list, col.sort_key)) do %><span><%= raw col.label %></span><% end %>
+              <% else %>
+                <span><%= raw col.label %></span>
+              <% end %>
+            </th>
+          <% end %>
+        </tr>
+      </thead>
+      <tbody>
+        <% if list.any_rows? %>
+          <% list.rows.each do |row| %>
+            <tr id="<%= list.screen %>-<%= row.id %>">
+              <% if list.bulk_actions? %>
+                <th scope="row" class="check-column">
+                  <% if row.selectable? %>
+                    <input type="checkbox" name="ids[]" value="<%= row.id %>">
+                  <% end %>
+                </th>
+              <% end %>
+              <% list.columns.each_with_index do |col, i| %>
+                <td class="column-<%= col.key %>">
+                  <%= raw row.cell(col.key) %>
+                  <% if i.zero? && row.actions.present? %>
+                    <div class="row-actions">
+                      <% row.actions.each do |ra| %>
+                        <span class="<%= 'destructive' if ra.destructive? %> <%= ra.key %>">
+                          <% if ra.get? %>
+                            <%= link_to ra.label, ra.path %>
+                          <% else %>
+                            <%= button_to ra.label, ra.path, method: ra.http_method,
+                                          params: ra.parameters, form_class: "button-link-form",
+                                          class: "button-link", data: { turbo: false } %>
+                          <% end %>
+                        </span>
+                      <% end %>
+                    </div>
+                  <% end %>
+                </td>
+              <% end %>
+            </tr>
+          <% end %>
+        <% else %>
+          <tr class="no-items">
+            <td colspan="<%= list.columns.length + (list.bulk_actions? ? 1 : 0) %>"><%= list.empty_message %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="tablenav bottom">
+    <%= render "console/shared/pagination", list: list, which: "bottom" %>
+  </div>
+<% end %>

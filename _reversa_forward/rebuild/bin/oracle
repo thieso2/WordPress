@@ -1,0 +1,80 @@
+#!/usr/bin/env bash
+# bin/oracle — control the reference WordPress 7.2-alpha-63330 instance.
+#
+# AD-08: "the parity oracle is architecture, not tooling." RISK-001: with no live
+# deployment this is the ONLY executable definition of the 363 rules, and every parity
+# claim in the pipeline is downstream of it.
+#
+# ⚠️ One-way. The rebuild never writes here (RISK-002 residual). The Rails side connects
+# as `wporacle_ro`, which holds SELECT and nothing else.
+set -euo pipefail
+
+ORACLE_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)/oracle/wordpress"
+PORT="${ORACLE_PORT:-8099}"
+
+case "${1:-status}" in
+  up)
+    pgrep -f "php -S 127.0.0.1:${PORT}" >/dev/null 2>&1 && { echo "already up on ${PORT}"; exit 0; }
+    ( cd "$ORACLE_ROOT" && setsid nohup php -S "127.0.0.1:${PORT}" -t . router.php > /tmp/oracle-http.log 2>&1 < /dev/null & )
+    sleep 2
+    curl -sf -o /dev/null "http://127.0.0.1:${PORT}/" && echo "oracle up on http://127.0.0.1:${PORT}"
+    ;;
+  down)
+    fuser -k "${PORT}/tcp" >/dev/null 2>&1 && echo "oracle down" || echo "not running"
+    ;;
+  status)
+    if curl -sf -o /dev/null "http://127.0.0.1:${PORT}/"; then
+      echo "oracle: UP    http://127.0.0.1:${PORT}"
+      php -r 'require "'"$ORACLE_ROOT"'/tools/_bootstrap.php"; global $wp_version, $wpdb;
+        echo "  version: $wp_version\n";
+        echo "  posts:   ".$wpdb->get_var("SELECT COUNT(*) FROM {$wpdb->posts}")."\n";
+        echo "  types:   ".$wpdb->get_var("SELECT COUNT(DISTINCT post_type) FROM {$wpdb->posts}")." of 16\n";' 2>/dev/null
+    else
+      echo "oracle: DOWN  (bin/oracle up)"; exit 1
+    fi
+    ;;
+  reseed)
+    # Full reset, not an incremental top-up. The corpus is byte-compared against golden
+    # files, so it has to be reproducible from scratch rather than accumulated.
+    #
+    # ⚠️ The HTTP server is taken DOWN for the duration. wp_install() creates the tables
+    # and only then runs wp_install_defaults(), which hard-codes `object_id => 1` and
+    # `comment_post_ID => 1` for Hello World's category and comment (wp-admin/includes/
+    # upgrade.php). A front-end request served in that window makes the block theme
+    # create `wp_navigation` posts FIRST, Hello World becomes ID 3, and the default
+    # category and comment land on a navigation post — a corrupt corpus that the
+    # goldens then silently disagree with. Observed twice on 2026-08-22 with several
+    # agents' specs hitting :${PORT} concurrently; refusing connections for ~20 s is
+    # the cheaper failure.
+    was_up=0
+    if pgrep -f "php -S 127.0.0.1:${PORT}" >/dev/null 2>&1; then
+      was_up=1
+      fuser -k "${PORT}/tcp" >/dev/null 2>&1 || true
+      sleep 2
+    fi
+    php "$ORACLE_ROOT/tools/reset.php"
+    php "$ORACLE_ROOT/tools/install.php"
+    php "$ORACLE_ROOT/tools/seed.php"
+    # Derived state (rewrite rules, term counts) in a FRESH process — see tools/flush.php.
+    php "$ORACLE_ROOT/tools/flush.php"
+    if [ "$was_up" = 1 ]; then
+      ( cd "$ORACLE_ROOT" && setsid nohup php -S "127.0.0.1:${PORT}" -t . router.php > /tmp/oracle-http.log 2>&1 < /dev/null & )
+      sleep 2
+      curl -sf -o /dev/null "http://127.0.0.1:${PORT}/" || echo "WARNING: oracle did not come back up on ${PORT}"
+    fi
+    # ⚠️ Verify the derived state took before declaring success. A reseed that leaves
+    # term archives 404ing produces goldens that capture the 404 — a silently poisoned
+    # corpus. Refuse to report success in that state.
+    if [ "$was_up" = 1 ]; then
+      bad=0
+      for path in /category/top-category/ /tag/flat-tag-one/ /2026/03/hello-world/; do
+        code=$(curl -s -o /dev/null -w "%{http_code}" "http://127.0.0.1:${PORT}${path}")
+        [ "$code" = 200 ] || { echo "RESEED VERIFY FAILED: ${path} returned ${code} (expected 200)"; bad=1; }
+      done
+      [ "$bad" = 1 ] && exit 1
+    fi
+    echo
+    echo "Corpus rebuilt and verified. Re-capture the golden files: bin/parity capture"
+    ;;
+  *) echo "usage: bin/oracle [up|down|status|reseed]"; exit 1 ;;
+esac

@@ -1,0 +1,57 @@
+<%# console.options-discussion — options-discussion.php, modernized. ⚠️ this screen
+    owns the WHOLE comment-moderation policy. The three deviations BR-CMT-04/08/10 live
+    in Discussion::ModerationPolicy; this form writes the option values it reads. -%>
+<% @page_title = "Discussion Settings" %>
+<h1 class="wp-heading-inline">Discussion Settings</h1>
+<hr class="wp-header-end">
+<%= render "console/settings/nav" %>
+
+<%= form_with url: settings_path_for("discussion"), method: :post do %>
+  <table class="form-table" role="presentation">
+    <tbody>
+      <tr>
+        <th scope="row">Before a comment appears</th>
+        <td><fieldset>
+          <legend class="screen-reader-text"><span>Before a comment appears</span></legend>
+          <label for="comment_moderation">
+            <input name="comment_moderation" type="checkbox" id="comment_moderation" value="1" <%= "checked" if on?("comment_moderation") %>>
+            Comment must be manually approved</label><br>
+          <label for="comment_previously_approved">
+            <input name="comment_previously_approved" type="checkbox" id="comment_previously_approved" value="1" <%= "checked" if on?("comment_previously_approved") %>>
+            Comment author must have a previously approved comment</label>
+        </fieldset></td>
+      </tr>
+      <tr>
+        <th scope="row">Comment Moderation</th>
+        <td><fieldset>
+          <legend class="screen-reader-text"><span>Comment Moderation</span></legend>
+          <p><label for="comment_max_links">Number of links to allow in a comment before holding for moderation:</label>
+          <input name="comment_max_links" type="number" step="1" min="0" id="comment_max_links" value="<%= input_value("comment_max_links") %>" class="small-text">
+          <span>(A common characteristic of comment spam is a large number of hyperlinks.)</span></p>
+          <p><label for="moderation_keys">When a comment contains any of these words in its content, author name, URL, email, IP address, or browser&#8217;s user agent string, it will be held in the moderation queue. One word or IP address per line. It will match inside words, so &#8220;press&#8221; will match &#8220;WordPress&#8221;.</label></p>
+          <textarea name="moderation_keys" rows="10" cols="50" id="moderation_keys" class="large-text code"><%= current("moderation_keys") %></textarea>
+        </fieldset></td>
+      </tr>
+      <tr>
+        <th scope="row">Disallowed Comment Keys</th>
+        <td><fieldset>
+          <legend class="screen-reader-text"><span>Disallowed Comment Keys</span></legend>
+          <p><label for="disallowed_keys">When a comment contains any of these words in its content, author name, URL, email, IP address, or browser&#8217;s user agent string, it will be put in the Trash. One word or IP address per line. It will match inside words, so &#8220;press&#8221; will match &#8220;WordPress&#8221;.</label></p>
+          <textarea name="disallowed_keys" rows="10" cols="50" id="disallowed_keys" class="large-text code"><%= current("disallowed_keys") %></textarea>
+        </fieldset></td>
+      </tr>
+      <tr>
+        <th scope="row">Other comment settings</th>
+        <td><fieldset>
+          <legend class="screen-reader-text"><span>Other comment settings</span></legend>
+          <label for="close_comments_for_old_posts">
+            <input name="close_comments_for_old_posts" type="checkbox" id="close_comments_for_old_posts" value="1" <%= "checked" if on?("close_comments_for_old_posts") %>>
+            Automatically close comments on old posts</label><br>
+          <label for="close_comments_days_old">Close comments when post is how many days old</label>
+          <input name="close_comments_days_old" type="number" step="1" min="0" id="close_comments_days_old" value="<%= input_value("close_comments_days_old") %>" class="small-text"> days
+        </fieldset></td>
+      </tr>
+    </tbody>
+  </table>
+  <p class="submit"><input type="submit" name="submit" id="submit" class="button button-primary" value="Save Changes"></p>
+<% end %>

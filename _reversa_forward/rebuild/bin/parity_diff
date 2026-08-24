@@ -1,0 +1,79 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+# bin/parity_diff <screen> [context] — the convergence loop's working tool.
+#
+# `bin/parity compare` answers "does this screen match?". While the answer is no for every
+# screen, the useful question is "where does it FIRST stop matching, and what changed at
+# that point?" — because one early divergence shifts every line after it and makes a whole
+# page look wrong when a single element is misplaced.
+#
+# Prints the first difference with context, plus a summary of what else differs, so the
+# loop is: run, read the first hunk, fix, run again.
+$LOAD_PATH.unshift(File.expand_path("../spec/parity/harness", __dir__))
+require "yaml"
+require "normalizer"
+require "oracle_client"
+
+screen = ARGV[0] or abort "usage: bin/parity_diff <screen> [context-lines]"
+context = (ARGV[1] || 3).to_i
+root = File.expand_path("..", __dir__)
+
+requests = YAML.safe_load_file(File.join(root, "spec/parity/corpus/requests.yml"))["requests"]
+request = requests.find { |r| r["screen"] == screen } or
+  abort "unknown screen. known: #{requests.map { |r| r["screen"] }.join(", ")}"
+
+golden_path = File.join(root, "spec/parity/golden",
+                        request["golden"] || "golden-#{screen.tr(".", "-")}.txt")
+abort "no golden for #{screen} — run bin/parity capture" unless File.exist?(golden_path)
+
+normalizer = Parity::Normalizer.new
+client = Parity::OracleClient.new(base_url: ENV.fetch("REBUILD_URL", "http://127.0.0.1:3100"))
+response = client.get(request["path"])
+body = response.status.between?(300, 399) ? "REDIRECT #{response.location}" : response.body
+actual = normalizer.call(body, content_type: response.status.between?(300, 399) ? "text/plain" : response.content_type)
+
+oracle = File.read(golden_path).lines.map(&:chomp)
+target = actual.lines.map(&:chomp)
+
+puts "#{screen}   #{request["path"]}"
+puts "  oracle  #{oracle.length} lines, #{File.size(golden_path)} bytes"
+puts "  rebuild #{target.length} lines, #{actual.bytesize} bytes  " \
+     "(#{actual.bytesize * 100 / [File.size(golden_path), 1].max}%)"
+puts
+
+first = (0...[oracle.length, target.length].max).find { |i| oracle[i] != target[i] }
+if first.nil?
+  puts "  ✓ identical"
+  exit 0
+end
+
+puts "  first divergence at line #{first + 1}"
+puts
+# A minified stylesheet is one line and thousands of columns. Printing it whole buries the
+# one thing this tool exists to show.
+WIDTH = Integer(ENV.fetch("PARITY_DIFF_WIDTH", 150))
+def clip(line) = line.nil? ? "(none)" : (line.length > WIDTH ? "#{line[0, WIDTH]}… (#{line.length} chars)" : line)
+
+([first - context, 0].max...first).each { |i| puts "      #{(i + 1).to_s.rjust(4)}  #{clip(oracle[i])}" }
+puts "  O #{(first + 1).to_s.rjust(4)}  #{clip(oracle[first])}"
+puts "  R #{(first + 1).to_s.rjust(4)}  #{clip(target[first])}"
+((first + 1)..(first + context)).each do |i|
+  break if i >= [oracle.length, target.length].max
+
+  same = oracle[i] == target[i]
+  puts "  #{same ? " " : "O"} #{(i + 1).to_s.rjust(4)}  #{clip(oracle[i])}"
+  puts "  R #{(i + 1).to_s.rjust(4)}  #{clip(target[i])}" unless same
+end
+
+# Line-set difference: what the rebuild is missing entirely, and what it invents. Immune
+# to the offset problem, so it says what is actually absent rather than merely shifted.
+missing = (oracle - target).reject(&:empty?)
+extra   = (target - oracle).reject(&:empty?)
+puts
+puts "  lines only in the ORACLE  (#{missing.length}):"
+missing.first(8).each { |l| puts "      #{clip(l)}" }
+puts "      … #{missing.length - 8} more" if missing.length > 8
+puts "  lines only in the REBUILD (#{extra.length}):"
+extra.first(8).each { |l| puts "      #{clip(l)}" }
+puts "      … #{extra.length - 8} more" if extra.length > 8

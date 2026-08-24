@@ -1,0 +1,44 @@
+<%#-
+  Byte-level transcription of wp-includes/feed-rss2-comments.php against the captured
+  golden. The lone-tab line before `>` is the residue of the two do_action() hook
+  points in the legacy template's root element (rss2_ns / rss2_comments_ns).
+-%><% t = Syndication::FeedText -%>
+<% links = Composition::Renderers::PostBlocks::Links -%>
+<% home = Composition::Renderers::PostBlocks::Site.home_url -%>
+<?xml version="1.0" encoding="UTF-8"?><rss version="2.0"
+	xmlns:content="http://purl.org/rss/1.0/modules/content/"
+	xmlns:dc="http://purl.org/dc/elements/1.1/"
+	xmlns:atom="http://www.w3.org/2005/Atom"
+	xmlns:sy="http://purl.org/rss/1.0/modules/syndication/"
+	<%= "" %>
+	>
+<channel>
+	<title>
+	Comments for <%== t.wp_title_rss %>	</title>
+	<atom:link href="<%== request.original_url %>" rel="self" type="application/rss+xml" />
+	<link><%== home %></link>
+	<description><%== t.bloginfo_rss(Configuration::Setting.display("blogdescription")) %></description>
+	<lastBuildDate><%== t.rfc2822(@build_date) %></lastBuildDate>
+	<sy:updatePeriod>
+	hourly	</sy:updatePeriod>
+	<sy:updateFrequency>
+	1	</sy:updateFrequency>
+	<generator>https://wordpress.org/?v=7.2-alpha-63330</generator>
+<% @comments.each_with_index do |comment, i| -%>
+<% parent = comment.parent_id && @parents[comment.parent_id] -%>
+<%== i.zero? ? "\t" : "\t\t" %><item>
+		<title>
+		Comment on <%== t.the_title_rss(comment.post) %> by <%== comment.author_name %>		</title>
+		<link><%== links.permalink(comment.post) %>#comment-<%== comment.id %></link>
+
+		<dc:creator><![CDATA[<%== comment.author_name %>]]></dc:creator>
+		<pubDate><%== t.rfc2822(comment.submitted_at) %></pubDate>
+		<guid isPermaLink="false"><%== comment.post.guid %>#comment-<%== comment.id %></guid>
+
+					<description><![CDATA[<%== t.comment_text_rss(comment, parent) %>]]></description>
+			<content:encoded><![CDATA[<%== t.comment_text_full(comment, parent) %>]]></content:encoded>
+		<%= "" %>
+			</item>
+<% end -%>
+	</channel>
+</rss>

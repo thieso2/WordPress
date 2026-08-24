@@ -1,0 +1,17 @@
+<%# The Settings submenu (wp-admin/menu.php:415-425), LITERAL labels. In modernized
+    mode the settings family is presented as sibling tabs; the strings are verbatim. -%>
+<nav class="settings-tabs" aria-label="Settings">
+  <% [
+       ["General",    "/console/settings"],
+       ["Writing",    "/console/settings/writing"],
+       ["Reading",    "/console/settings/reading"],
+       ["Discussion", "/console/settings/discussion"],
+       ["Media",      "/console/settings/media"],
+       ["Permalinks", "/console/settings/permalinks"],
+       ["Privacy",    "/console/settings/privacy"],
+       ["Connectors", "/console/settings/connectors"],
+     ].each do |label, path| %>
+    <%= link_to label, path, class: ("current" if path == settings_path_for(@section)) %>
+  <% end %>
+</nav>
+<hr class="wp-header-end">

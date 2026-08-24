@@ -1,0 +1,68 @@
+<%# console.user-edit — user-edit.php in modernized mode. Surviving columns only: email,
+    Website (url), display name, Language (locale), password, and Role (a ROW now).
+    Dropped (no column): First/Last Name, Nickname, biographical info, admin_color (DEV-008). %>
+<h1><%= @page_title %></h1>
+<%= render "console/shared/form_errors", form_errors: @form_errors %>
+
+<%= form_with url: console_user_path(@user), method: :patch, local: true do |f| %>
+  <div class="panel">
+    <h2><%= "Personal Options" %></h2>
+    <table class="form-table" role="presentation"><tbody>
+      <tr>
+        <th scope="row"><label for="locale"><%= "Language" %></label></th>
+        <td><%= render "console/shared/language_select", current_locale: @user.locale %></td>
+      </tr>
+    </tbody></table>
+  </div>
+
+  <div class="panel">
+    <h2><%= "Name" %></h2>
+    <table class="form-table" role="presentation"><tbody>
+      <tr>
+        <th scope="row"><label for="username"><%= "Username" %></label></th>
+        <td><input type="text" id="username" value="<%= @user.login %>" disabled /> <span class="description"><%= "Usernames cannot be changed." %></span></td>
+      </tr>
+      <tr>
+        <th scope="row"><label for="role"><%= "Role" %></label></th>
+        <td><%= render "console/shared/role_select", selected_role: @user.roles.first %></td>
+      </tr>
+      <tr>
+        <th scope="row"><label for="display_name"><%= "Display name publicly as" %></label></th>
+        <td><input type="text" name="display_name" id="display_name" value="<%= @user.display_name %>" /></td>
+      </tr>
+    </tbody></table>
+  </div>
+
+  <div class="panel">
+    <h2><%= "Contact Info" %></h2>
+    <table class="form-table" role="presentation"><tbody>
+      <tr>
+        <th scope="row"><label for="email"><%= "Email" %> <span class="description"><%= "(required)" %></span></label></th>
+        <td><input type="email" name="email" id="email" value="<%= @user.email %>" /></td>
+      </tr>
+      <tr>
+        <th scope="row"><label for="url"><%= "Website" %></label></th>
+        <td><input type="url" name="url" id="url" value="<%= @user.url %>" /></td>
+      </tr>
+    </tbody></table>
+  </div>
+
+  <div class="panel">
+    <h2><%= "Account Management" %></h2>
+    <table class="form-table" role="presentation"><tbody>
+      <tr>
+        <th scope="row"><label for="pass1"><%= "New Password" %></label></th>
+        <td><input type="password" name="pass1" id="pass1" autocomplete="new-password" /></td>
+      </tr>
+      <tr>
+        <th scope="row"><label for="pass2"><%= "Repeat New Password" %></label></th>
+        <td><input type="password" name="pass2" id="pass2" autocomplete="new-password" /></td>
+      </tr>
+    </tbody></table>
+  </div>
+
+  <div class="submit">
+    <button type="submit" class="button button-primary"><%= "Update User" %></button>
+    <a class="button button-link" href="/console/users"><%= "Cancel" %></a>
+  </div>
+<% end %>

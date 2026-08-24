@@ -1,0 +1,38 @@
+<%# One row of the menu structure tree, rendered flat with an indent by depth. Each row is
+    its OWN form (move / relabel) plus a separate Remove form — never nested inside another
+    form. AGG-Menu: parent_id + position are real columns, so a move is one UPDATE. -%>
+<li class="menu-item" data-id="<%= item.id %>" style="margin-left: <%= depth * 1.5 %>rem;">
+  <form method="post" action="/console/menus/<%= menu.id %>/items/<%= item.id %>" class="menu-item-edit">
+    <%= hidden_field_tag(:authenticity_token, form_authenticity_token) %>
+    <input type="hidden" name="_method" value="patch">
+    <span class="menu-item-target">
+      <% if item.url.present? %>Custom Link<% else %><%= item.target_type.to_s.demodulize %><% end %>
+    </span>
+    <label>Navigation Label
+      <input type="text" name="label" value="<%= item.label %>"></label>
+    <label>Position
+      <input type="number" name="position" value="<%= item.position %>" style="width:4rem;"></label>
+    <label>Parent
+      <select name="parent_id">
+        <option value="">(top level)</option>
+        <% menu.menu_items.where.not(id: item.id).order(:position).each do |candidate| %>
+          <option value="<%= candidate.id %>" <%= "selected" if candidate.id == item.parent_id %>>
+            <%= candidate.label %></option>
+        <% end %>
+      </select>
+    </label>
+    <button type="submit" class="button">Move</button>
+  </form>
+  <form method="post" action="/console/menus/<%= menu.id %>/items/<%= item.id %>" class="menu-item-remove inline"
+        data-turbo-confirm="Remove this menu item?">
+    <%= hidden_field_tag(:authenticity_token, form_authenticity_token) %>
+    <input type="hidden" name="_method" value="delete">
+    <button type="submit" class="button submitdelete">Remove</button>
+  </form>
+  <% if item.children.order(:position).any? %>
+    <ul class="menu-item-children">
+      <%= render partial: "item", collection: item.children.order(:position), as: :item,
+            locals: { menu: menu, depth: depth + 1 } %>
+    </ul>
+  <% end %>
+</li>

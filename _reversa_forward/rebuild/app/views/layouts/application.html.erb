@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title><%= [@title, site_name].compact.join(" — ") %></title>
+    <meta name="description" content="<%= site_description %>">
+    <link rel="alternate" type="application/rss+xml" title="<%= site_name %> Feed" href="/feed">
+    <%= stylesheet_link_tag "application" %>
+  </head>
+  <body data-screen="<%= @screen %>">
+    <a class="skip" href="#main">Skip to content</a>
+    <header class="site">
+      <div class="wrap">
+        <p class="brand"><a href="/"><%= site_name %></a></p>
+        <% if site_description.present? %><p class="tagline"><%= site_description %></p><% end %>
+        <nav aria-label="Primary">
+          <% Presentation::Menu.first&.roots&.each do |item| %>
+            <a href="<%= item.url || "/" %>"><%= item.label %></a>
+          <% end %>
+        </nav>
+      </div>
+    </header>
+    <main id="main" class="wrap">
+      <%= yield %>
+    </main>
+    <footer class="site">
+      <div class="wrap">
+        <p><%= site_name %> · rendered from PostgreSQL by the Reversa rebuild</p>
+        <p class="screen">screen: <code><%= @screen %></code></p>
+      </div>
+    </footer>
+  </body>
+</html>

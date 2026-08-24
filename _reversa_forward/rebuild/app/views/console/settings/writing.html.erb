@@ -1,0 +1,58 @@
+<%# console.options-writing — options-writing.php, modernized. Fields DECLARED. ⚠️ the
+    mailserver_* set drives post-by-email (wp-mail.php), which has NO MIGRATE rules
+    (DEV-011): the fields persist, but no mail is polled. -%>
+<% @page_title = "Writing Settings" %>
+<h1 class="wp-heading-inline">Writing Settings</h1>
+<hr class="wp-header-end">
+<%= render "console/settings/nav" %>
+
+<%= form_with url: settings_path_for("writing"), method: :post do %>
+  <table class="form-table" role="presentation">
+    <tbody>
+      <tr>
+        <th scope="row"><label for="default_category">Default Post Category</label></th>
+        <td>
+          <select name="default_category" id="default_category">
+            <% selectable_categories.each do |term| %>
+              <option value="<%= term.id %>" <%= "selected" if current("default_category").to_i == term.id %>><%= term.name %></option>
+            <% end %>
+          </select>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2 class="title">Post via email</h2>
+  <p>To post to WordPress by email, you must set up a secret email account with POP3 access. Any mail received at this address will be posted, so it&#8217;s a good idea to keep this address very secret.</p>
+  <table class="form-table" role="presentation">
+    <tbody>
+      <tr>
+        <th scope="row"><label for="mailserver_url">Mail Server</label></th>
+        <td>
+          <input name="mailserver_url" type="text" id="mailserver_url" value="<%= input_value("mailserver_url") %>" class="regular-text code">
+          <label for="mailserver_port">Port</label>
+          <input name="mailserver_port" type="text" id="mailserver_port" value="<%= input_value("mailserver_port") %>" class="small-text">
+        </td>
+      </tr>
+      <tr>
+        <th scope="row"><label for="mailserver_login">Login Name</label></th>
+        <td><input name="mailserver_login" type="text" id="mailserver_login" value="<%= input_value("mailserver_login") %>" class="regular-text ltr"></td>
+      </tr>
+      <tr>
+        <th scope="row"><label for="mailserver_pass">Password</label></th>
+        <td><input name="mailserver_pass" type="text" id="mailserver_pass" value="<%= input_value("mailserver_pass") %>" class="regular-text ltr"></td>
+      </tr>
+      <tr>
+        <th scope="row"><label for="default_email_category">Default Mail Category</label></th>
+        <td>
+          <select name="default_email_category" id="default_email_category">
+            <% selectable_categories.each do |term| %>
+              <option value="<%= term.id %>" <%= "selected" if current("default_email_category").to_i == term.id %>><%= term.name %></option>
+            <% end %>
+          </select>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+  <p class="submit"><input type="submit" name="submit" id="submit" class="button button-primary" value="Save Changes"></p>
+<% end %>

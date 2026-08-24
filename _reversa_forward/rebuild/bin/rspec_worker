@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+# bin/rspec_worker — run the specs in a PRIVATE database.
+#
+# Same hazard bin/parity_worker exists for, and it bit an agent during Wave 2: several
+# specs truncate or seed, so two concurrent rspec runs against one database produce
+# PG deadlocks and fixture collisions on specs that are perfectly correct. A harness that
+# manufactures its own failures spends the parity budget on itself.
+set -euo pipefail
+cd "$(dirname "${BASH_SOURCE[0]}")/.."
+export PATH="$(ruby -e 'print Gem.user_dir')/bin:$PATH"
+export RSPEC_WORKER="${RSPEC_WORKER:-$$}"
+export RAILS_ENV=test
+DB="rebuild_spec_$(echo "$RSPEC_WORKER" | tr -c 'a-zA-Z0-9_' '_')"
+export DATABASE_URL="postgres:///${DB}"
+createdb "$DB" 2>/dev/null || true
+psql -q -d "$DB" -f db/structure.sql >/dev/null 2>&1 || true
+bin/rails db:environment:set RAILS_ENV=test >/dev/null 2>&1 || true
+# The theme's templates, parts, patterns and theme.json are generated data (db/theme/*.json)
+# that several specs render against — without them Theme.active is nil, the global
+# stylesheet comes out empty, and the specs that compare a full <head> to a golden fail for
+# a fixture reason rather than a behavioural one.
+bin/rails theme:load >/dev/null 2>&1 || true
+trap 'dropdb --if-exists "$DB" 2>/dev/null || true' EXIT
+exec bundle exec rspec "$@"

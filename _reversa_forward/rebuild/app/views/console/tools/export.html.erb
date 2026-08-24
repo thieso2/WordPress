@@ -1,0 +1,19 @@
+<%# console.export — export.php, modernized. Strings LITERAL. -%>
+<% @page_title = "Export" %>
+<h1 class="wp-heading-inline">Export</h1>
+<hr class="wp-header-end">
+
+<p>When you click the button below WordPress will create an XML file for you to save to your computer.</p>
+<p>This format, which is called WordPress eXtended RSS or WXR, will contain your posts, pages, comments, custom fields, categories, and tags.</p>
+<p>Once you&#8217;ve saved the download file, you can use the Import function in another WordPress installation to import the content from this site.</p>
+
+<h2>Choose what to export</h2>
+<%= form_with url: "/console/tools/export", method: :post do %>
+  <fieldset>
+    <legend class="screen-reader-text"><span>Content to export</span></legend>
+    <p><label><input type="radio" name="content" value="all" checked> All content</label></p>
+    <p class="description">This will contain all of your posts, pages, comments, custom fields, terms, navigation menus, and custom posts.</p>
+  </fieldset>
+  <p class="description">This pass exports posts, pages, comments and terms. Custom fields, menus and custom post types are out of scope and named here rather than silently dropped.</p>
+  <p class="submit"><input type="submit" name="submit" id="submit" class="button button-primary" value="Download Export File"></p>
+<% end %>

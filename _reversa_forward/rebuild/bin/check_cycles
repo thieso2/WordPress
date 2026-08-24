@@ -1,0 +1,321 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+# bin/check_cycles — the RISK-017 mitigation. Ships in Wave 0.
+#
+# topology_decision.md, option 3 (hybrid), records the consequence of the owner's
+# choice plainly: the content core lives in one `app/` with **no enforceable
+# dependency direction** — exactly the region where the legacy's 23-module cycle
+# lived (F-SIM-01). The mitigation adopted is *detection instead of prevention*:
+#
+#   > A CI job runs a dependency-cycle check over the `app/models/<context>/`
+#   > namespaces on every build: it parses constant references between namespaces,
+#   > builds the graph and fails if it is not acyclic. It does not *prevent* a
+#   > cross-namespace reference the way a pack boundary does, but it makes the one
+#   > outcome that matters — a **cycle** — impossible to introduce unnoticed.
+#
+# handoff.md is emphatic about the timing: "added later it is worth almost nothing,
+# because the graph it exists to keep acyclic already will not be."
+#
+# This script enforces TWO different things, and the difference is the whole content
+# of topology option 3:
+#
+#   1. PACK ISOLATION — **prevented**. The three leaf packs (`markup`, `sanitizing`,
+#      `styling`) declare zero dependencies. A pack referencing `app/`, Rails, or
+#      another pack fails the build. This preserves the one structural property the
+#      legacy got right (F-SIM-03).
+#
+#   2. NAMESPACE ACYCLICITY — **detected**. Cross-namespace references in
+#      `app/models/<context>/` are allowed; a *cycle* among them is not.
+#
+# It additionally asserts the one edge direction target_architecture.md calls the
+# single most important in the design (Note 2):
+#
+#   3. `Access` MUST NOT BE DEPENDED UPON. `Access` -> `Identity` and `Publishing`;
+#      nothing may depend on `Access` except delivery surfaces. That edge direction is
+#      what converts the legacy users<->posts cycle into a DAG. Under option 3 only
+#      this script will notice if it breaks.
+
+require "prism"
+require "set"
+require "yaml"
+
+ROOT       = File.expand_path("..", __dir__)
+MODELS_DIR = File.join(ROOT, "app", "models")
+PACKS_DIR  = File.join(ROOT, "packs")
+
+# Packs are leaves by declaration. Their module names, and what they may never touch.
+PACK_MODULES = { "markup" => "Markup", "sanitizing" => "Sanitizing", "styling" => "Styling" }.freeze
+
+# Delivery surfaces are the only things permitted to depend on Access.
+SURFACE_DIRS = %w[app/controllers app/views app/helpers].freeze
+
+# ── Acknowledged cycles ───────────────────────────────────────────────────────────
+# topology_decision.md chose *detection instead of prevention*. Detection is only worth
+# anything if a detected cycle has to be argued for in writing rather than silenced, so
+# an entry here is a declaration, not a mute: acknowledged cycles are reported on every
+# build as WARN and are listed in the summary. Adding one should feel expensive.
+#
+# target_architecture.md, Note 2: "Everything else in the dependency graph could be
+# redrawn without much harm. If `Publishing` ever references `Access`, the users<->posts
+# cycle is back". Access is therefore never acknowledgeable — see the check below.
+ACKNOWLEDGED_CYCLES = {
+  # Empty, and that is the point. The one entry this list ever held --
+  # Library <-> Publishing -- was a conflict between target_data_model.md and
+  # target_architecture.md, and it was resolved by an owner ruling on 2026-08-22 rather
+  # than lived with: db/migrate/20260822000060 drops the weaker of the two foreign keys.
+  #
+  # Detection only works if a detected cycle has to be argued for in writing rather than
+  # silenced, so adding an entry here should feel expensive. Access is never
+  # acknowledgeable -- see the check below.
+}.freeze
+
+failures = []
+warnings = []
+
+# ── Collect the constant references a Ruby file makes ─────────────────────────────
+# Prism gives us the real constant path nodes, so `Publishing::Post` is one reference
+# and a string containing "Publishing::Post" is not. That distinction matters: the
+# schema stores `classifiable_type` as a *string*, and a regex scanner would read those
+# polymorphic type strings as dependency edges and invent cycles that do not exist.
+# A namespaced constant written as a String. Rails declares most of its dependency
+# graph this way -- `belongs_to :author, class_name: "Identity::User"` is every bit a
+# dependency on Identity, and a constant-only parse would miss it and report a graph
+# that is acyclic only because it is mostly empty. A cycle detector that under-reports
+# is worse than none: it gives assurance it has not earned.
+STRINGY_CONSTANT = /\A[A-Z][A-Za-z0-9_]*(?:::[A-Z][A-Za-z0-9_]*)+\z/
+
+def constant_references(path)
+  result = Prism.parse_file(path)
+  return [] unless result.success?
+
+  refs = []
+  visit = lambda do |node|
+    return if node.nil?
+
+    case node
+    when Prism::StringNode
+      # The packs carry byte-oriented literals (KSES's ported PCRE patterns, the HTML5
+      # named-character-reference table), so a literal here is not guaranteed to be valid
+      # UTF-8. Matching an invalid-encoding string raises, which would make the topology
+      # check crash on exactly the files it most needs to inspect.
+      value = node.unescaped
+      if value.valid_encoding? && value.match?(STRINGY_CONSTANT)
+        refs << value.split("::")
+      end
+    when Prism::ConstantPathNode
+      # Flatten `A::B::C` to ["A", "B", "C"]; we only care about the head.
+      parts = []
+      cursor = node
+      while cursor.is_a?(Prism::ConstantPathNode)
+        parts.unshift(cursor.name.to_s) if cursor.name
+        cursor = cursor.parent
+      end
+      parts.unshift(cursor.name.to_s) if cursor.is_a?(Prism::ConstantReadNode)
+      refs << parts unless parts.empty?
+    when Prism::ConstantReadNode
+      refs << [node.name.to_s]
+    end
+
+    node.compact_child_nodes.each { |child| visit.call(child) }
+  end
+  visit.call(result.value)
+  refs
+end
+
+# The namespace a file *declares*, taken from its path: app/models/publishing/post.rb
+# declares `Publishing`. Path-derived rather than parse-derived on purpose — a file in
+# the wrong directory is itself the defect we want surfaced.
+def declared_namespace(path)
+  rel = path.sub(%r{\A#{Regexp.escape(MODELS_DIR)}/}, "")
+  segments = rel.split("/")
+  return nil if segments.length < 2
+
+  segments.first.split("_").map(&:capitalize).join
+end
+
+# ── 1. PACK ISOLATION — enforced ──────────────────────────────────────────────────
+app_namespaces = Dir.glob(File.join(MODELS_DIR, "*")).select { |p| File.directory?(p) }
+                    .map { |p| File.basename(p).split("_").map(&:capitalize).join }.to_set
+
+PACK_MODULES.each do |pack, own_module|
+  pack_root = File.join(PACKS_DIR, pack)
+  next unless File.directory?(pack_root)
+
+  manifest = File.join(pack_root, "package.yml")
+  if File.exist?(manifest)
+    declared = YAML.safe_load_file(manifest) || {}
+    deps = declared["dependencies"]
+    unless deps.is_a?(Array) && deps.empty?
+      failures << "packs/#{pack}/package.yml declares dependencies #{deps.inspect}; " \
+                  "topology_decision.md requires zero: 'If a pack acquires a dependency on the " \
+                  "content core, the boundary that made it worth packaging is gone.'"
+    end
+  else
+    failures << "packs/#{pack}/package.yml is missing — a pack without a declaration " \
+                "is not a boundary, it is a directory."
+  end
+
+  forbidden_modules = (PACK_MODULES.values - [own_module]).to_set | app_namespaces
+  Dir.glob(File.join(pack_root, "**", "*.rb")).each do |file|
+    next if file.include?("/spec/")
+
+    constant_references(file).each do |parts|
+      head = parts.first
+      if forbidden_modules.include?(head)
+        failures << "#{file.sub("#{ROOT}/", "")} references #{parts.join("::")} — " \
+                    "pack `#{pack}` must have zero dependencies."
+      end
+    end
+
+    src = File.read(file)
+    %w[ActiveRecord ActiveSupport ActionController ActionView].each do |framework|
+      if src.match?(/(?<![A-Za-z_:])#{framework}(?=::|\b)/)
+        failures << "#{file.sub("#{ROOT}/", "")} references #{framework} — " \
+                    "leaf packs are pure Ruby (topology_decision.md: 'may not depend on " \
+                    "anything in app/')."
+      end
+    end
+    if src.match?(/(?<![A-Za-z_:.])Rails(?=\.|::)/)
+      failures << "#{file.sub("#{ROOT}/", "")} references Rails — leaf packs are pure Ruby."
+    end
+  end
+end
+
+# ── 2. NAMESPACE GRAPH — cycles detected ──────────────────────────────────────────
+graph = Hash.new { |h, k| h[k] = Set.new }
+edge_sites = Hash.new { |h, k| h[k] = [] }
+
+Dir.glob(File.join(MODELS_DIR, "**", "*.rb")).each do |file|
+  from = declared_namespace(file)
+  next if from.nil?
+
+  graph[from] # ensure the node exists even with no outbound edges
+  constant_references(file).each do |parts|
+    to = parts.first
+    next if to == from
+    next unless app_namespaces.include?(to)
+
+    graph[from] << to
+    edge_sites["#{from}->#{to}"] << file.sub("#{ROOT}/", "")
+  end
+end
+
+# Tarjan, iterative — the same algorithm that found F-SIM-01's 23-module component in
+# the legacy. Here it runs on every build instead of once, three years late.
+def strongly_connected_components(graph)
+  index = {}
+  low = {}
+  on_stack = Hash.new(false)
+  stack = []
+  counter = 0
+  components = []
+
+  graph.keys.each do |root|
+    next if index.key?(root)
+
+    work = [[root, 0]]
+    until work.empty?
+      node, child_i = work.last
+      if child_i.zero?
+        index[node] = counter
+        low[node] = counter
+        counter += 1
+        stack.push(node)
+        on_stack[node] = true
+      end
+
+      children = graph[node].to_a
+      if child_i < children.length
+        work[-1][1] += 1
+        child = children[child_i]
+        if !index.key?(child)
+          work.push([child, 0])
+        elsif on_stack[child]
+          low[node] = [low[node], index[child]].min
+        end
+      else
+        if low[node] == index[node]
+          component = []
+          loop do
+            w = stack.pop
+            on_stack[w] = false
+            component << w
+            break if w == node
+          end
+          components << component
+        end
+        work.pop
+        unless work.empty?
+          parent = work.last[0]
+          low[parent] = [low[parent], low[node]].min
+        end
+      end
+    end
+  end
+  components
+end
+
+strongly_connected_components(graph).each do |component|
+  next if component.length < 2 && !graph[component.first].include?(component.first)
+
+  members = component.sort
+  if (reason = ACKNOWLEDGED_CYCLES[members])
+    warnings << "acknowledged cycle #{members.join(" <-> ")}:\n" +
+                reason.each_line.map { |l| "          #{l}" }.join
+    next
+  end
+  detail = members.flat_map do |from|
+    (graph[from] & members.to_set).map { |to| "    #{from} -> #{to}   (#{edge_sites["#{from}->#{to}"].uniq.join(", ")})" }
+  end
+  failures << "namespace cycle: #{members.join(" <-> ")}\n#{detail.join("\n")}\n" \
+              "  This is migration_brief.md's primary risk re-forming. topology_decision.md: " \
+              "'if the fixes are consistently \"add another cross-namespace reference and move on\", " \
+              "the namespaces are not holding and the content core wants real boundaries.'"
+end
+
+# ── 3. THE ACCESS EDGE — target_architecture.md Note 2 ────────────────────────────
+# "If `Publishing` ever references `Access`, the users<->posts cycle is back and the
+#  topology has no mechanism to stop it — only bin/check_cycles will notice."
+if app_namespaces.include?("Access")
+  graph.each do |from, tos|
+    next unless tos.include?("Access")
+    next if from == "Access"
+
+    failures << "#{from} depends on Access — nothing may depend on Access except delivery " \
+                "surfaces (#{SURFACE_DIRS.join(", ")}). That single edge direction is what " \
+                "converts the legacy users<->posts cycle into a DAG.\n" \
+                "  sites: #{edge_sites["#{from}->Access"].uniq.join(", ")}"
+  end
+end
+
+# ── Report ────────────────────────────────────────────────────────────────────────
+puts "bin/check_cycles — topology fidelity (topology_decision.md option 3)"
+puts
+
+if graph.empty?
+  puts "  namespaces:      (none yet — app/models/<context>/ is empty)"
+else
+  puts "  namespaces:      #{graph.keys.sort.join(", ")}"
+  puts "  edges:           #{graph.values.sum(&:size)}"
+  graph.keys.sort.each do |from|
+    targets = graph[from].to_a.sort
+    puts "    #{from.ljust(16)} -> #{targets.empty? ? "(leaf)" : targets.join(", ")}"
+  end
+end
+puts
+present_packs = PACK_MODULES.keys.select { |p| File.directory?(File.join(PACKS_DIR, p)) }
+puts "  packs checked:   #{present_packs.empty? ? "(none)" : present_packs.join(", ")}"
+puts
+
+warnings.each { |w| puts "  WARN  #{w}" }
+
+if failures.empty?
+  puts "  OK — the namespace graph is acyclic and every pack is a leaf."
+  exit 0
+else
+  puts "  FAILED — #{failures.length} violation#{"s" unless failures.length == 1}:"
+  puts
+  failures.each_with_index { |f, i| puts "  #{i + 1}. #{f}\n\n" }
+  exit 1
+end

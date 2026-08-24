@@ -1,0 +1,6 @@
+<select name="comment_parent" id="comment_parent">
+  <option value="0" <%= "selected" if @comment.parent_id.blank? %>><%= "None (top-level comment)" %></option>
+  <% Discussion::Comment.where(post_id: @comment.post_id).where.not(id: @comment.id).oldest_first.each do |c| %>
+    <option value="<%= c.id %>" <%= "selected" if c.id == @comment.parent_id %>><%= truncate(c.author_name.presence || c.content.to_s, length: 40) %></option>
+  <% end %>
+</select>

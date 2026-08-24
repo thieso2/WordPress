@@ -1,0 +1,57 @@
+<%# ConsoleLayout — the wp-admin chrome (admin-header.php / admin-footer.php) in
+    modernized mode (target_screens.md § Part 1). ⚠️ Minimal shared shell owned by the
+    foundation track; the P-EDIT screens depend on it. The panel/markup structure is NOT
+    compared to the legacy (DEV: console is semantic, not byte-identical) — only the
+    LITERAL strings the screens render inside it are verbatim. -%>
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= [console_page_title.presence, site_title].compact.join(" ‹ ") %></title>
+    <meta name="robots" content="noindex, noarchive">
+    <meta name="referrer" content="strict-origin-when-cross-origin">
+    <%= csrf_meta_tags %>
+    <%= javascript_include_tag "turbo.min", type: "module" %>
+    <style>
+      :root { --ink:#1d2327; --muted:#50575e; --rule:#c3c4c7; --bg:#f0f0f1; --card:#fff; --accent:#2271b1; --error:#d63638; --ok:#00a32a; --info:#72aee6; }
+      @media (prefers-color-scheme: dark) { :root { --ink:#e8ebef; --muted:#98a2b3; --rule:#2a2f38; --bg:#14161a; --card:#1b1f26; --accent:#7fa2ff; --ok:#4ab866; --info:#3b6ea5; } }
+      * { box-sizing: border-box; }
+      body.console { margin: 0; background: var(--bg); color: var(--ink); font: 14px/1.55 ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+      .screen-reader-text { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
+      .wrap { max-width: 900px; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
+      .wrap > h1 { font-size: 1.6rem; font-weight: 650; margin: 0 0 1.25rem; letter-spacing: -.01em; }
+      .notice { background: var(--card); border-left: 4px solid var(--info); padding: .75rem 1rem; margin: 0 0 1rem; box-shadow: 0 1px 1px rgba(0,0,0,.04); }
+      .notice-error { border-left-color: var(--error); }
+      .notice-success { border-left-color: var(--ok); }
+      .notice p { margin: 0; }
+      .form-table { width: 100%; border-collapse: collapse; margin: 0 0 1.5rem; background: var(--card); border: 1px solid var(--rule); }
+      .form-table th { text-align: left; vertical-align: top; padding: .9rem 1rem; width: 200px; font-weight: 600; }
+      .form-table td { padding: .9rem 1rem; }
+      .form-table input[type=text], .form-table input[type=email], .form-table input[type=url], .form-table input[type=password], .form-table textarea, .form-table select { width: 100%; max-width: 25rem; font-size: 1rem; padding: .35rem .5rem; border: 1px solid var(--rule); border-radius: 4px; background: var(--card); color: var(--ink); }
+      .form-table textarea { min-height: 7rem; font-family: inherit; }
+      fieldset label { display: block; margin: 0 0 .35rem; }
+      .panel { background: var(--card); border: 1px solid var(--rule); padding: 1rem 1.25rem; margin: 0 0 1.25rem; }
+      .panel h2 { font-size: 1.05rem; margin: 0 0 .75rem; }
+      .description { color: var(--muted); font-size: .85rem; margin: .35rem 0 0; }
+      .submit { display: flex; gap: .5rem; align-items: center; margin: 1.5rem 0 0; }
+      .button { font-size: .95rem; padding: .4rem 1.1rem; border-radius: 3px; border: 1px solid var(--accent); background: var(--card); color: var(--accent); cursor: pointer; text-decoration: none; }
+      .button-primary { background: var(--accent); color: #fff; }
+      .button-link { border: none; background: none; color: var(--muted); }
+      .row-label { font-weight: 600; }
+      table.diff { width: 100%; border-collapse: collapse; }
+      table.diff td { vertical-align: top; padding: .25rem .6rem; width: 50%; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .85rem; white-space: pre-wrap; }
+      .diff-deletedline { background: #fbeaea; }
+      .diff-addedline { background: #e7f6e7; }
+      @media (prefers-color-scheme: dark) { .diff-deletedline { background: #3a2323; } .diff-addedline { background: #1f3320; } }
+      del.diffchange { background: #f1adad; text-decoration: none; }
+      ins.diffchange { background: #a0d6a0; text-decoration: none; }
+    </style>
+  </head>
+  <body class="console">
+    <div class="wrap">
+      <%= render "console/shared/notices" %>
+      <%= yield %>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,56 @@
+<% content_for :title, "Themes" %>
+<%# themes.php:254 — <h1 class="wp-heading-inline">Themes</h1> with a count, and the
+    "Add Theme" page-title-action when install_themes is held. Modernized: markup is not
+    byte-compared, the strings are verbatim. -%>
+<div class="wrap">
+  <h1 class="wp-heading-inline">Themes</h1>
+  <span class="title-count theme-count"><%= @themes.length %></span>
+  <%= link_to "Add Theme", "/console/themes/new", class: "page-title-action" %>
+  <hr class="wp-header-end">
+
+  <% if @themes.empty? %>
+    <p class="no-themes no-items">No themes found. Try a different search.</p>
+  <% else %>
+    <table class="widefat themes">
+      <thead>
+        <tr>
+          <th scope="col">Screenshot</th>
+          <th scope="col">Name</th>
+          <th scope="col">Version</th>
+          <th scope="col">Status</th>
+          <th scope="col">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @themes.each do |theme| %>
+          <tr class="theme<%= " active" if theme.active? %>" data-slug="<%= theme.slug %>">
+            <td class="theme-screenshot">
+              <% if theme.screenshot_url %>
+                <img src="<%= theme.screenshot_url %>" alt="" width="120">
+              <% else %>
+                <span class="no-items">&mdash;</span>
+              <% end %>
+            </td>
+            <td class="theme-name"><%= theme.name %></td>
+            <td class="theme-version"><%= theme.version %></td>
+            <td class="theme-status">
+              <% if theme.active? %><span><strong>Active:</strong></span> <%= theme.name %><% end %>
+            </td>
+            <td class="theme-actions row-actions">
+              <% if theme.active? %>
+                <span class="active-label">Active</span>
+              <% else %>
+                <%= button_to "Activate", "/console/themes/#{theme.slug}/activate",
+                      method: :post, class: "button button-primary", form_class: "inline" %>
+                <%# DEV-004 / delete_theme(): a destructive action confirms first. %>
+                <%= button_to "Delete", "/console/themes/#{theme.slug}",
+                      method: :delete, class: "button delete-theme", form_class: "inline",
+                      form: { data: { turbo_confirm: "Are you sure you want to delete this theme?" } } %>
+              <% end %>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  <% end %>
+</div>

@@ -1,0 +1,7 @@
+<nav class="about-tabs" aria-label="About">
+  <% [["About", "about"], ["Credits", "credits"], ["Freedoms", "freedoms"],
+      ["Contribute", "contribute"], ["Privacy", "privacy"]].each do |label, key| %>
+    <%= link_to label, "/console/#{key}", class: ("current" if @page == key) %>
+  <% end %>
+</nav>
+<hr class="wp-header-end">

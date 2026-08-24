@@ -1,0 +1,15 @@
+<%# user.php:4336-4350, verbatim, placeholders resolved. -%>
+Howdy,
+
+A user data privacy request has been confirmed on <%= @site_title %>:
+
+User: <%= @request.email %>
+Request: <%= @request.description %>
+
+You can view and manage these data privacy requests here:
+
+<%= @manage_url %>
+
+Regards,
+All at <%= @site_title %>
+<%= @site_url %>

@@ -1,0 +1,51 @@
+<%# console.comment — edit-form-comment.php in modernized mode. Every visible string
+    below is LITERAL from the legacy form; the panel structure is not compared (DEV). %>
+<% status_value = { "approved" => "1", "pending" => "0", "spam" => "spam" }[@comment.status] || "0" %>
+<h1><%= @page_title %></h1>
+
+<%= form_with url: console_comment_path(@comment), method: :patch, local: true do |f| %>
+  <div class="panel" id="namediv">
+    <h2 class="edit-comment-author"><%= "Author" %></h2>
+    <table class="form-table editcomment" role="presentation"><tbody>
+      <tr>
+        <th><label for="name"><%= "Name" %></label></th>
+        <td><input type="text" name="newcomment_author" id="name" size="30" value="<%= @comment.author_name %>" /></td>
+      </tr>
+      <tr>
+        <th><label for="email"><%= "Email" %></label></th>
+        <td><input type="text" name="newcomment_author_email" id="email" class="code" size="30" value="<%= @comment.author_email %>" /></td>
+      </tr>
+      <tr>
+        <th><label for="newcomment_author_url"><%= "URL" %></label></th>
+        <td><input type="text" name="newcomment_author_url" id="newcomment_author_url" class="code" size="30" value="<%= @comment.author_url %>" /></td>
+      </tr>
+    </tbody></table>
+  </div>
+
+  <div class="panel" id="postdiv">
+    <label for="content"><%= "Comment" %></label>
+    <textarea name="content" id="content" rows="8"><%= @comment.content %></textarea>
+  </div>
+
+  <div class="panel" id="submitdiv">
+    <h2><%= "Save" %></h2>
+    <fieldset id="comment-status-radio">
+      <legend class="row-label"><%= "Status:" %></legend>
+      <label><input type="radio" name="comment_status" value="1" <%= "checked" if status_value == "1" %> /><%= "Approved" %></label>
+      <label><input type="radio" name="comment_status" value="0" <%= "checked" if status_value == "0" %> /><%= "Pending" %></label>
+      <label><input type="radio" name="comment_status" value="spam" <%= "checked" if status_value == "spam" %> /><%= "Spam" %></label>
+    </fieldset>
+
+    <% if Configuration::Setting["thread_comments"] %>
+      <p>
+        <label for="comment_parent"><%= "Parent comment" %></label>
+        <%= render "console/comments/parent_select" %>
+      </p>
+    <% end %>
+  </div>
+
+  <div class="submit">
+    <button type="submit" name="save" class="button button-primary"><%= "Update" %></button>
+    <a class="button button-link" href="/console/comments"><%= "Cancel" %></a>
+  </div>
+<% end %>

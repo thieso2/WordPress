@@ -1,0 +1,144 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+# bin/rule_coverage — per-rule accounting for the parity claim.
+#
+# parity_specs.md sets the bar at ZERO UNEXPLAINED DIVERGENCE rather than a percentage,
+# and justifies it precisely:
+#
+#   "A percentage threshold assumes divergences are noise. Here they are not: AD-01
+#    removes the hook system, so the documented default becomes the permanent, only
+#    behaviour ... The rule count is finite and enumerable (363), so PER-RULE ACCOUNTING
+#    IS ACHIEVABLE in a way it would not be for a system measured in request volume."
+#
+# This script is that accounting. It reads the 363 MIGRATE ids from
+# target_business_rules.md and reports, for each, whether anything in the rebuild cites
+# it -- in code, in a spec, or in a parity feature.
+#
+# ⚠️ What a citation proves and does not prove. It proves someone WROTE THE ID DOWN next
+# to an implementation. It does not prove the implementation is correct; only the oracle
+# can say that. So this is a coverage floor, never a parity claim, and the summary says
+# so rather than printing a reassuring percentage on its own.
+require "set"
+
+ROOT = File.expand_path("..", __dir__)
+SPECS = File.expand_path("../../_reversa_sdd/migration", ROOT)
+RULES_FILE = File.join(SPECS, "target_business_rules.md")
+
+unless File.exist?(RULES_FILE)
+  abort "cannot find #{RULES_FILE} — run from the rebuild app root"
+end
+
+# id => [legacy_id, statement]
+rules = {}
+File.foreach(RULES_FILE) do |line|
+  next unless line.start_with?("| `BR-MIGRATE-")
+
+  cells = line.split("|").map { |c| c.strip.delete("`") }
+  next if cells.length < 4
+
+  rules[cells[1]] = { legacy: cells[2], statement: cells[3], origin: cells[4].to_s }
+end
+abort "parsed no rules from #{RULES_FILE}" if rules.empty?
+
+# Where a citation may live. Order matters only for reporting.
+SEARCH = {
+  "code"    => %w[app lib packs bin config],
+  "spec"    => %w[spec/lib spec/models spec/parity/harness],
+  "feature" => %w[spec/parity/features],
+}.freeze
+
+cited = Hash.new { |h, k| h[k] = Hash.new { |g, j| g[j] = [] } }
+
+SEARCH.each do |kind, dirs|
+  dirs.each do |dir|
+    path = File.join(ROOT, dir)
+    next unless File.exist?(path)
+
+    Dir.glob(File.join(path, "**", "*")).each do |file|
+      next unless File.file?(file)
+      next if File.extname(file) == ".html"   # golden captures are not citations
+
+      begin
+        content = File.read(file, encoding: "UTF-8")
+        next unless content.valid_encoding?
+      rescue StandardError
+        next
+      end
+      content.scan(/BR-MIGRATE-(\d{3})/) do
+        id = "BR-MIGRATE-#{Regexp.last_match(1)}"
+        cited[id][kind] << file.sub("#{ROOT}/", "") unless cited[id][kind].include?(file.sub("#{ROOT}/", ""))
+      end
+      # Ranges: "BR-MIGRATE-029..039" and "BR-MIGRATE-029..030"
+      content.scan(/BR-MIGRATE-(\d{3})\s*(?:\.\.|…|-)\s*(?:BR-MIGRATE-)?(\d{3})/) do
+        first, last = Regexp.last_match(1).to_i, Regexp.last_match(2).to_i
+        next if last < first || (last - first) > 60
+
+        (first..last).each do |n|
+          id = format("BR-MIGRATE-%03d", n)
+          rel = file.sub("#{ROOT}/", "")
+          cited[id][kind] << "#{rel} (range)" unless cited[id][kind].any? { |c| c.start_with?(rel) }
+        end
+      end
+    end
+  end
+end
+
+want_verbose = ARGV.include?("--verbose")
+only_missing = ARGV.include?("--missing")
+
+by_state = Hash.new { |h, k| h[k] = [] }
+rules.each_key do |id|
+  kinds = cited[id].keys
+  state = if kinds.include?("code") && (kinds.include?("feature") || kinds.include?("spec"))
+            :implemented_and_tested
+          elsif kinds.include?("code")
+            :implemented_only
+          elsif kinds.include?("feature") || kinds.include?("spec")
+            :tested_only
+          else
+            :uncited
+          end
+  by_state[state] << id
+end
+
+puts "bin/rule_coverage — per-rule accounting (parity_specs.md)"
+puts
+puts "  #{rules.length} MIGRATE rules in target_business_rules.md"
+puts
+labels = {
+  implemented_and_tested: "cited in code AND in a spec/feature",
+  implemented_only:       "cited in code only",
+  tested_only:            "cited in a spec/feature only",
+  uncited:                "not cited anywhere",
+}
+labels.each do |state, label|
+  count = by_state[state].length
+  pct = (count * 100.0 / rules.length).round(1)
+  printf("  %-38s %4d  (%4.1f%%)\n", label, count, pct)
+end
+
+if only_missing || want_verbose
+  puts
+  puts "── not cited anywhere ──────────────────────────────────────────"
+  by_state[:uncited].sort.each do |id|
+    printf("  %-18s %s  %s\n", id, rules[id][:legacy].ljust(14), rules[id][:statement].slice(0, 90))
+  end
+end
+
+if want_verbose
+  puts
+  puts "── cited ───────────────────────────────────────────────────────"
+  (by_state[:implemented_and_tested] + by_state[:implemented_only] + by_state[:tested_only]).sort.each do |id|
+    puts "  #{id}  #{rules[id][:statement].slice(0, 70)}"
+    cited[id].each { |kind, files| puts "      #{kind.ljust(8)} #{files.first(3).join(", ")}" }
+  end
+end
+
+puts
+covered = rules.length - by_state[:uncited].length
+puts "  #{covered}/#{rules.length} rules carry a citation somewhere in the rebuild."
+puts
+puts "  ⚠️  A citation means an id was written down next to an implementation. It does"
+puts "      NOT mean the behaviour matches WordPress — only the oracle can say that,"
+puts "      via bin/parity and the Inspector's suite. Read this as a coverage floor."

@@ -1,0 +1,46 @@
+<%# console.site-health — site-health.php, modernized. Tab labels "Status"/"Info" and
+    "Passed tests" are LITERAL (site-health.php:16-18, :285). -%>
+<% @page_title = "Site Health" %>
+<h1 class="wp-heading-inline">Site Health</h1>
+<hr class="wp-header-end">
+<nav class="health-check-tabs" aria-label="Secondary menu">
+  <%= link_to "Status", "/console/tools/site-health", class: "current" %>
+  <%= link_to "Info", "/console/tools/site-health/info" %>
+</nav>
+<hr class="wp-header-end">
+
+<% if @report.critical.any? %>
+  <h2>Critical issues</h2>
+  <p>Critical issues are items that may have a high impact on your site&#8217;s performance or security. Resolving these issues should be prioritized.</p>
+  <table class="widefat">
+    <tbody>
+      <% @report.critical.each do |r| %>
+        <tr><th><%= r.label %></th><td><%= r.description %></td></tr>
+      <% end %>
+    </tbody>
+  </table>
+<% end %>
+
+<% if @report.recommended.any? %>
+  <h2>Recommended improvements</h2>
+  <table class="widefat">
+    <tbody>
+      <% @report.recommended.each do |r| %>
+        <tr><th><%= r.label %></th><td><%= r.description %></td></tr>
+      <% end %>
+    </tbody>
+  </table>
+<% end %>
+
+<h2>Passed tests</h2>
+<% if @report.good.any? %>
+  <table class="widefat">
+    <tbody>
+      <% @report.good.each do |r| %>
+        <tr><th><%= r.label %></th><td><%= r.description %></td></tr>
+      <% end %>
+    </tbody>
+  </table>
+<% else %>
+  <p class="no-items">No tests passed.</p>
+<% end %>

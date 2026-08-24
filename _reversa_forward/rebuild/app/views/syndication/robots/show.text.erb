@@ -1,0 +1,6 @@
+<% home = Composition::Renderers::PostBlocks::Site.home_url -%>
+User-agent: *
+Disallow: /wp-admin/
+Allow: /wp-admin/admin-ajax.php
+
+Sitemap: <%== home %>/wp-sitemap.xml

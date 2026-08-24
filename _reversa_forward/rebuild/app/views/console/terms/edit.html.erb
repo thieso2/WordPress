@@ -1,0 +1,39 @@
+<%# console.term — edit-tag-form.php in modernized mode. LITERAL labels; the (taxonomy,
+    parent, slug) uniqueness message comes from Classification::Term. %>
+<h1><%= @page_title %></h1>
+
+<%= form_with url: console_term_path(@taxonomy.name, @term), method: :patch, local: true do |f| %>
+  <table class="form-table" role="presentation"><tbody>
+    <tr class="form-field form-required term-name-wrap">
+      <th scope="row"><label for="name"><%= "Name" %></label></th>
+      <td><input name="name" id="name" type="text" size="40" value="<%= @term.name %>" /></td>
+    </tr>
+    <tr class="form-field term-slug-wrap">
+      <th scope="row"><label for="slug"><%= "Slug" %></label></th>
+      <td><input name="slug" id="slug" type="text" size="40" value="<%= @term.slug %>" /></td>
+    </tr>
+    <% if @taxonomy.hierarchical? %>
+      <tr class="form-field term-parent-wrap">
+        <th scope="row"><label for="parent"><%= labels[:parent_item] %></label></th>
+        <td>
+          <select name="parent" id="parent">
+            <option value="-1"><%= "None" %></option>
+            <% Classification::Term.where(taxonomy_id: @taxonomy.id).where.not(id: @term.id).order(:name).each do |t| %>
+              <option value="<%= t.id %>" <%= "selected" if t.id == @term.parent_id %>><%= t.name %></option>
+            <% end %>
+          </select>
+          <p class="description" id="parent-description">Categories, unlike tags, can have a hierarchy. You might have a Jazz category, and under that have children categories for Bebop and Big Band. Totally optional.</p>
+        </td>
+      </tr>
+    <% end %>
+    <tr class="form-field term-description-wrap">
+      <th scope="row"><label for="description"><%= "Description" %></label></th>
+      <td><textarea name="description" id="description" rows="5" cols="50"><%= @term.description %></textarea></td>
+    </tr>
+  </tbody></table>
+
+  <div class="submit">
+    <button type="submit" class="button button-primary"><%= "Update" %></button>
+    <a class="button button-link" href="/console/terms/<%= @taxonomy.name %>"><%= "Cancel" %></a>
+  </div>
+<% end %>

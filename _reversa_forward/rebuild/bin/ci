@@ -1,0 +1,74 @@
+#!/usr/bin/env bash
+# bin/ci — the Wave 0 gate.
+#
+# migration_strategy.md makes each wave's PARITY GATE the milestone rather than a date:
+# "No deadline means no forcing function ... mitigated by treating each wave's parity gate
+# as the milestone instead of a date" (RISK-012). This script is that gate, executable.
+#
+# Order matters and is not arbitrary:
+#   1. topology  — cheapest, and the one thing that is worth nothing if it runs late
+#   2. specs     — unit + pack behaviour, including the packs' differential tests
+#   3. seeding   — the first honest test of the schema against real WordPress data
+#   4. parity    — the Inspector's suite against the oracle
+set -uo pipefail
+cd "$(dirname "${BASH_SOURCE[0]}")/.."
+export PATH="$(ruby -e 'print Gem.user_dir')/bin:$PATH"
+
+failures=()
+step() {
+  local name="$1"; shift
+  printf '\n\033[1m── %s ─────────────────────────────────────────────\033[0m\n' "$name"
+  if "$@"; then printf '\033[32m   OK\033[0m\n'; else failures+=("$name"); printf '\033[31m   FAILED\033[0m\n'; fi
+}
+
+# 1. Topology fidelity. handoff.md: "Ship bin/check_cycles in Wave 0 — added later it is
+#    worth almost nothing, because the graph it exists to keep acyclic already will not be."
+step "topology (RISK-017)" ./bin/check_cycles
+
+# Per-rule accounting. parity_specs.md: "The rule count is finite and enumerable (363),
+# so per-rule accounting is achievable." Reported, never gating -- a citation is a
+# coverage floor, not a parity claim.
+printf '\n\033[1m── rule coverage ─────────────────────────────────────────\033[0m\n'
+./bin/rule_coverage | sed -n '3,9p' 
+
+# 2. Unit and pack specs.
+step "specs" ./bin/rspec_worker --format progress
+
+# 3. The seeding pipeline. Skipped only if the oracle is down, and SAID SO loudly —
+#    a silently-skipped oracle step reports green while proving nothing (AD-08).
+if ./bin/oracle status >/dev/null 2>&1; then
+  step "seeding pipeline (dead-letter must be empty)" bin/rails oracle:seed
+  # ⚠️ AFTER seeding, never before. The corpus's machinery post types (wp_template,
+  # wp_template_part, wp_block) land in the SAME tables as the theme's documents, so
+  # Pipeline#truncate_target clears `templates`, `patterns` and `themes` on every run.
+  # Syncing first silently wipes the theme, the resolver falls back to nothing, and the
+  # front end serves a bare <head> — an 80% byte gap that reads as a renderer bug and is
+  # an empty table. That mistake has been made twice; the ordering is load-bearing.
+  step "theme sync (templates, parts, patterns, theme.json)" bin/rails theme:sync
+  # Byte-identical HTML is not a working page: web.not_found_404 reached byte parity while
+  # rendering broken, because every asset its markup referenced 404'd.
+  step "asset sync (the files the rendered pages reference)" bin/rails assets:sync
+  step "golden capture" ./bin/parity capture
+else
+  printf '\n\033[33m⚠️  ORACLE IS DOWN — seeding and golden capture were NOT run.\033[0m\n'
+  printf '   RISK-001: the oracle is the only executable definition of the 363 rules.\n'
+  printf '   This run proves less than a green result suggests. Start it: bin/oracle up\n'
+  failures+=("oracle unavailable")
+fi
+
+# 4. The Inspector's parity suite.
+# Via bin/parity_worker, which gives the suite a PRIVATE database. The suite truncates
+# globally between scenarios, so a shared database races any other run and manufactures
+# divergences the code does not have -- and parity_specs.md makes an unexplained
+# divergence on a write path disqualifying, so the harness must not invent its own.
+step "parity suite" ./bin/parity_worker --format progress
+
+printf '\n═══════════════════════════════════════════════════════\n'
+if [ ${#failures[@]} -eq 0 ]; then
+  printf '\033[32mWave 0 gate: PASS\033[0m\n'
+  exit 0
+else
+  printf '\033[31mWave 0 gate: FAIL\033[0m — %d step(s):\n' "${#failures[@]}"
+  printf '  · %s\n' "${failures[@]}"
+  exit 1
+fi

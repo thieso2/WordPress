@@ -1,0 +1,29 @@
+<%# console.site-editor — wp-admin/site-editor.php. ⚠️ SERVER-SIDE SHELL ONLY this pass.
+    The template/part browser, the block canvas and Global Styles editing are the deferred
+    React island:  deferred: react-island (DEV-012, D-3).  The substrate it will edit
+    already exists (Composition::Template, the theme.json four-origin cascade); this screen
+    is the authenticated, authorized entry point and an honest inventory, not a fake editor. -%>
+<div class="edit-bar">
+  <span class="title">Editor</span>
+</div>
+
+<main class="canvas">
+  <p class="placeholder-note">
+    Site editor — <strong>deferred: react-island (DEV-012, D-3)</strong>. Template and Global
+    Styles editing are not built this pass. The templates the active theme resolves are listed
+    below (read-only) so the shell is truthful about what exists behind it.
+  </p>
+
+  <div class="doc">
+    <% if @templates.present? %>
+      <ul>
+        <% @templates.each do |template| %>
+          <li><code><%= template.slug %></code> — <%= template.theme_slug %></li>
+        <% end %>
+      </ul>
+    <% else %>
+      <%# P-LIST empty-state convention; the site editor's own list is not built. %>
+      <p>No templates found.</p>
+    <% end %>
+  </div>
+</main>

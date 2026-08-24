@@ -1,0 +1,9 @@
+<% if defined?(form_errors) && form_errors.present? %>
+  <div class="notice notice-error" role="alert">
+    <ul class="login-error-list">
+      <% form_errors.each do |message| %>
+        <li><%= raw message %></li>
+      <% end %>
+    </ul>
+  </div>
+<% end %>

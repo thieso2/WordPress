@@ -1,0 +1,3 @@
+# Sanitizing — kses allowlist filtering + output escaping and text transforms. topology_decision.md: leaf pack, zero declared dependencies.
+enforce_dependencies: true
+dependencies: []

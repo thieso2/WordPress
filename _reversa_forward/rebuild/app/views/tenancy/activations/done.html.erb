@@ -1,0 +1,21 @@
+<%# tenancy.activate_result — wp-activate.php:140-210. Message + credentials. -%>
+<% @title = "Active" %>
+<% if @already_active %>
+  <h2>Your account is now active!</h2>
+  <p>This activation link has already been used.</p>
+  <p><%= link_to "Log in", login_path %></p>
+<% elsif @site %>
+  <%# Blog signup result — wp-activate.php:180-206. -%>
+  <h2>Your account is now active!</h2>
+  <p><%= "Your site at #{link_to(@site.name.presence || @site.domain, "//#{@site.domain}#{@site.path}")} is active.".html_safe %>
+     You may now log in to your site using your chosen username of &#8220;<%= @user.login %>&#8221;.</p>
+  <p><span class="h3">Username:</span> <%= @user.login %></p>
+  <p><span class="h3">Password:</span> <%= @password %></p>
+  <p><%= link_to "Log in", login_path %></p>
+<% else %>
+  <%# User-only signup result — wp-activate.php:145-158. -%>
+  <h2>Your account is now active!</h2>
+  <p>Your account has been activated. You may now <%= link_to "log in", login_path %>
+     to the site using your chosen username of &#8220;<%= @user.login %>&#8221;.</p>
+  <p><span class="h3">Password:</span> <%= @password %></p>
+<% end %>

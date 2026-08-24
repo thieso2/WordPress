@@ -1,0 +1,42 @@
+<%# console.index — wp-admin/index.php, modernized. Declared widget grid (DEV-002). -%>
+<% @page_title = "Dashboard" %>
+<h1 class="wp-heading-inline">Dashboard</h1>
+<hr class="wp-header-end">
+
+<div class="dashboard-widgets" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1rem">
+  <section class="widget">
+    <h2>At a Glance</h2>
+    <table class="widefat">
+      <tbody>
+        <tr><td><%= @counts[:posts] %></td><td><%= "Post".pluralize(@counts[:posts]) %></td></tr>
+        <tr><td><%= @counts[:pages] %></td><td><%= "Page".pluralize(@counts[:pages]) %></td></tr>
+        <tr><td><%= @counts[:comments] %></td><td><%= "Comment".pluralize(@counts[:comments]) %></td></tr>
+      </tbody>
+    </table>
+    <% if @search_discouraged %>
+      <p class="description" style="margin-top:.5rem">Search engines discouraged</p>
+    <% end %>
+  </section>
+
+  <section class="widget">
+    <h2>Activity</h2>
+    <% if @recent_posts.any? %>
+      <h3>Recently Published</h3>
+      <table class="widefat">
+        <tbody>
+          <% @recent_posts.each do |post| %>
+            <tr>
+              <td><%= post.published_at&.strftime("%b %-d") %></td>
+              <td><%= link_to post.title.presence || "(no title)", "/console/posts/#{post.id}/edit" %></td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    <% else %>
+      <p class="no-items">No activity yet.</p>
+    <% end %>
+    <% if @pending_comments.positive? %>
+      <p class="description"><%= link_to "#{@pending_comments} #{"comment".pluralize(@pending_comments)} awaiting moderation", "/console/comments?comment_status=moderated" %></p>
+    <% end %>
+  </section>
+</div>

@@ -194,6 +194,27 @@ hash: "sha256:3c3f077f0dd6950c98eaf9d0872335ae6ad796bde99bb255d5e4dde4074e2469"
   **behavioural rule** the parity harness should exercise, so seed at least one user of each digest
   format.
 
+### T-12: Settings whose values are record ids → remapped (added in coding)
+
+- **Applies to**: `sticky_posts` (array of post ids), `page_on_front`, `page_for_posts`,
+  `wp_page_for_privacy_policy` (post ids), `site_logo`, `site_icon` (attachment ids),
+  `default_category` (term id).
+- **Rule**: after every id map exists, rewrite these settings through the pipeline's
+  legacy→new id maps. `0` is the legacy's "unset" and passes through untouched.
+- **Handling of invalid values**: an id with no target row → **dead-letter queue**. An
+  option pointing at a record that did not migrate is evidence, not noise.
+- **Rule origin**: ⚠️ **Added 2026-08-22 by the coding agent — the plan's T-01…T-11 had no
+  transformation for id-bearing option values, and the omission failed silently.** The
+  pipeline copied `sticky_posts: [15]` verbatim; the sticky article's new id was 14 and
+  new id 15 belonged to a different post, so the rebuilt front page floated the **wrong
+  post to the top**. The mechanism worked, the data lied, and no validation fired — it was
+  found by the screen-level byte diff, not by the pipeline's own checks. Implemented in
+  `Seeding::Pipeline#remap_identifier_settings`; pinned by
+  `spec/models/retrieval/identifier_settings_spec.rb`.
+- ⚠️ The same class of value hides in `theme_mods_*` (`nav_menu_locations` carries term
+  ids, `custom_logo` an attachment id). Not yet remapped — recorded here so Wave 4's
+  console work inherits a warning instead of the same silent bug.
+
 ### T-11: Discarded sources
 - **Applies to**: `wp_options['rewrite_rules']`, `wp_options['cron']`, all `_transient_*` and
   `_site_transient_*`, `wp_links`, `wp_registration_log`

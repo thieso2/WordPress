@@ -1,0 +1,40 @@
+<%# console.revision — the server-rendered field diff (revision.php's readable half). The
+    drag-slider timeline is the deferred React island (DEV-012); this is the honest shell:
+    the revision list and a two-revision diff of the revisioned fields. %>
+<h1><%= @heading %></h1>
+<p><a href="/console/posts/<%= @post.id %>/edit"><%= "← Go to editor" %></a></p>
+
+<% if @revisions.empty? %>
+  <div class="notice"><p><%= "No revisions to compare." %></p></div>
+<% else %>
+  <div class="panel">
+    <h2><%= "Revisions" %></h2>
+    <table class="form-table" role="presentation"><tbody>
+      <% @revisions.each do |rev| %>
+        <tr>
+          <td class="row-label"><%= rev.created_at.strftime("%b %e, %Y @ %H:%M") %></td>
+          <td><%= rev.author&.display_name %></td>
+          <td>
+            <a href="/console/posts/<%= @post.id %>/revisions?to=<%= rev.id %>"><%= "Compare" %></a>
+          </td>
+        </tr>
+      <% end %>
+    </tbody></table>
+  </div>
+
+  <% if @diffs %>
+    <% Publishing::Revision::FIELDS.each do |field| %>
+      <div class="panel">
+        <h2><%= field.capitalize %></h2>
+        <table class="diff"><tbody>
+          <% @diffs[field].each do |row| %>
+            <tr>
+              <td class="<%= "diff-deletedline" if row.kind == :del %>"><% if row.left %><%= row.kind == :del ? content_tag(:del, row.left, class: "diffchange") : row.left %><% end %></td>
+              <td class="<%= "diff-addedline" if row.kind == :add %>"><% if row.right %><%= row.kind == :add ? content_tag(:ins, row.right, class: "diffchange") : row.right %><% end %></td>
+            </tr>
+          <% end %>
+        </tbody></table>
+      </div>
+    <% end %>
+  <% end %>
+<% end %>

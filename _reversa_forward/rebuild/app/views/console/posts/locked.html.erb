@@ -1,0 +1,25 @@
+<%# The post-lock takeover notice — _admin_notice_post_locked() (wp-admin/includes/post.php).
+    Shown INSTEAD of the editor when another user holds a live lock (wp_check_post_lock).
+    Every string here is LITERAL. `override_post_lock` is unfiltered/true (AD-01), so the
+    "Do you want to take over?" wording and the Take over button are always present. -%>
+<div class="locked-box">
+  <p>
+    <%# includes/post.php:96 `printf( __( '%s is currently editing this post. Do you want to
+        take over?' ), esc_html( $user->display_name ) )`. %>
+    <%= format("%s is currently editing this post. Do you want to take over?", @holder.display_name) %>
+  </p>
+
+  <div class="buttons">
+    <%# :37 `__( 'Go back' )` — $sendback, edit.php (the list). %>
+    <a class="button" href="/console/posts">Go back</a>
+
+    <%# :118 `esc_html_x( 'Preview', 'verb' )` — the post's front-end view, when it has one. %>
+    <% if @post.published? && @post.slug.present? %>
+      <a class="button" href="<%= "/#{@post.published_at&.strftime("%Y/%m")}/#{@post.slug}" %>">Preview</a>
+    <% end %>
+
+    <%# :125 `_e( 'Take over' )` — the `get-post-lock` handler seizes the lock via
+        wp_set_post_lock(); here it POSTs to #steal, which does the same. %>
+    <%= button_to "Take over", steal_console_post_path(@post), method: :post, class: "button button-primary" %>
+  </div>
+</div>

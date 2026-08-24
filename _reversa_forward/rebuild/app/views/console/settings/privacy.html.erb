@@ -1,0 +1,36 @@
+<%# console.options-privacy — options-privacy.php, modernized. Choose (or clear) the
+    page stored in wp_page_for_privacy_policy (a post id; T-12 remapped it at seed).
+    Gated on manage_privacy_options. -%>
+<% @page_title = "Privacy" %>
+<% selected_id = current("wp_page_for_privacy_policy").to_i %>
+<h1 class="wp-heading-inline">Privacy</h1>
+<hr class="wp-header-end">
+<%= render "console/settings/nav" %>
+
+<h2>Privacy Settings</h2>
+<p>As a website owner, you may need to follow national or international privacy laws. For example, you may need to create and display a privacy policy.</p>
+<p>If you already have a Privacy Policy page, please select it below. If not, please create one.</p>
+<p>After your Privacy Policy page is set, you should edit it.</p>
+
+<%= form_with url: settings_path_for("privacy"), method: :post do %>
+  <table class="form-table" role="presentation">
+    <tbody>
+      <tr>
+        <th scope="row"><label for="page_for_privacy_policy"><%= selected_id.positive? ? "Change your Privacy Policy page" : "Select a Privacy Policy page" %></label></th>
+        <td>
+          <% if selectable_pages.any? %>
+            <select name="page_for_privacy_policy" id="page_for_privacy_policy">
+              <option value="0">&mdash; Select &mdash;</option>
+              <% selectable_pages.each do |page| %>
+                <option value="<%= page.id %>" <%= "selected" if selected_id == page.id %>><%= page.title %></option>
+              <% end %>
+            </select>
+            <button type="submit" class="button">Use This Page</button>
+          <% else %>
+            <p>There are no pages.</p>
+          <% end %>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+<% end %>

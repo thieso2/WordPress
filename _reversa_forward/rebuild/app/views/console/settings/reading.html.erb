@@ -1,0 +1,69 @@
+<%# console.options-reading — options-reading.php, modernized. show_on_front /
+    page_on_front / page_for_posts drive the front page (T-12 remapped the ids);
+    blog_public gates sitemaps and robots. -%>
+<% @page_title = "Reading Settings" %>
+<h1 class="wp-heading-inline">Reading Settings</h1>
+<hr class="wp-header-end">
+<%= render "console/settings/nav" %>
+
+<%= form_with url: settings_path_for("reading"), method: :post do %>
+  <table class="form-table" role="presentation">
+    <tbody>
+      <tr>
+        <th scope="row">Your homepage displays</th>
+        <td><fieldset>
+          <legend class="screen-reader-text"><span>Your homepage displays</span></legend>
+          <p><label>
+            <input name="show_on_front" type="radio" value="posts" <%= "checked" if current("show_on_front").to_s != "page" %>>
+            Your latest posts</label></p>
+          <p><label>
+            <input name="show_on_front" type="radio" value="page" <%= "checked" if current("show_on_front").to_s == "page" %>>
+            A static page (select below)</label></p>
+          <ul>
+            <li>
+              <label for="page_on_front">Homepage:</label>
+              <select name="page_on_front" id="page_on_front">
+                <option value="0">&mdash; Select &mdash;</option>
+                <% selectable_pages.each do |page| %>
+                  <option value="<%= page.id %>" <%= "selected" if current("page_on_front").to_i == page.id %>><%= page.title %></option>
+                <% end %>
+              </select>
+            </li>
+            <li>
+              <label for="page_for_posts">Posts page:</label>
+              <select name="page_for_posts" id="page_for_posts">
+                <option value="0">&mdash; Select &mdash;</option>
+                <% selectable_pages.each do |page| %>
+                  <option value="<%= page.id %>" <%= "selected" if current("page_for_posts").to_i == page.id %>><%= page.title %></option>
+                <% end %>
+              </select>
+            </li>
+          </ul>
+        </fieldset></td>
+      </tr>
+      <tr>
+        <th scope="row"><label for="posts_per_page">Number of recent posts shown on archive pages</label></th>
+        <td>
+          <input name="posts_per_page" type="number" step="1" min="1" id="posts_per_page" value="<%= input_value("posts_per_page") %>" class="small-text"> posts
+        </td>
+      </tr>
+      <tr>
+        <th scope="row"><label for="posts_per_rss">Number of recent items shown in syndication feeds</label></th>
+        <td>
+          <input name="posts_per_rss" type="number" step="1" min="1" id="posts_per_rss" value="<%= input_value("posts_per_rss") %>" class="small-text"> items
+        </td>
+      </tr>
+      <tr>
+        <th scope="row">Search engine visibility</th>
+        <td><fieldset>
+          <legend class="screen-reader-text"><span>Search engine visibility</span></legend>
+          <label for="blog_public">
+            <input name="blog_public" type="checkbox" id="blog_public" value="1" <%= "checked" if on?("blog_public") %>>
+            Allow search engines to index this site</label>
+          <p class="description">Note: Neither of these options blocks access to your site &mdash; it is up to search engines to honor your request.</p>
+        </fieldset></td>
+      </tr>
+    </tbody>
+  </table>
+  <p class="submit"><input type="submit" name="submit" id="submit" class="button button-primary" value="Save Changes"></p>
+<% end %>

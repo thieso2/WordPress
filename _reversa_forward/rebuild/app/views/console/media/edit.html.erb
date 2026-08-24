@@ -1,0 +1,36 @@
+<%# console.media — attachment edit fields in modernized mode. 🔑 alt text is a COLUMN
+    (assets.alt_text). LITERAL labels: "Alternative Text", "Caption", "Title". %>
+<h1><%= @page_title %></h1>
+
+<%= form_with url: console_medium_path(@asset), method: :patch, local: true do |f| %>
+  <table class="form-table" role="presentation"><tbody>
+    <tr>
+      <th scope="row"><label for="title"><%= "Title" %></label></th>
+      <td><input type="text" name="title" id="title" value="<%= @asset.title %>" /></td>
+    </tr>
+    <tr>
+      <th scope="row"><label for="attachment_alt"><%= "Alternative Text" %></label></th>
+      <td>
+        <input type="text" name="alt" id="attachment_alt" value="<%= @asset.alt_text %>" />
+        <p class="description"><%= "Learn how to describe the purpose of the image" %></p>
+      </td>
+    </tr>
+    <tr>
+      <th scope="row"><label for="attachment_caption"><%= "Caption" %></label></th>
+      <td><textarea name="caption" id="attachment_caption" rows="3"><%= @asset.caption %></textarea></td>
+    </tr>
+    <tr>
+      <th scope="row"><%= "File name:" %></th>
+      <td><span class="row-label"><%= File.basename(@asset.file.presence || @asset.slug) %></span></td>
+    </tr>
+    <tr>
+      <th scope="row"><%= "File type:" %></th>
+      <td><%= @asset.mime_type %></td>
+    </tr>
+  </tbody></table>
+
+  <div class="submit">
+    <button type="submit" class="button button-primary"><%= "Update" %></button>
+    <a class="button button-link" href="/console/media"><%= "Cancel" %></a>
+  </div>
+<% end %>

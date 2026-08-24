@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+# bin/parity_worker — run the parity suite in a PRIVATE database.
+#
+# See spec/parity/features/support/env.rb: the suite truncates globally between
+# scenarios, so two concurrent runs against one database race each other and invent
+# divergences the code does not have. Use this whenever more than one suite may run.
+set -euo pipefail
+cd "$(dirname "${BASH_SOURCE[0]}")/.."
+export PATH="$(ruby -e 'print Gem.user_dir')/bin:$PATH"
+export PARITY_WORKER="${PARITY_WORKER:-$$}"
+export RAILS_ENV=test
+DB="rebuild_test_$(echo "$PARITY_WORKER" | tr -c 'a-zA-Z0-9_' '_')"
+export DATABASE_URL="postgres:///${DB}"
+createdb "$DB" 2>/dev/null || true
+psql -q -d "$DB" -f db/structure.sql >/dev/null 2>&1 || bin/rails db:schema:load 2>/dev/null
+trap 'dropdb --if-exists "$DB" 2>/dev/null || true' EXIT
+exec bundle exec cucumber "$@"

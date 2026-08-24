@@ -1,0 +1,60 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+# bin/parity — the diff harness CLI. AD-08: this is architecture, not tooling.
+require "fileutils"
+$LOAD_PATH.unshift(File.expand_path("../spec/parity/harness", __dir__))
+require "differ"
+
+command = ARGV.shift || "capture"
+differ = Parity::Differ.new
+
+case command
+when "capture"
+  results = differ.capture!
+  exit(results.any? { |r| r.outcome == :status_mismatch } ? 1 : 0)
+when "compare"
+  # Replays the corpus against the REBUILD and diffs the normalized response against the
+  # golden captured from the oracle. Wave 1 gave this something to compare.
+  base = ENV.fetch("REBUILD_URL", "http://127.0.0.1:3100")
+  client = Parity::OracleClient.new(base_url: base)
+  fetch = lambda do |path|
+    r = client.get(path)
+    body = r.status >= 300 && r.status < 400 ? "REDIRECT #{r.location}" : r.body
+    [r.status, body, r.status >= 300 && r.status < 400 ? "text/plain" : r.content_type]
+  end
+  results = differ.compare(fetch: fetch)
+  exit(results.any? { |r| %i[diverged status_mismatch no_golden].include?(r.outcome) } ? 1 : 0)
+when "determinism"
+  # parity_specs.md § "Parity accepted" criteria sets the observation window as:
+  #   "the diff harness green across the agreed corpus for 5 CONSECUTIVE RUNS with no
+  #    unexplained diff. ⚠️ Not a calendar period — with no production traffic, elapsed
+  #    time proves nothing; only corpus coverage does."
+  #
+  # That criterion is unmeetable unless the corpus itself is reproducible: if a full
+  # rebuild produces different bytes, every run diverges from the last and "green five
+  # times" can never happen. This subcommand checks the precondition — it rebuilds the
+  # oracle from scratch N times and compares the captures.
+  require "digest"
+  runs = Integer(ARGV.shift || 5)
+  root = File.expand_path("..", __dir__)
+  digests = []
+  runs.times do |i|
+    system("#{root}/bin/oracle", "reseed", out: File::NULL, err: File::NULL) or abort "reseed failed"
+    system("#{root}/bin/parity", "capture", out: File::NULL, err: File::NULL)
+    files = Dir[File.join(root, "spec/parity/golden/*")].sort
+    digest = Digest::SHA256.hexdigest(files.map { |f| Digest::SHA256.file(f).hexdigest }.join)
+    digests << digest
+    puts "  run #{i + 1}/#{runs}: #{digest[0, 24]}  (#{files.length} files)"
+  end
+  if digests.uniq.length == 1
+    puts "\n  ✅ reproducible — #{runs} full rebuilds produced byte-identical golden files."
+    exit 0
+  else
+    puts "\n  ❌ NOT reproducible: #{digests.uniq.length} distinct results across #{runs} rebuilds."
+    puts "     Until this is 1, the 5-consecutive-runs parity gate cannot be satisfied."
+    exit 1
+  end
+else
+  abort "usage: bin/parity [capture|compare|determinism [runs]]"
+end

@@ -11,7 +11,13 @@ hash: "sha256:0b04b2c56e5520a9ad3061cd1fbf0e4e4939af3ab9df8804489d0b954d07baa7"
 # Discard Log
 
 > Produced by the **Curator**. Every rule that does **not** carry forward, with the reason.
-> 65 discarded of 431 analysed: 54 paradigm-related, 11 out of scope.
+> 68 discarded of 431 analysed: 54 paradigm-related, 11 out of scope, 3 resolved by owner ruling.
+>
+> ⚠️ Corrected 2026-08-22 by the coding agent (deferred item D-1). The header read 65 and
+> section 4 did not exist: this document predates the post-Curator ruling that discarded
+> `BR-OPT-04`, `BR-CAP-14` and `BR-MS-02`. **The rule set was already correct and all three
+> were already handled correctly downstream** — `target_business_rules.md` carries 363
+> MIGRATE ids and no more. Only the tallies were wrong.
 
 **The test applied** (from the Curator's decision policy): a rule is discarded when the new
 paradigm absorbs the use case *by construction*, without needing the old manual mechanism. A rule
@@ -409,3 +415,47 @@ as database constraints or model validations, and the Designer owns them.
 | `BR-CAP-14` | `$super_admins` global outranking the database | Superuser status is authoritative and auditable | a stored role, no configuration override |
 | `BR-MS-02` | `switch_to_blog` mutating globals | Tenant isolation for every query | scoping or `Current.tenant`, decided by `BR-HUMAN-019` |
 
+---
+
+## 4. Discarded by owner ruling (3)
+
+⚠️ **Added 2026-08-22 (deferred item D-1).** These three were decided at the post-Curator human
+pause, after the body of this document was written. They are neither paradigm-related nor
+out-of-scope: each is a deliberate ruling that the legacy behaviour is a defect rather than a
+requirement. 54 + 11 + 3 = 68, which reconciles this document with
+`target_business_rules.md` § Summary.
+
+**`BR-OPT-04`** - `update_option()` returns `false` for an *unchanged* value, indistinguishable
+from failure.
+
+- Source: `wp-includes/option.php`
+- Reason: **DEVIATION, not a mechanism swap.** The legacy conflates "no change" with "write
+  failed", so a caller cannot tell them apart. Active Record's save semantics distinguish them
+  natively.
+- Invariant preserved: a write either succeeds or reports why it did not.
+- Target expression: `Configuration::Setting.set` returns the record; `previous_changes` answers
+  "did anything change?". See `app/models/configuration/setting.rb`.
+
+**`BR-CAP-14`** - the `$super_admins` global outranks stored superuser status.
+
+- Source: `wp-includes/capabilities.php`
+- Reason: discarded at the Curator pause as a **privilege-escalation vector** — a value in a PHP
+  file silently outranking the database is not an authorization model.
+- Invariant preserved: superuser status is authoritative and auditable.
+- Target expression: a stored `Identity::RoleAssignment` row, with no configuration override.
+- ⚠️ Note this is the one place the owner ruled *against* the legacy on authorization. Override 1
+  reproduces the permissive defaults (`BR-REST-05`, `BR-CAP-05`, `BR-ADM-07`); this rule went the
+  other way, and the distinction is deliberate.
+
+**`BR-MS-02`** - `switch_to_blog()` mutates `$wpdb`'s prefix, the object cache's `blog_prefix` and
+several globals at once, and must be unwound by `restore_current_blog()`.
+
+- Source: `wp-includes/ms-blogs.php`
+- Reason: `paradigm_decision.md` implication 1 — global mutable state has no Rails analogue, and an
+  unbalanced switch corrupts every subsequent query in the request (F-MS-02).
+- Invariant preserved: tenant isolation for every query.
+- Target expression: PostgreSQL `search_path` per site, reset on connection **checkout**, with every
+  background job carrying an explicit tenant id rather than inheriting ambient state. Wave 5,
+  RISK-009.
+
+---

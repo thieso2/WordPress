@@ -1,0 +1,15 @@
+<%# tenancy.activate_form — wp-activate.php:120-138. "Activation Key Required". -%>
+<% @title = "Activate" %>
+<h2>Activation Key Required</h2>
+
+<% if @error.present? %>
+  <div class="error message"><p><%= @error %></p></div>
+<% end %>
+
+<%= form_with url: activate_path, method: :post, id: "activateform" do %>
+  <p>
+    <label for="key">Activation Key:</label>
+    <input type="text" name="key" id="key" value="<%= @activation_key %>" size="50" autofocus>
+  </p>
+  <p class="submit"><input type="submit" class="button" value="Activate"></p>
+<% end %>

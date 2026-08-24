@@ -1,0 +1,57 @@
+<%#-
+  Byte-level transcription of wp-includes/feed-rss2.php against the captured golden.
+  Whitespace is load-bearing: feeds are compared without HTML whitespace collapsing,
+  and PHP's `?>`-swallows-one-newline rule produced the exact tab runs reproduced
+  here (e.g. the 5-tab <comments> line and the 10-tab <content:encoded> line).
+-%><% t = Syndication::FeedText -%>
+<% links = Composition::Renderers::PostBlocks::Links -%>
+<% home = Composition::Renderers::PostBlocks::Site.home_url -%>
+<?xml version="1.0" encoding="UTF-8"?><rss version="2.0"
+	xmlns:content="http://purl.org/rss/1.0/modules/content/"
+	xmlns:wfw="http://wellformedweb.org/CommentAPI/"
+	xmlns:dc="http://purl.org/dc/elements/1.1/"
+	xmlns:atom="http://www.w3.org/2005/Atom"
+	xmlns:sy="http://purl.org/rss/1.0/modules/syndication/"
+	xmlns:slash="http://purl.org/rss/1.0/modules/slash/"
+	>
+
+<channel>
+	<title><%== t.wp_title_rss %></title>
+	<atom:link href="<%== request.original_url %>" rel="self" type="application/rss+xml" />
+	<link><%== home %></link>
+	<description><%== t.bloginfo_rss(Configuration::Setting.display("blogdescription")) %></description>
+	<lastBuildDate><%== t.rfc2822(@build_date) %></lastBuildDate>
+	<language>en-US</language>
+	<sy:updatePeriod>
+	hourly	</sy:updatePeriod>
+	<sy:updateFrequency>
+	1	</sy:updateFrequency>
+	<generator>https://wordpress.org/?v=7.2-alpha-63330</generator>
+<% @posts.each_with_index do |post, i| -%>
+<% ctx = Composition::RenderContext.new(post: post) -%>
+<% n = @comment_counts.fetch(post.id, 0) -%>
+<%== i.zero? ? "\t" : "\t\t" %><item>
+		<title><%== t.the_title_rss(post) %></title>
+		<link><%== links.permalink(post) %></link>
+<% if n.positive? || post.comment_status.to_s == "open" -%>
+					<comments><%== t.comments_link(post, n) %></comments>
+		<%= "" %>
+<% end -%>
+		<dc:creator><![CDATA[<%== post.author&.display_name %>]]></dc:creator>
+		<pubDate><%== t.rfc2822(post.published_at) %></pubDate>
+		<%== t.category_rss(post, "rss2").chomp %>
+		<guid isPermaLink="false"><%== post.guid %></guid>
+
+					<description><![CDATA[<%== t.the_excerpt_rss(post, ctx) %>]]></description>
+										<content:encoded><![CDATA[<%== t.the_content_feed(post, ctx) %>]]></content:encoded>
+					<%= "" %>
+<% if n.positive? || post.comment_status.to_s == "open" -%>
+					<wfw:commentRss><%== t.post_comments_feed_link(post) %></wfw:commentRss>
+			<slash:comments><%== n %></slash:comments>
+<% end -%>
+		<%= "" %>
+		<%= "" %>
+			</item>
+<% end -%>
+	</channel>
+</rss>

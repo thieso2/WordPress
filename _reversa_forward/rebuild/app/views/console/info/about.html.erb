@@ -1,0 +1,13 @@
+<%# console.about — DEV-009: the rebuild's own content, NOT WordPress the project. -%>
+<% @page_title = "About" %>
+<h1 class="wp-heading-inline">About</h1>
+<hr class="wp-header-end">
+<%= render "console/info/nav" %>
+<p>This administration console is a Rails 8.1 / PostgreSQL rebuild of a WordPress
+7.2-alpha site, produced by the Reversa migration. The public site renders byte-for-byte
+from PostgreSQL; the console is modernized (rails-hotwire) — a semantic reproduction of
+the legacy screens, with every functional string carried over verbatim and the panel
+markup rebuilt.</p>
+<p>What the rebuild deliberately does NOT carry: the hook/filter system (AD-01), the plugin
+architecture (DEV-011), admin colour schemes (DEV-005) and WordPress&#8217;s own
+project-authored marketing copy (DEV-009).</p>

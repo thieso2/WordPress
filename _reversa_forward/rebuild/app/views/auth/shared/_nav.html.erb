@@ -1,0 +1,17 @@
+<%# The #nav link row. The legacy varies it per action (wp-login.php:880-896,
+    1063-1079, 1179-1195, 1578-1600); `links` names which ones, in the legacy's order,
+    joined by the unfiltered separator ' | ' (:469). -%>
+<p id="nav">
+  <% rendered = [] %>
+  <% links.each do |link| %>
+    <% case link
+       when :login %>
+      <% rendered << link_to("Log in", login_path, class: "wp-login-log-in") %>
+    <% when :register %>
+      <% rendered << link_to("Register", register_path, class: "wp-login-register") if registration_open? %>
+    <% when :lost_password %>
+      <% rendered << link_to("Lost your password?", lost_password_path, class: "wp-login-lost-password") %>
+    <% end %>
+  <% end %>
+  <%= safe_join(rendered, login_link_separator) %>
+</p>

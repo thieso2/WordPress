@@ -1,0 +1,23 @@
+<%# tenancy.user_signup — wp-signup.php signup_user() (:280-320). Account fields; submitting
+    advances to the site form (or, with signup_for=user, straight to confirm). -%>
+<% @title = "Sign Up" %>
+<h2><%= "Get your own #{site_name} account in seconds" %></h2>
+
+<%= render "tenancy/shared/errors", errors: @errors %>
+
+<%= form_with url: signup_path, method: :post, id: "setupform" do %>
+  <p>
+    <label for="user_name">Username:</label>
+    <input name="user_name" type="text" id="user_name" value="<%= @user_login %>" autocomplete="username" maxlength="60" autofocus>
+  </p>
+  <p>
+    <label for="user_email"><%= "Email Address".html_safe %></label>
+    <input name="user_email" type="email" id="user_email" value="<%= @user_email %>" autocomplete="email" maxlength="200">
+  </p>
+  <fieldset>
+    <legend>Create a site or only a username:</legend>
+    <label><input type="radio" name="signup_for" value="blog" checked> Gimme a site!</label>
+    <label><input type="radio" name="signup_for" value="user"> Just a username, please.</label>
+  </fieldset>
+  <p class="submit"><input type="submit" name="submit" class="submit" value="Next"></p>
+<% end %>

@@ -1,0 +1,176 @@
+<?xml version="1.0" encoding="UTF-8"?><rss version="2.0"
+	xmlns:content="http://purl.org/rss/1.0/modules/content/"
+	xmlns:dc="http://purl.org/dc/elements/1.1/"
+	xmlns:atom="http://www.w3.org/2005/Atom"
+	xmlns:sy="http://purl.org/rss/1.0/modules/syndication/"
+	
+	>
+<channel>
+	<title>
+	Comments for Reversa Oracle &quot;7.2&quot; 😀	</title>
+	<atom:link href="<SITE>/comments/feed/" rel="self" type="application/rss+xml" />
+	<link><SITE></link>
+	<description>He said &#34;it&#039;s a test&#34; -- she replied &#039;&#34;nested&#34;&#039; ... 5&#039;9&#34; tall, 3&#34; wide « French » 「日本語」 ‘curly’ “already curly”</description>
+	<lastBuildDate><TIME></lastBuildDate>
+	<sy:updatePeriod>
+	hourly	</sy:updatePeriod>
+	<sy:updateFrequency>
+	1	</sy:updateFrequency>
+	<generator>https://wordpress.org/?v=7.2-alpha-63330</generator>
+	<item>
+		<title>
+		Comment on Hello world! by A WordPress Commenter		</title>
+		<link><SITE>/2026/03/hello-world/#comment-<ID></link>
+
+		<dc:creator><![CDATA[A WordPress Commenter]]></dc:creator>
+		<pubDate><TIME></pubDate>
+		<GUID>
+
+					<description><![CDATA[Hi, this is a comment.
+To get started with moderating, editing, and deleting comments, please visit the Comments screen in the dashboard.
+Commenter avatars come from &lt;a href=&quot;https://gravatar.com/&quot;&gt;Gravatar&lt;/a&gt;.]]></description>
+			<content:encoded><![CDATA[<p>Hi, this is a comment.<br />
+To get started with moderating, editing, and deleting comments, please visit the Comments screen in the dashboard.<br />
+Commenter avatars come from <a href="https://gravatar.com/">Gravatar</a>.</p>
+]]></content:encoded>
+		
+			</item>
+		<item>
+		<title>
+		Comment on Published article with He said &#8220;it&#8217;s a test&#8221; &#8212; she replied &#8216;&#8221;nested&#8221;&#8216; &#8230; 5&#8217;9&#8243; tall, 3&#8243; wide « French » 「日本語」 ‘curly’ “already curly” by Commenter "root-approved" O'Brien 😀		</title>
+		<link><SITE>/2026/03/published-article-with-he-said-its-a-test-she-replied-nested-59-tall-3-wide-french-%e3%80%8c%e6%97%a5%e6%9c%ac%e8%aa%9e%e3%80%8d-curly/#comment-<ID></link>
+
+		<dc:creator><![CDATA[Commenter "root-approved" O'Brien 😀]]></dc:creator>
+		<pubDate><TIME></pubDate>
+		<GUID>
+
+					<description><![CDATA[Comment root-approved
+He said &quot;it&#039;s a test&quot; -- she replied &#039;&quot;nested&quot;&#039; ... 5&#039;9&quot; tall, 3&quot; wide « French » 「日本語」 ‘curly’ “already curly”
+Windows path C:\Users\thies\file.txt — regex \d+\s*\\ — literal \n not a newline — LaTeX \frac{1}{2} — escaped quote \&quot; and \&#039;
+Emoji <img src="https://s.w.org/images/core/emoji/17.0.2/72x72/1f600.png" alt="😀" class="wp-smiley" style="height: 1em; max-height: 1em;" /><img src="https://s.w.org/images/core/emoji/17.0.2/72x72/1f9ec.png" alt="🧬" class="wp-smiley" style="height: 1em; max-height: 1em;" /><img src="https://s.w.org/images/core/emoji/17.0.2/72x72/1f680.png" alt="🚀" class="wp-smiley" style="height: 1em; max-height: 1em;" /> · Math 𝔘𝔫𝔦𝔠𝔬𝔡𝔢 𝕬𝖑𝖌𝖊𝖇𝖗𝖆 · CJK-Ext-B 𠜎𠜱𠝹 · ZWJ <img src="https://s.w.org/images/core/emoji/17.0.2/72x72/1f468-200d-1f469-200d-1f467-200d-1f466.png" alt="👨‍👩‍👧‍👦" class="wp-smiley" style="height: 1em; max-height: 1em;" /> · Flag <img src="https://s.w.org/images/core/emoji/17.0.2/72x72/1f1ef-1f1f5.png" alt="🇯🇵" class="wp-smiley" style="height: 1em; max-height: 1em;" />]]></description>
+			<content:encoded><![CDATA[<p>Comment root-approved<br />
+He said &#8220;it&#8217;s a test&#8221; &#8212; she replied &#8216;&#8221;nested&#8221;&#8216; &#8230; 5&#8217;9&#8243; tall, 3&#8243; wide « French » 「日本語」 ‘curly’ “already curly”<br />
+Windows path C:\Users\thies\file.txt — regex \d+\s*\\ — literal \n not a newline — LaTeX \frac{1}{2} — escaped quote \&#8221; and \&#8217;<br />
+Emoji 😀🧬🚀 · Math 𝔘𝔫𝔦𝔠𝔬𝔡𝔢 𝕬𝖑𝖌𝖊𝖇𝖗𝖆 · CJK-Ext-B 𠜎𠜱𠝹 · ZWJ 👨‍👩‍👧‍👦 · Flag 🇯🇵</p>
+]]></content:encoded>
+		
+			</item>
+		<item>
+		<title>
+		Comment on Published article with He said &#8220;it&#8217;s a test&#8221; &#8212; she replied &#8216;&#8221;nested&#8221;&#8216; &#8230; 5&#8217;9&#8243; tall, 3&#8243; wide « French » 「日本語」 ‘curly’ “already curly” by Commenter "depth-2" O'Brien 😀		</title>
+		<link><SITE>/2026/03/published-article-with-he-said-its-a-test-she-replied-nested-59-tall-3-wide-french-%e3%80%8c%e6%97%a5%e6%9c%ac%e8%aa%9e%e3%80%8d-curly/#comment-<ID></link>
+
+		<dc:creator><![CDATA[Commenter "depth-2" O'Brien 😀]]></dc:creator>
+		<pubDate><TIME></pubDate>
+		<GUID>
+
+					<description><![CDATA[In reply to &lt;a href=&quot;<SITE>/2026/03/published-article-with-he-said-its-a-test-she-replied-nested-59-tall-3-wide-french-%e3%80%8c%e6%97%a5%e6%9c%ac%e8%aa%9e%e3%80%8d-curly/#comment-<ID>&quot;&gt;Commenter &quot;root-approved&quot; O&#039;Brien <img src="https://s.w.org/images/core/emoji/17.0.2/72x72/1f600.png" alt="😀" class="wp-smiley" style="height: 1em; max-height: 1em;" />&lt;/a&gt;.
+
+Comment depth-2
+He said &quot;it&#039;s a test&quot; -- she replied &#039;&quot;nested&quot;&#039; ... 5&#039;9&quot; tall, 3&quot; wide « French » 「日本語」 ‘curly’ “already curly”
+Windows path C:\Users\thies\file.txt — regex \d+\s*\\ — literal \n not a newline — LaTeX \frac{1}{2} — escaped quote \&quot; and \&#039;
+Emoji <img src="https://s.w.org/images/core/emoji/17.0.2/72x72/1f600.png" alt="😀" class="wp-smiley" style="height: 1em; max-height: 1em;" /><img src="https://s.w.org/images/core/emoji/17.0.2/72x72/1f9ec.png" alt="🧬" class="wp-smiley" style="height: 1em; max-height: 1em;" /><img src="https://s.w.org/images/core/emoji/17.0.2/72x72/1f680.png" alt="🚀" class="wp-smiley" style="height: 1em; max-height: 1em;" /> · Math 𝔘𝔫𝔦𝔠𝔬𝔡𝔢 𝕬𝖑𝖌𝖊𝖇𝖗𝖆 · CJK-Ext-B 𠜎𠜱𠝹 · ZWJ <img src="https://s.w.org/images/core/emoji/17.0.2/72x72/1f468-200d-1f469-200d-1f467-200d-1f466.png" alt="👨‍👩‍👧‍👦" class="wp-smiley" style="height: 1em; max-height: 1em;" /> · Flag <img src="https://s.w.org/images/core/emoji/17.0.2/72x72/1f1ef-1f1f5.png" alt="🇯🇵" class="wp-smiley" style="height: 1em; max-height: 1em;" />]]></description>
+			<content:encoded><![CDATA[<p>In reply to <a href="<SITE>/2026/03/published-article-with-he-said-its-a-test-she-replied-nested-59-tall-3-wide-french-%e3%80%8c%e6%97%a5%e6%9c%ac%e8%aa%9e%e3%80%8d-curly/#comment-<ID>">Commenter &#8220;root-approved&#8221; O&#8217;Brien 😀</a>.</p>
+<p>Comment depth-2<br />
+He said &#8220;it&#8217;s a test&#8221; &#8212; she replied &#8216;&#8221;nested&#8221;&#8216; &#8230; 5&#8217;9&#8243; tall, 3&#8243; wide « French » 「日本語」 ‘curly’ “already curly”<br />
+Windows path C:\Users\thies\file.txt — regex \d+\s*\\ — literal \n not a newline — LaTeX \frac{1}{2} — escaped quote \&#8221; and \&#8217;<br />
+Emoji 😀🧬🚀 · Math 𝔘𝔫𝔦𝔠𝔬𝔡𝔢 𝕬𝖑𝖌𝖊𝖇𝖗𝖆 · CJK-Ext-B 𠜎𠜱𠝹 · ZWJ 👨‍👩‍👧‍👦 · Flag 🇯🇵</p>
+]]></content:encoded>
+		
+			</item>
+		<item>
+		<title>
+		Comment on Published article with He said &#8220;it&#8217;s a test&#8221; &#8212; she replied &#8216;&#8221;nested&#8221;&#8216; &#8230; 5&#8217;9&#8243; tall, 3&#8243; wide « French » 「日本語」 ‘curly’ “already curly” by Commenter "depth-3" O'Brien 😀		</title>
+		<link><SITE>/2026/03/published-article-with-he-said-its-a-test-she-replied-nested-59-tall-3-wide-french-%e3%80%8c%e6%97%a5%e6%9c%ac%e8%aa%9e%e3%80%8d-curly/#comment-<ID></link>
+
+		<dc:creator><![CDATA[Commenter "depth-3" O'Brien 😀]]></dc:creator>
+		<pubDate><TIME></pubDate>
+		<GUID>
+
+					<description><![CDATA[In reply to &lt;a href=&quot;<SITE>/2026/03/published-article-with-he-said-its-a-test-she-replied-nested-59-tall-3-wide-french-%e3%80%8c%e6%97%a5%e6%9c%ac%e8%aa%9e%e3%80%8d-curly/#comment-<ID>&quot;&gt;Commenter &quot;depth-2&quot; O&#039;Brien <img src="https://s.w.org/images/core/emoji/17.0.2/72x72/1f600.png" alt="😀" class="wp-smiley" style="height: 1em; max-height: 1em;" />&lt;/a&gt;.
+
+Comment depth-3
+He said &quot;it&#039;s a test&quot; -- she replied &#039;&quot;nested&quot;&#039; ... 5&#039;9&quot; tall, 3&quot; wide « French » 「日本語」 ‘curly’ “already curly”
+Windows path C:\Users\thies\file.txt — regex \d+\s*\\ — literal \n not a newline — LaTeX \frac{1}{2} — escaped quote \&quot; and \&#039;
+Emoji <img src="https://s.w.org/images/core/emoji/17.0.2/72x72/1f600.png" alt="😀" class="wp-smiley" style="height: 1em; max-height: 1em;" /><img src="https://s.w.org/images/core/emoji/17.0.2/72x72/1f9ec.png" alt="🧬" class="wp-smiley" style="height: 1em; max-height: 1em;" /><img src="https://s.w.org/images/core/emoji/17.0.2/72x72/1f680.png" alt="🚀" class="wp-smiley" style="height: 1em; max-height: 1em;" /> · Math 𝔘𝔫𝔦𝔠𝔬𝔡𝔢 𝕬𝖑𝖌𝖊𝖇𝖗𝖆 · CJK-Ext-B 𠜎𠜱𠝹 · ZWJ <img src="https://s.w.org/images/core/emoji/17.0.2/72x72/1f468-200d-1f469-200d-1f467-200d-1f466.png" alt="👨‍👩‍👧‍👦" class="wp-smiley" style="height: 1em; max-height: 1em;" /> · Flag <img src="https://s.w.org/images/core/emoji/17.0.2/72x72/1f1ef-1f1f5.png" alt="🇯🇵" class="wp-smiley" style="height: 1em; max-height: 1em;" />]]></description>
+			<content:encoded><![CDATA[<p>In reply to <a href="<SITE>/2026/03/published-article-with-he-said-its-a-test-she-replied-nested-59-tall-3-wide-french-%e3%80%8c%e6%97%a5%e6%9c%ac%e8%aa%9e%e3%80%8d-curly/#comment-<ID>">Commenter &#8220;depth-2&#8221; O&#8217;Brien 😀</a>.</p>
+<p>Comment depth-3<br />
+He said &#8220;it&#8217;s a test&#8221; &#8212; she replied &#8216;&#8221;nested&#8221;&#8216; &#8230; 5&#8217;9&#8243; tall, 3&#8243; wide « French » 「日本語」 ‘curly’ “already curly”<br />
+Windows path C:\Users\thies\file.txt — regex \d+\s*\\ — literal \n not a newline — LaTeX \frac{1}{2} — escaped quote \&#8221; and \&#8217;<br />
+Emoji 😀🧬🚀 · Math 𝔘𝔫𝔦𝔠𝔬𝔡𝔢 𝕬𝖑𝖌𝖊𝖇𝖗𝖆 · CJK-Ext-B 𠜎𠜱𠝹 · ZWJ 👨‍👩‍👧‍👦 · Flag 🇯🇵</p>
+]]></content:encoded>
+		
+			</item>
+		<item>
+		<title>
+		Comment on Published article with He said &#8220;it&#8217;s a test&#8221; &#8212; she replied &#8216;&#8221;nested&#8221;&#8216; &#8230; 5&#8217;9&#8243; tall, 3&#8243; wide « French » 「日本語」 ‘curly’ “already curly” by Commenter "depth-4" O'Brien 😀		</title>
+		<link><SITE>/2026/03/published-article-with-he-said-its-a-test-she-replied-nested-59-tall-3-wide-french-%e3%80%8c%e6%97%a5%e6%9c%ac%e8%aa%9e%e3%80%8d-curly/#comment-<ID></link>
+
+		<dc:creator><![CDATA[Commenter "depth-4" O'Brien 😀]]></dc:creator>
+		<pubDate><TIME></pubDate>
+		<GUID>
+
+					<description><![CDATA[In reply to &lt;a href=&quot;<SITE>/2026/03/published-article-with-he-said-its-a-test-she-replied-nested-59-tall-3-wide-french-%e3%80%8c%e6%97%a5%e6%9c%ac%e8%aa%9e%e3%80%8d-curly/#comment-<ID>&quot;&gt;Commenter &quot;depth-3&quot; O&#039;Brien <img src="https://s.w.org/images/core/emoji/17.0.2/72x72/1f600.png" alt="😀" class="wp-smiley" style="height: 1em; max-height: 1em;" />&lt;/a&gt;.
+
+Comment depth-4
+He said &quot;it&#039;s a test&quot; -- she replied &#039;&quot;nested&quot;&#039; ... 5&#039;9&quot; tall, 3&quot; wide « French » 「日本語」 ‘curly’ “already curly”
+Windows path C:\Users\thies\file.txt — regex \d+\s*\\ — literal \n not a newline — LaTeX \frac{1}{2} — escaped quote \&quot; and \&#039;
+Emoji <img src="https://s.w.org/images/core/emoji/17.0.2/72x72/1f600.png" alt="😀" class="wp-smiley" style="height: 1em; max-height: 1em;" /><img src="https://s.w.org/images/core/emoji/17.0.2/72x72/1f9ec.png" alt="🧬" class="wp-smiley" style="height: 1em; max-height: 1em;" /><img src="https://s.w.org/images/core/emoji/17.0.2/72x72/1f680.png" alt="🚀" class="wp-smiley" style="height: 1em; max-height: 1em;" /> · Math 𝔘𝔫𝔦𝔠𝔬𝔡𝔢 𝕬𝖑𝖌𝖊𝖇𝖗𝖆 · CJK-Ext-B 𠜎𠜱𠝹 · ZWJ <img src="https://s.w.org/images/core/emoji/17.0.2/72x72/1f468-200d-1f469-200d-1f467-200d-1f466.png" alt="👨‍👩‍👧‍👦" class="wp-smiley" style="height: 1em; max-height: 1em;" /> · Flag <img src="https://s.w.org/images/core/emoji/17.0.2/72x72/1f1ef-1f1f5.png" alt="🇯🇵" class="wp-smiley" style="height: 1em; max-height: 1em;" />]]></description>
+			<content:encoded><![CDATA[<p>In reply to <a href="<SITE>/2026/03/published-article-with-he-said-its-a-test-she-replied-nested-59-tall-3-wide-french-%e3%80%8c%e6%97%a5%e6%9c%ac%e8%aa%9e%e3%80%8d-curly/#comment-<ID>">Commenter &#8220;depth-3&#8221; O&#8217;Brien 😀</a>.</p>
+<p>Comment depth-4<br />
+He said &#8220;it&#8217;s a test&#8221; &#8212; she replied &#8216;&#8221;nested&#8221;&#8216; &#8230; 5&#8217;9&#8243; tall, 3&#8243; wide « French » 「日本語」 ‘curly’ “already curly”<br />
+Windows path C:\Users\thies\file.txt — regex \d+\s*\\ — literal \n not a newline — LaTeX \frac{1}{2} — escaped quote \&#8221; and \&#8217;<br />
+Emoji 😀🧬🚀 · Math 𝔘𝔫𝔦𝔠𝔬𝔡𝔢 𝕬𝖑𝖌𝖊𝖇𝖗𝖆 · CJK-Ext-B 𠜎𠜱𠝹 · ZWJ 👨‍👩‍👧‍👦 · Flag 🇯🇵</p>
+]]></content:encoded>
+		
+			</item>
+		<item>
+		<title>
+		Comment on Published article with He said &#8220;it&#8217;s a test&#8221; &#8212; she replied &#8216;&#8221;nested&#8221;&#8216; &#8230; 5&#8217;9&#8243; tall, 3&#8243; wide « French » 「日本語」 ‘curly’ “already curly” by Commenter "second-root" O'Brien 😀		</title>
+		<link><SITE>/2026/03/published-article-with-he-said-its-a-test-she-replied-nested-59-tall-3-wide-french-%e3%80%8c%e6%97%a5%e6%9c%ac%e8%aa%9e%e3%80%8d-curly/#comment-<ID></link>
+
+		<dc:creator><![CDATA[Commenter "second-root" O'Brien 😀]]></dc:creator>
+		<pubDate><TIME></pubDate>
+		<GUID>
+
+					<description><![CDATA[Comment second-root
+He said &quot;it&#039;s a test&quot; -- she replied &#039;&quot;nested&quot;&#039; ... 5&#039;9&quot; tall, 3&quot; wide « French » 「日本語」 ‘curly’ “already curly”
+Windows path C:\Users\thies\file.txt — regex \d+\s*\\ — literal \n not a newline — LaTeX \frac{1}{2} — escaped quote \&quot; and \&#039;
+Emoji <img src="https://s.w.org/images/core/emoji/17.0.2/72x72/1f600.png" alt="😀" class="wp-smiley" style="height: 1em; max-height: 1em;" /><img src="https://s.w.org/images/core/emoji/17.0.2/72x72/1f9ec.png" alt="🧬" class="wp-smiley" style="height: 1em; max-height: 1em;" /><img src="https://s.w.org/images/core/emoji/17.0.2/72x72/1f680.png" alt="🚀" class="wp-smiley" style="height: 1em; max-height: 1em;" /> · Math 𝔘𝔫𝔦𝔠𝔬𝔡𝔢 𝕬𝖑𝖌𝖊𝖇𝖗𝖆 · CJK-Ext-B 𠜎𠜱𠝹 · ZWJ <img src="https://s.w.org/images/core/emoji/17.0.2/72x72/1f468-200d-1f469-200d-1f467-200d-1f466.png" alt="👨‍👩‍👧‍👦" class="wp-smiley" style="height: 1em; max-height: 1em;" /> · Flag <img src="https://s.w.org/images/core/emoji/17.0.2/72x72/1f1ef-1f1f5.png" alt="🇯🇵" class="wp-smiley" style="height: 1em; max-height: 1em;" />]]></description>
+			<content:encoded><![CDATA[<p>Comment second-root<br />
+He said &#8220;it&#8217;s a test&#8221; &#8212; she replied &#8216;&#8221;nested&#8221;&#8216; &#8230; 5&#8217;9&#8243; tall, 3&#8243; wide « French » 「日本語」 ‘curly’ “already curly”<br />
+Windows path C:\Users\thies\file.txt — regex \d+\s*\\ — literal \n not a newline — LaTeX \frac{1}{2} — escaped quote \&#8221; and \&#8217;<br />
+Emoji 😀🧬🚀 · Math 𝔘𝔫𝔦𝔠𝔬𝔡𝔢 𝕬𝖑𝖌𝖊𝖇𝖗𝖆 · CJK-Ext-B 𠜎𠜱𠝹 · ZWJ 👨‍👩‍👧‍👦 · Flag 🇯🇵</p>
+]]></content:encoded>
+		
+			</item>
+		<item>
+		<title>
+		Comment on Published article with He said &#8220;it&#8217;s a test&#8221; &#8212; she replied &#8216;&#8221;nested&#8221;&#8216; &#8230; 5&#8217;9&#8243; tall, 3&#8243; wide « French » 「日本語」 ‘curly’ “already curly” by Pingback Source		</title>
+		<link><SITE>/2026/03/published-article-with-he-said-its-a-test-she-replied-nested-59-tall-3-wide-french-%e3%80%8c%e6%97%a5%e6%9c%ac%e8%aa%9e%e3%80%8d-curly/#comment-<ID></link>
+
+		<dc:creator><![CDATA[Pingback Source]]></dc:creator>
+		<pubDate><TIME></pubDate>
+		<GUID>
+
+					<description><![CDATA[A pingback body]]></description>
+			<content:encoded><![CDATA[<p>A pingback body</p>
+]]></content:encoded>
+		
+			</item>
+		<item>
+		<title>
+		Comment on Published article with He said &#8220;it&#8217;s a test&#8221; &#8212; she replied &#8216;&#8221;nested&#8221;&#8216; &#8230; 5&#8217;9&#8243; tall, 3&#8243; wide « French » 「日本語」 ‘curly’ “already curly” by Trackback Source		</title>
+		<link><SITE>/2026/03/published-article-with-he-said-its-a-test-she-replied-nested-59-tall-3-wide-french-%e3%80%8c%e6%97%a5%e6%9c%ac%e8%aa%9e%e3%80%8d-curly/#comment-<ID></link>
+
+		<dc:creator><![CDATA[Trackback Source]]></dc:creator>
+		<pubDate><TIME></pubDate>
+		<GUID>
+
+					<description><![CDATA[A trackback body]]></description>
+			<content:encoded><![CDATA[<p>A trackback body</p>
+]]></content:encoded>
+		
+			</item>
+	</channel>
+</rss>

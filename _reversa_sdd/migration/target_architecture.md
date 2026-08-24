@@ -560,6 +560,21 @@ bin/
     `Publishing` and not the reverse is a design intent that review upholds; only the *cycle* is
     machine-checked.
 
+> ⚠️ **Amended 2026-08-22 by owner ruling.** The direction between `Publishing` and
+> `Library` below is **reversed**: it is `Publishing → Library`, not `Library → Publishing`.
+>
+> `bin/check_cycles` surfaced a conflict between this document and `target_data_model.md`
+> on its first run against real models. The data model specifies foreign keys in **both**
+> directions — `posts.featured_asset_id → assets.id` (AD-03's promoted `_thumbnail_id`) and
+> `assets.attached_to_id → posts.id` (the legacy attachment's `post_parent`) — which no
+> arrangement of code can make acyclic.
+>
+> The ruling keeps AD-03's FK and demotes `assets.attached_to_id` to a plain column
+> (`db/migrate/20260822000060`): for an attachment, `post_parent` records only "uploaded
+> while editing this post", which is provenance rather than structure. `Library` therefore
+> depends on `Identity` alone, and the graph is acyclic with **no acknowledged
+> exceptions**.
+
 - **The intended dependency graph is acyclic.** Reading the diagram: packs depend on nothing;
   `Configuration` depends on nothing in the core; `Publishing` → `Configuration`; `Classification`,
   `Discussion`, `Library`, `Routing` → `Publishing`; `Retrieval` → the content contexts;

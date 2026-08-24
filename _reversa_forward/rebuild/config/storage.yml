@@ -1,0 +1,22 @@
+# The uploads directory IS the legacy's: `public/wp-content/uploads/YYYY/MM/<name>`, served
+# at the URL every golden screen references. See lib/active_storage/service/uploads_service.rb.
+uploads:
+  service: Uploads
+  root: <%= Rails.root.join("public/wp-content/uploads") %>
+
+# The suites write here instead, so a spec run never leaves files in public/ — and each
+# worker gets its own directory, for the same reason bin/rspec_worker and
+# bin/parity_worker give each its own database: two concurrent runs sharing one uploads
+# directory see each other's files in wp_unique_filename()'s listing and delete each
+# other's blobs from under their rows.
+uploads_test:
+  service: Uploads
+  root: <%= Rails.root.join("tmp/storage/uploads-#{(ENV["RSPEC_WORKER"].presence || ENV["PARITY_WORKER"].presence || "default").to_s.gsub(/[^a-zA-Z0-9_]/, "_")}") %>
+
+test:
+  service: Disk
+  root: <%= Rails.root.join("tmp/storage") %>
+
+local:
+  service: Disk
+  root: <%= Rails.root.join("storage") %>

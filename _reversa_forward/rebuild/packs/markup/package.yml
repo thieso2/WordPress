@@ -1,0 +1,3 @@
+# Markup — the html-api port (WP_HTML_Tag_Processor / WP_HTML_Processor). topology_decision.md: leaf pack, zero declared dependencies.
+enforce_dependencies: true
+dependencies: []

@@ -1,0 +1,36 @@
+<%# tenancy.signup_confirm — wp-signup.php confirm_user_signup() (:709-728) and
+    confirm_blog_signup() (:866-898). Literal strings verbatim from the legacy. -%>
+<% @title = "Almost done!" %>
+<% if @signup_kind == "blog" %>
+  <h2>
+  <%= "Congratulations! Your new site, #{link_to(@blog_title, "//#{@blog_domain}#{@blog_path}")}, is almost ready.".html_safe %>
+  </h2>
+  <p>But, before you can start using your site, <strong>you must activate it</strong>.</p>
+  <p>
+  <%= "Check your inbox at #{content_tag(:strong, @user_email)} and click on the given link.".html_safe %>
+  </p>
+  <p>If you do not activate your site within two days, you will have to sign up again.</p>
+  <h2>Still waiting for your email?</h2>
+  <p>If you have not received your email yet, there are a number of things you can do:</p>
+  <ul id="noemail-tips">
+    <li><p><strong>Wait a little longer. Sometimes delivery of email can be delayed by processes outside of our control.</strong></p></li>
+    <li><p>Check the junk or spam folder of your email client. Sometime emails wind up there by mistake.</p></li>
+    <li>
+    <%= "Have you entered your email correctly? You have entered #{@user_email}, if it&#8217;s incorrect, you will not receive your email.".html_safe %>
+    </li>
+  </ul>
+<% else %>
+  <h2>
+  <%= "#{@user_login} is your new username" %>
+  </h2>
+  <p>But, before you can start using your new username, <strong>you must activate it</strong>.</p>
+  <p>
+  <%= "Check your inbox at #{content_tag(:strong, @user_email)} and click on the given link.".html_safe %>
+  </p>
+  <p>If you do not activate your username within two days, you will have to sign up again.</p>
+<% end %>
+<%# The activation link the email would carry (no mail is sent this pass — see the
+    controller note). Present so the flow is walkable end-to-end. -%>
+<% if @activation_key.present? %>
+  <p class="signup-activate-link">Activation link: <%= link_to activate_url(key: @activation_key), activate_path(key: @activation_key) %></p>
+<% end %>
