@@ -48,6 +48,11 @@ const SCREENS = [
   ['console.themes',           '/wp-admin/themes.php',                             '/console/themes',                 'appearance','Themes'],
   ['console.theme-install',    '/wp-admin/theme-install.php',                      '/console/themes/new',             'appearance','Add Themes'],
   ['console.nav-menus',        '/wp-admin/nav-menus.php',                          '/console/menus',                  'appearance','Menus'],
+  ['console.import',           '/wp-admin/import.php',                             '/console/tools/import',           'tools',   'Import — a real built-in WXR importer (the legacy screen only lists plugins)'],
+  ['console.about',            '/wp-admin/about.php',                              '/console/about',                  'info',    'About — project-neutral under DEV-009'],
+  ['console.credits',          '/wp-admin/credits.php',                            '/console/credits',                'info',    'Credits — no contributors fabricated; the legacy fetches api.wordpress.org'],
+  ['console.freedoms',         '/wp-admin/freedoms.php',                           '/console/freedoms',               'info',    'The Four Freedoms — GPL statements kept verbatim'],
+  ['console.contribute',       '/wp-admin/contribute.php',                         '/console/get-involved',           'info',    'Get Involved'],
 ];
 
 // The two editor screens need a record id, which differs per side; resolved at runtime.

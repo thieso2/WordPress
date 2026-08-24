@@ -47,6 +47,8 @@ const ADMIN_GROUPS = [
     blurb: 'Configuration is settings only (AD-06). Compare the fields and their values, never the panel registry: hook-registered sections became declared structures when AD-01 removed the hook system (DEV-002).' },
   { id: 'tools', title: 'Tools, privacy and health', wave: 'Wave 4',
     blurb: 'Export, the GDPR request lifecycle, and Site Health. The GDPR screens carry the personal-data workflows verbatim, down to the confirmation-email checkbox and the status vocabulary.' },
+  { id: 'info', title: 'About this build', wave: 'DEV-009',
+    blurb: 'The four informational screens. These are almost entirely WordPress project identity, which DEV-009 drops — so they are rebuilt project-neutral rather than transcribed. Credits fabricates nobody: the legacy screen renders an api.wordpress.org response, and this build makes no external call. The four GPL freedom statements are kept verbatim, because they are a licence statement rather than branding.' },
   { id: 'appearance', title: 'Appearance', wave: 'Wave 4',
     blurb: 'Themes, theme install and menus. DEV-011 resolved as themes yes, plugins no — a theme is data plus template files, not code that hooks into the core, so carrying it forward does not reopen AD-01.' },
 ];
@@ -57,7 +59,7 @@ const GATE = [
   { n: 'Boot', cmd: 'bin/rails runner', verdict: 'pass',
     line: 'boots — every route carries an AD-04 authorization declaration, or it would not' },
   { n: 'Specs', cmd: 'bin/rspec_worker', verdict: 'pass',
-    line: '1489 examples, 0 failures, 6 pending' },
+    line: '1666 examples, 0 failures, 6 pending' },
   { n: 'Seeding pipeline', cmd: 'bin/rails oracle:seed', verdict: 'pass',
     line: 'T-01…T-12 round-tripped; dead-letter queue empty' },
   { n: 'Determinism', cmd: 'bin/parity determinism', verdict: 'pass',
@@ -134,9 +136,12 @@ const html = `<title>Oracle vs Rebuild</title>
       instance, and once by the Rails rebuild reading the same content out of PostgreSQL.
       The WordPress instance is not a testing aid — with no live deployment, it is
       <strong>the project's only executable definition of the 363 migrated rules</strong>.
-      All six waves are built. The front end is <strong>byte-identical through the parity
-      harness on all 25 corpus screens</strong>; the console is held to a different and
-      looser contract, which the second half of this page explains rather than hides.
+      All six waves are built, and so is the admin surface: of the 95 screens in
+      <code>wp-admin/</code>, <strong>46 resolve to a console route</strong> and the rest are
+      discarded by a recorded ruling — no plugin screens, because AD-01 removed the extension
+      system they manage. The front end is <strong>byte-identical through the parity harness
+      on all 25 corpus screens</strong>; the console is held to a different and looser
+      contract, which the second half of this page explains rather than hides.
     </p>
     <div class="systems">
       <div class="sys o">
@@ -157,7 +162,7 @@ const html = `<title>Oracle vs Rebuild</title>
     </div>
     <div class="scoreboard">
       <div class="score ok"><p class="k">Byte match</p><p class="v">25 / 25</p><p class="s">front-end screens, through the harness</p></div>
-      <div class="score ok"><p class="k">Specs</p><p class="v">1489</p><p class="s">examples, 0 failures</p></div>
+      <div class="score ok"><p class="k">Specs</p><p class="v">1666</p><p class="s">examples, 0 failures</p></div>
       <div class="score ok"><p class="k">Console screens</p><p class="v">${adminMatched} / ${admin.length}</p><p class="s">answer with the same status as wp-admin</p></div>
       <div class="score warn"><p class="k">Rule coverage</p><p class="v">262 / 363</p><p class="s">rules citing an implementation</p></div>
     </div>
