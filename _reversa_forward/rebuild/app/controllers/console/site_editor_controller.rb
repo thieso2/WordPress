@@ -97,6 +97,48 @@ module Console
     end
 
     private
+    # The settings blob wp-admin hands edit-site's initializeEditor (get_block_editor_settings
+    # + the site-editor specifics). Only what is TRUE of this build: anything omitted is a
+    # feature the editor then does without, which beats advertising a control that breaks.
+    def site_editor_settings_json
+      theme = Presentation::Theme.active.first
+      {
+        siteUrl: "/",
+        # ⚠️ Configuration::Setting returns FALSE for an unset key, not nil (get_option()'s
+        # own contract), so `.to_i` on it raises. The same trap bit the Posts list's
+        # sticky_posts read; guard the type, never assume.
+        postsPerPage: setting_int("posts_per_page", 10),
+        styles: [],
+        supportsTemplatePartsMode: false,
+        # The theme's own theme.json settings, through the same four-origin cascade the front
+        # end renders from — so the editor's palette IS the site's palette.
+        __experimentalFeatures: theme_editor_features(theme),
+        __experimentalAdditionalBlockPatterns: [],
+        __experimentalAdditionalBlockPatternCategories: [],
+        richEditingEnabled: true,
+        supportsLayout: true,
+        canLockBlocks: true
+      }.to_json
+    end
+    helper_method :site_editor_settings_json
+
+    # An integer setting, tolerant of get_option()'s FALSE-when-unset.
+    def setting_int(key, fallback)
+      raw = Configuration::Setting[key]
+      return fallback unless raw.respond_to?(:to_i) && !raw.is_a?(TrueClass) && !raw.is_a?(FalseClass)
+
+      raw.to_i.nonzero? || fallback
+    end
+
+    def theme_editor_features(theme)
+      return {} if theme.nil?
+
+      raw = (theme.resolver.merged_data.raw_data rescue nil)
+      raw.is_a?(Hash) ? (raw["settings"] || {}) : {}
+    rescue StandardError
+      {}
+    end
+
 
     def ordered_templates(kind)
       Composition::Template.where(kind: kind, theme_slug: theme_slugs).order(:area, :slug).to_a

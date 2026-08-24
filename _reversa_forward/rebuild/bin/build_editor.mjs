@@ -11,7 +11,7 @@ const watch = process.argv.includes("--watch");
 
 const options = {
   entryPoints: [
-    { in: resolve(root, "app/frontend/site_editor/index.jsx"), out: "site_editor" },
+    { in: resolve(root, "app/frontend/site_editor_gb/index.jsx"), out: "site_editor" },
     { in: resolve(root, "app/frontend/gutenberg/index.jsx"), out: "gutenberg" }
   ],
   bundle: true,

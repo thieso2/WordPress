@@ -482,7 +482,17 @@ permalink for records without a pretty URL.
 | **Bundle** | 21 MB raw / ~5 MB gzipped JS plus 630 KB CSS, and 365 MB of `node_modules` (gitignored). The built bundle is committed so the app runs without an npm install. |
 | **Canonical save** | Gutenberg rewrites markup to its canonical save form (adds `class="wp-block-heading"`, drops default attributes). Real WordPress does the same on save, so this is faithful — but a re-saved post's bytes will differ from the seeded ones, which matters to anyone reading the parity gate. |
 
-**What was retired.** `app/frontend/editor/{index,Editor,api}.jsx` — the island's entry, shell
-and API client. Its block COMPONENTS survive: the Site Editor island still renders templates
-with them. Converting the Site Editor to Gutenberg's own template editor is the natural next
-step and is not done here.
+**What was retired.** The hand-built islands are gone entirely — `app/frontend/editor/` and
+`app/frontend/site_editor/`, entries, shells, block components and all.
+
+**The Site Editor followed** (same day). `console.site-editor` now mounts
+`@wordpress/edit-site`'s own `initializeEditor`, giving the real Design sidebar (Identity,
+Styles, Pages, Navigation, Patterns, Templates), the block canvas, style variations and the
+full Global Styles UI — where ours had a template list and two typography fields. It boots
+against the templates / template-parts / global-styles endpoints built above with **no failed
+API call**, and the canvas renders a live preview of this rebuild's own front end.
+
+**A trap worth naming, because it bit twice.** `Configuration::Setting[key]` returns **false**
+for an unset key — get_option()'s own contract — so `.to_i` on it raises. It broke every
+Posts-list spec once (`sticky_posts`) and the Site Editor mount once (`posts_per_page`).
+Both now guard the type. Any new read of a setting should assume false, not nil.

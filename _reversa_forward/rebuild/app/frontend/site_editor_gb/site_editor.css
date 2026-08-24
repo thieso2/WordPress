@@ -1,0 +1,4 @@
+/* Host styling for the Site Editor mount. edit-site ships its own stylesheets (imported in
+   index.jsx); this only gives the mount point a full-bleed box inside our editor layout. */
+html, body.editor { height: 100%; margin: 0; }
+#site-editor-root { height: 100vh; }

@@ -17,6 +17,7 @@
     "@wordpress/data": "^10.53.0",
     "@wordpress/dom-ready": "^4.26.0",
     "@wordpress/edit-post": "^8.53.0",
+    "@wordpress/edit-site": "^7.2.0",
     "@wordpress/editor": "^14.53.0",
     "@wordpress/element": "^8.5.0",
     "@wordpress/format-library": "^5.53.0",

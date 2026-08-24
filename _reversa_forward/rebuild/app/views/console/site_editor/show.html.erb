@@ -1,30 +1,30 @@
-<%# console.site-editor — wp-admin/site-editor.php. The Site Editor React island
-    (DEV-012, D-3) mounts into #site-editor-root; app/frontend/site_editor/* →
-    app/assets/builds/site_editor.js. It browses and edits templates/parts (block canvas
-    reused from the post editor) and edits Global Styles over the theme.json cascade.
-    Without JavaScript, #site-editor-fallback lists the theme's templates read-only. -%>
+<%# console.site-editor — wp-admin/site-editor.php. DEV-015: this mounts the REAL Site Editor
+    (@wordpress/edit-site's own initializeEditor), not a reimplementation. It browses templates
+    and template parts, edits them on the block canvas, and edits Global Styles across the
+    theme.json cascade — all against this rebuild's own wp/v2 endpoints. Without JavaScript,
+    the fallback below lists the theme's templates read-only. -%>
 <% @editor_island = true %>
 <% @island_asset = "site_editor" %>
 
-<div id="site-editor-root"></div>
+<div id="site-editor-root" data-settings="<%= site_editor_settings_json %>"></div>
 
-<div id="site-editor-fallback">
-  <div class="edit-bar"><span class="title">Editor</span></div>
-  <main class="canvas">
-    <p class="placeholder-note">
-      The Site Editor needs JavaScript. The active theme resolves these templates
-      (read-only without the editor):
-    </p>
-    <div class="doc">
-      <% if @templates.present? %>
-        <h2>Templates</h2>
-        <ul><% @templates.each do |t| %><li><code><%= t.slug %></code> — <%= t.title.presence || t.slug %></li><% end %></ul>
-      <% end %>
-      <% if @parts.present? %>
-        <h2>Template Parts</h2>
-        <ul><% @parts.each do |t| %><li><code><%= t.slug %></code> — <%= t.title.presence || t.slug %></li><% end %></ul>
-      <% end %>
-      <% if @templates.blank? && @parts.blank? %><p>No templates found.</p><% end %>
-    </div>
-  </main>
-</div>
+<noscript>
+  <div id="site-editor-fallback">
+    <div class="edit-bar"><span class="title">Editor</span></div>
+    <main class="canvas">
+      <p class="placeholder-note">The Site Editor needs JavaScript. The active theme resolves
+      these templates (read-only without it):</p>
+      <div class="doc">
+        <% if @templates.present? %>
+          <h2>Templates</h2>
+          <ul><% @templates.each do |t| %><li><code><%= t.slug %></code> — <%= t.title.presence || t.slug %></li><% end %></ul>
+        <% end %>
+        <% if @parts.present? %>
+          <h2>Template Parts</h2>
+          <ul><% @parts.each do |t| %><li><code><%= t.slug %></code> — <%= t.title.presence || t.slug %></li><% end %></ul>
+        <% end %>
+        <% if @templates.blank? && @parts.blank? %><p>No templates found.</p><% end %>
+      </div>
+    </main>
+  </div>
+</noscript>
