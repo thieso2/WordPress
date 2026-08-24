@@ -46,12 +46,98 @@
       @media (prefers-color-scheme: dark) { .diff-deletedline { background: #3a2323; } .diff-addedline { background: #1f3320; } }
       del.diffchange { background: #f1adad; text-decoration: none; }
       ins.diffchange { background: #a0d6a0; text-decoration: none; }
+
+      /* ── the admin chrome: admin bar + admin menu ─────────────────────────────────
+         wp-admin's defining furniture (admin-header.php: #wpadminbar, #adminmenu,
+         #wpcontent). Modernized mode makes the STRUCTURE free, so this is a clean
+         re-implementation rather than a copy of the legacy markup — but the labels, the
+         order, the capability on every entry and the pending-comments bubble are the
+         oracle's own (tools/dump_menu.php). */
+      :root { --bar:#1d2327; --bar-ink:#f0f0f1; --menu:#1d2327; --menu-ink:#c3c4c7;
+              --menu-hover:#2c3338; --menu-current:#2271b1; --bar-h:32px; --menu-w:180px; }
+      body.console { display: block; }
+      .adminbar { position: sticky; top: 0; z-index: 60; height: var(--bar-h);
+        background: var(--bar); color: var(--bar-ink); display: flex; align-items: center;
+        gap: .25rem; padding: 0 .5rem; font-size: 13px; }
+      .adminbar a { color: var(--bar-ink); text-decoration: none; padding: 0 .6rem;
+        line-height: var(--bar-h); display: inline-block; border-radius: 2px; }
+      .adminbar a:hover, .adminbar a:focus-visible { background: var(--menu-hover); color: #72aee6; }
+      .adminbar .spacer { margin-left: auto; }
+      .adminbar form { display: inline; margin: 0; }
+      .adminbar button { font: inherit; color: var(--bar-ink); background: none; border: 0;
+        cursor: pointer; padding: 0 .6rem; line-height: var(--bar-h); }
+      .adminbar button:hover { color: #72aee6; }
+      .console-body { display: flex; align-items: stretch; min-height: calc(100vh - var(--bar-h)); }
+      .adminmenu { flex: 0 0 var(--menu-w); width: var(--menu-w); background: var(--menu);
+        color: var(--menu-ink); padding-bottom: 2rem; }
+      .adminmenu ul { list-style: none; margin: 0; padding: 0; }
+      .adminmenu > ul > li > a { display: flex; justify-content: space-between; align-items: center;
+        gap: .5rem; padding: .55rem .8rem; color: #f0f0f1; text-decoration: none; font-size: 14px; }
+      .adminmenu > ul > li > a:hover, .adminmenu > ul > li > a:focus-visible { background: var(--menu-hover); color: #72aee6; }
+      .adminmenu > ul > li.current > a { background: var(--menu-current); color: #fff; font-weight: 600; }
+      .adminmenu .sub { background: #2c3338; }
+      .adminmenu .sub a { display: block; padding: .35rem .8rem .35rem 1.4rem; color: #c3c4c7;
+        text-decoration: none; font-size: 13px; }
+      .adminmenu .sub a:hover, .adminmenu .sub a:focus-visible { color: #72aee6; }
+      .adminmenu .sub a[aria-current="page"] { color: #fff; font-weight: 600; }
+      .adminmenu .sep { height: 1px; background: #3c434a; margin: .5rem .6rem; }
+      .adminmenu .badge { background: #d63638; color: #fff; border-radius: 10px;
+        font-size: 11px; line-height: 1; padding: 3px 6px; font-weight: 600; }
+      .console-main { flex: 1; min-width: 0; }
+      .console-main .wrap { margin: 0 auto; }
+      @media (max-width: 782px) {
+        .console-body { display: block; }
+        .adminmenu { width: 100%; flex: none; }
+        .adminmenu .sub { display: none; }
+        .adminmenu > ul > li.current .sub { display: block; }
+      }
     </style>
   </head>
   <body class="console">
-    <div class="wrap">
-      <%= render "console/shared/notices" %>
-      <%= yield %>
+    <%# #wpadminbar — site name, a new-post shortcut, and the account menu. %>
+    <div class="adminbar">
+      <a href="/"><%= site_title %></a>
+      <a href="/console/posts/new">+ New</a>
+      <span class="spacer"></span>
+      <% if current_actor %>
+        <a href="/console/profile">Howdy, <%= current_actor.display_name.presence || current_actor.login %></a>
+        <%= button_to "Log Out", session_path, method: :delete, form: { style: "display:inline" }, class: "adminbar-logout" %>
+      <% end %>
+    </div>
+
+    <div class="console-body">
+      <%# #adminmenu — DECLARED, not hook-registered (DEV-002). Capabilities are resolved
+          in the controller; this renders what it is handed and asks Access nothing. %>
+      <nav class="adminmenu" aria-label="Main menu">
+        <ul>
+          <% console_menu.each do |entry| %>
+            <% if entry[:separator] %>
+              <li class="sep" role="presentation"></li>
+            <% else %>
+              <li class="<%= "current" if entry[:current] %>">
+                <a href="<%= entry[:path] %>" <%= "aria-current=page".html_safe if entry[:current] %>>
+                  <span><%= entry[:label] %></span>
+                  <% if entry[:badge] %><span class="badge" aria-label="<%= entry[:badge] %> <%= entry[:badge].to_i == 1 ? "Comment" : "Comments" %> in moderation"><%= entry[:badge] %></span><% end %>
+                </a>
+                <% if entry[:current] && entry[:children].present? %>
+                  <ul class="sub">
+                    <% entry[:children].each do |child| %>
+                      <li><a href="<%= child[:path] %>" <%= "aria-current=page".html_safe if child[:key] == current_screen %>><%= child[:label] %></a></li>
+                    <% end %>
+                  </ul>
+                <% end %>
+              </li>
+            <% end %>
+          <% end %>
+        </ul>
+      </nav>
+
+      <main class="console-main">
+        <div class="wrap">
+          <%= render "console/shared/notices" %>
+          <%= yield %>
+        </div>
+      </main>
     </div>
   </body>
 </html>

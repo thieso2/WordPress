@@ -18,7 +18,7 @@ RSpec.describe "console.profile", type: :request do
     get "/console/profile"
     expect(response).to have_http_status(:ok)
     expect(doc.at_css("h1").text).to eq("Profile")
-    expect(doc.at_css("button[type=submit]").text.strip).to eq("Update Profile")
+    expect(doc.at_css(".console-main button[type=submit]").text.strip).to eq("Update Profile")
     expect(doc.at_css("#email")["value"]).to eq("con_author@example.com")
   end
 

@@ -22,7 +22,7 @@ RSpec.describe "console.user-edit", type: :request do
     expect(doc.at_css("h1").text).to eq("Edit User")
     expect(body_text).to include("Personal Options").and include("Contact Info").and include("Account Management")
     expect(body_text).to include("Display name publicly as").and include("Website").and include("New Password")
-    expect(doc.at_css("button[type=submit]").text.strip).to eq("Update User")
+    expect(doc.at_css(".console-main button[type=submit]").text.strip).to eq("Update User")
   end
 
   it "⚠️ DEV-008: no admin_color field is rendered" do

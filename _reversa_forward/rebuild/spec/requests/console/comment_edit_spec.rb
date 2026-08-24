@@ -23,7 +23,7 @@ RSpec.describe "console.comment", type: :request do
     expect(doc.at_css("h1").text).to eq("Edit Comment")
     expect(body_text).to include("Author").and include("Name").and include("Email").and include("URL")
     expect(body_text).to include("Save").and include("Status:")
-    expect(doc.at_css("button[type=submit]").text.strip).to eq("Update")
+    expect(doc.at_css(".console-main button[type=submit]").text.strip).to eq("Update")
     # the current values are pre-filled
     expect(doc.at_css("#name")["value"]).to eq("Jane")
     expect(doc.at_css("#email")["value"]).to eq("jane@example.com")

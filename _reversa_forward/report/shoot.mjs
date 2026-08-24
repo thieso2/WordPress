@@ -40,10 +40,10 @@ for (const req of requests) {
   for (const [side, base] of [['oracle', ORACLE], ['rebuild', REBUILD]]) {
     const ctx = await browser.newContext({
       viewport: { width: 1180, height: 820 },
-      deviceScaleFactor: 2, colorScheme: 'light', reducedMotion: 'reduce',
+      deviceScaleFactor: 1, colorScheme: 'light', reducedMotion: 'reduce',
     });
     const page = await ctx.newPage();
-    const file = `${row.screen.replace(/\./g, '-')}--${side}.png`;
+    const file = `${row.screen.replace(/\./g, '-')}--${side}.jpg`;
     try {
       let status;
       if (req.contentType === 'xml' || req.contentType === 'text') {
@@ -57,7 +57,7 @@ for (const req of requests) {
       }
       // Freeze anything that renders motion so two captures of one state match.
       await page.addStyleTag({ content: '*,*::before,*::after{animation:none!important;transition:none!important;caret-color:transparent!important}' });
-      await page.screenshot({ path: `${OUT}/${file}`, fullPage: false });
+      await page.screenshot({ path: `${OUT}/${file}`, fullPage: false, type: 'jpeg', quality: 62 });
       row.shots[side] = { file, status, title: await page.title() };
     } catch (err) {
       row.shots[side] = { file: null, status: 0, error: String(err).split('\n')[0] };

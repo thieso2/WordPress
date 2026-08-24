@@ -22,7 +22,7 @@ RSpec.describe "console.term", type: :request do
     expect(response).to have_http_status(:ok)
     expect(doc.at_css("h1").text).to eq("Edit Category")
     expect(body_text).to include("Name").and include("Slug").and include("Parent Category").and include("Description")
-    expect(doc.at_css("button[type=submit]").text.strip).to eq("Update")
+    expect(doc.at_css(".console-main button[type=submit]").text.strip).to eq("Update")
     expect(doc.at_css("#name")["value"]).to eq("Jazz")
   end
 

@@ -18,6 +18,7 @@ module Console
     # (BR-CAP-07): Access::UserPolicy(:edit) returns an empty set that ALLOWS, so the
     # single auth gate (a live session) is the whole of it.
     def show
+      @screen = "console.profile" # profile.php's screen id; the menu opens Users on it
       @page_title = "Profile" # profile.php:40 (LITERAL)
       @form_errors = []
       render :show

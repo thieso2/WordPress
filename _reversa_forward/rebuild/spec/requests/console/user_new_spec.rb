@@ -13,7 +13,7 @@ RSpec.describe "console.user-new", type: :request do
     expect(response).to have_http_status(:ok)
     expect(doc.at_css("h1").text).to eq("Add User")
     expect(body_text).to include("Username").and include("Email").and include("Password").and include("Role")
-    expect(doc.at_css("button[type=submit]").text.strip).to eq("Add User")
+    expect(doc.at_css(".console-main button[type=submit]").text.strip).to eq("Add User")
   end
 
   # user-new.php:537 + :633 — the "Send User Notification" checkbox defaults to CHECKED.
