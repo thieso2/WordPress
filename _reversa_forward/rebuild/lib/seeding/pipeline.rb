@@ -815,9 +815,17 @@ module Seeding
     # are counter caches here, not read-time joins.
     def recompute_counter_caches
       Classification::Term.find_each { |t| t.recompute_count! }
+      # ⚠️ APPROVED ONLY. wp_update_comment_count_now(), wp-includes/comment.php:2606:
+      #   SELECT COUNT(*) FROM $wpdb->comments WHERE comment_post_ID = %d
+      #     AND comment_approved = '1'
+      # — pending, spam and trashed comments are NOT in the cache, because the cache is
+      # what get_comments_number() prints to a visitor. Counting every row inflated the
+      # corpus post's public comment count from 7 to 10 (it carries one pending, one spam
+      # and one trashed comment), which the embed template prints verbatim. Found by the
+      # corpus-widening pass.
       Publishing::Post.find_each do |p|
         Publishing::Post.where(id: p.id).update_all(
-          comment_count: Discussion::Comment.where(post_id: p.id).count
+          comment_count: Discussion::Comment.where(post_id: p.id, status: "approved").count
         )
       end
       @report.count!("recomputed.counter_caches", Classification::Term.count + Publishing::Post.count)

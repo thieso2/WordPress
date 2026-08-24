@@ -185,11 +185,23 @@ module Presentation
       Text.wpautop(Text.convert_chars(Text.wptexturize(excerpt_text)))
     end
 
+    # get_the_excerpt()'s protected-post sentence, the same literal
+    # Syndication::FeedText::PROTECTED_EXCERPT carries.
+    PROTECTED_EXCERPT = "There is no excerpt because this is a protected post."
+
     # `wp_trim_excerpt()`, wp-includes/formatting.php:4029 — the stored excerpt verbatim,
     # else the rendered content trimmed to 55 words. Same shape as
     # Composition::Renderers::PostBlocks::PostExcerpt#the_excerpt, with the embed's own
     # `excerpt_more`.
     def excerpt_text
+      # get_the_excerpt(), wp-includes/post-template.php:423 — the password gate runs
+      # BEFORE the stored excerpt is even read, and returns the literal sentence, which
+      # the `the_excerpt_embed` chain then wpautop()s. PostBlocks::PostExcerpt (:1671)
+      # and Syndication::FeedText (PROTECTED_EXCERPT) both had it; this renderer did not,
+      # so /…/password-protected/embed/ printed the protected post's real excerpt.
+      # Found by the corpus-widening pass — no golden covered a protected post's embed.
+      return PROTECTED_EXCERPT if post.password_digest.present?
+
       stored = post.excerpt.to_s
       return stored unless stored.strip.empty?
 
@@ -229,9 +241,14 @@ module Presentation
       return "" unless count.positive? || open
 
       label = count == 1 ? "Comment" : "Comments"
+      # get_comments_link(), comment-template.php:1073: `$hash = get_comments_number() ?
+      # '#comments' : '#respond'`. The fragment was hard-coded to `#comments` here, which
+      # is right for every post that HAS a comment and wrong for the open-but-empty case
+      # — the corpus's only embed golden was Hello World, which has one.
+      hash = count.positive? ? "#comments" : "#respond"
       <<~HTML
         \t<div class="wp-embed-comments">
-        \t\t<a href="#{permalink}#comments" target="_top">
+        \t\t<a href="#{permalink}#{hash}" target="_top">
         \t\t\t<span class="dashicons dashicons-admin-comments"></span>
         \t\t\t#{number_format_i18n(count)} <span class="screen-reader-text">#{label}</span>\t\t</a>
         \t</div>

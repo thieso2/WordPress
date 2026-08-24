@@ -54,6 +54,34 @@ module Classification
     # This method is therefore the RECONCILIATION command, not the maintenance path —
     # data_migration_plan.md § Quality validation asks for exactly this:
     # "terms.count ... equal the recomputed values — recompute-and-compare".
+    # ⚠️ `hide_empty` IS NOT `count > 0` HERE, and that is a consequence of a decision
+    # taken further up: `terms.count` in the target stores the PADDED count
+    # (BR-MIGRATE-062), which the legacy computes at READ time in _pad_term_counts() and
+    # never stores. The legacy's `wp_term_taxonomy.count` is the RAW, direct count —
+    # wp_update_term_count_now() counts term_relationships rows whose post is published
+    # and nothing else — and `get_terms( hide_empty => true )` filters on THAT column,
+    # without padding, unless the caller also asks for `pad_counts`.
+    #
+    # So an ancestor category with no posts of its own is EMPTY to get_terms() and
+    # non-empty to this model. The sitemap's taxonomy provider is the surface where the
+    # difference is observable: WP_Sitemaps_Taxonomies passes `hide_empty => true` and no
+    # `pad_counts`, so /wp-sitemap-taxonomies-category-1.xml lists `uncategorized` and
+    # `leaf-category` — not `top-category` and `middle-category`, which hold posts only
+    # through their descendants. Found by the corpus-widening pass.
+    #
+    # ⚠️ KNOWN GAP, recorded rather than papered over: one stored counter cannot answer
+    # both questions. Restoring the raw count as a second column is a schema change and
+    # a migration, which is out of scope for a corpus pass; this scope answers the raw
+    # question directly from the assignments instead, which is the same set the legacy's
+    # counter would hold.
+    scope :with_direct_published_posts, lambda {
+      where(id: Classification::Assignment
+                  .where(classifiable_type: "Publishing::Post")
+                  .joins("INNER JOIN posts ON posts.id = term_assignments.classifiable_id")
+                  .where(posts: { status: "published" })
+                  .select(:term_id))
+    }
+
     def recompute_count!
       ids = self_and_descendant_ids
       published = Classification::Assignment
@@ -70,17 +98,28 @@ module Classification
     # ancestors, because nothing prevents a corrupted parent chain. Here the guard is a
     # save-time validation plus a foreign key — the corrupted chain is unrepresentable.
     # The guard is kept anyway: it costs nothing and the legacy's data may still carry one.
+    #
+    # One recursive CTE rather than a breadth-first walk issuing a query per node. The
+    # walk was measured (bin/benchmark) at 9 invocations on a single category screen —
+    # the archive asks for the term's subtree once to count, once to paginate and once per
+    # rendered loop — each invocation costing a query per level of the hierarchy. The
+    # answer is a SET (both callers feed it straight into `where(term_id: ids)`), so
+    # descending in the database instead of in Ruby changes nothing observable.
+    #
+    # `UNION`, not `UNION ALL`: the deduplication is what terminates a corrupted parent
+    # chain, so the cycle guard described above survives the rewrite rather than being
+    # traded away for it.
     def self_and_descendant_ids
-      seen = Set.new
-      frontier = [id]
-      until frontier.empty?
-        current = frontier.shift
-        next if current.nil? || seen.include?(current)
-
-        seen << current
-        frontier.concat(self.class.where(parent_id: current).pluck(:id))
-      end
-      seen.to_a
+      sql = <<~SQL.squish
+        WITH RECURSIVE subtree(id) AS (
+          SELECT id FROM #{self.class.quoted_table_name} WHERE id = #{self.class.connection.quote(id)}
+          UNION
+          SELECT t.id FROM #{self.class.quoted_table_name} t
+            INNER JOIN subtree s ON t.parent_id = s.id
+        )
+        SELECT id FROM subtree
+      SQL
+      self.class.connection.select_values(sql).map(&:to_i)
     end
 
     def ancestors

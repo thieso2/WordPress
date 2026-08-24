@@ -249,6 +249,43 @@ module PublicApi
       apply_date!(post)
     end
 
+    # `categories` / `tags` — the Post sidebar's taxonomy boxes. wp_set_object_terms() is
+    # called once PER TAXONOMY and replaces only within it, which is why Assignment.set takes
+    # a `taxonomy:` scope: writing categories must not delete the record's tags.
+    #
+    # Applied AFTER the record is saved, because an unsaved post has no id to relate to. Term
+    # ids that do not exist in the named taxonomy are refused with WordPress's own error
+    # rather than silently dropped — the previous behaviour accepted the parameter and did
+    # nothing, so the editor's category box appeared to work and lost the assignment.
+    TAXONOMY_PARAMS = { categories: "category", tags: "post_tag" }.freeze
+
+    def apply_taxonomies!(post)
+      TAXONOMY_PARAMS.each do |param, taxonomy|
+        next unless params.key?(param)
+
+        # The JSON body may hand this over as an array, a single scalar, or (when Rails wraps
+        # it) a Parameters hash keyed by index — normalise all three before touching it.
+        raw = params[param]
+        raw = raw.respond_to?(:values) ? raw.values : raw
+        ids = Array(raw).flatten.map { |v| v.respond_to?(:to_i) ? v.to_i : 0 }.reject(&:zero?)
+        # `taxonomy` is an ASSOCIATION on Term (taxonomy_id -> Classification::Taxonomy),
+        # not a string column, so it is resolved by name first.
+        tax = Classification::Taxonomy.find_by(name: taxonomy)
+        known = tax ? Classification::Term.where(taxonomy_id: tax.id, id: ids).pluck(:id) : []
+        missing = ids - known
+        if missing.any?
+          raise PublicApi::RestError.new(
+            :rest_invalid_param,
+            "Invalid parameter(s): #{param}",
+            400,
+            { params: { param.to_s => "#{param}[0] is not a valid #{taxonomy} id." } }
+          )
+        end
+
+        Classification::Assignment.set(post, known, taxonomy: taxonomy)
+      end
+    end
+
     def apply_page_fields!(post)
       post.parent_id = params[:parent].presence if params.key?(:parent)
       post.menu_order = params[:menu_order].to_i if params.key?(:menu_order)
@@ -286,6 +323,7 @@ module PublicApi
       requested = params[:status].presence
       if requested.nil?
         post.save!
+        apply_taxonomies!(post)
         return
       end
 
@@ -300,6 +338,8 @@ module PublicApi
         post.status = internal
         post.save!
       end
+      # After the save: an unsaved record has no id for the join rows to point at.
+      apply_taxonomies!(post)
     end
 
     # :1573-1592, the two `rest_cannot_publish` arms. `private` and `publish`/`future`

@@ -94,6 +94,14 @@ RSpec.configure do |config|
   # To enable this behaviour uncomment the line below.
   # config.infer_spec_type_from_file_location!
 
+  # Configuration::Current memoizes setting reads for the lifetime of a request. Rails
+  # resets CurrentAttributes around a real request; an rspec example is not one, so a value
+  # read in one example could otherwise still be memoized in the next — and several specs
+  # write settings with `upsert_all` or raw SQL, which Setting's after_save invalidation
+  # cannot observe. Reset per example: the memo must never be the reason a spec passes or
+  # fails. See Configuration::Current.
+  config.before { Configuration::Current.reset }
+
   # Filter lines from Rails gems in backtraces.
   config.filter_rails_from_backtrace!
   # arbitrary gems may also be filtered via:

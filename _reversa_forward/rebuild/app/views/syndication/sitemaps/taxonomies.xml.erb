@@ -1,0 +1,5 @@
+<% links = Composition::Renderers::PostBlocks::Links -%>
+<% home = Composition::Renderers::PostBlocks::Site.home_url -%>
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="<%== home %>/wp-sitemap.xsl" ?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"><% @terms.each do |term| %><url><loc><%== links.term_link(term) %></loc></url><% end %></urlset>

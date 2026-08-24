@@ -1,0 +1,357 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+# bin/benchmark — the performance baseline harness.
+#
+# WHAT IT MEASURES, AND WHY
+# =========================
+# bin/parity answers "does the rebuild produce the same bytes?". It says nothing about
+# cost. This answers the other half: for the same 25-request corpus, what does each
+# system cost in wall-clock latency, and how many SQL queries does the rebuild issue to
+# get there?
+#
+# The corpus is the unit of measurement for the same reason it is the unit of the parity
+# claim (spec/parity/corpus/requests.yml): a screen that is not in the corpus is not
+# measured, and adding a screen to the rebuild without adding its request here makes the
+# report quieter rather than the system faster.
+#
+# ── FAIRNESS ─────────────────────────────────────────────────────────────────────────
+# A benchmark that flatters one side is worse than no benchmark, so:
+#
+#   * SAME MACHINE, SAME MOMENT. Oracle and rebuild are hit from this process, back to
+#     back, in the same loop.
+#   * INTERLEAVED, NOT BATCHED. Each iteration hits both systems before moving on, so a
+#     CPU-frequency change, a page-cache warm-up or another process waking up lands on
+#     both sides instead of on whichever one happened to run during it.
+#   * ORDER ALTERNATES. Within an iteration the two systems swap who goes first. Going
+#     first is not free (the second request can benefit from a warm OS page cache for
+#     shared files), so strict A-then-B for every iteration would hand a systematic
+#     advantage to B. Alternating cancels it.
+#   * WARM-UP DISCARDED. The first WARMUP iterations of every screen are thrown away.
+#     Rails lazy-loads in development and PHP has to compile on first touch; neither
+#     first request describes steady state.
+#   * p50 AND p95, NOT MEAN. One 2-second GC pause moves a mean and tells you nothing
+#     about the typical request. p50 is the typical request, p95 is the tail.
+#
+# ── CAVEATS, STATED RATHER THAN HIDDEN ───────────────────────────────────────────────
+#   1. PHP's built-in server (`php -S`) is SINGLE-THREADED: it serves one request at a
+#      time. Puma here runs 3 threads. This benchmark is SEQUENTIAL — one outstanding
+#      request at a time — so Puma's extra threads buy it nothing and the comparison is
+#      not unfair to PHP. What it does mean is that these numbers say NOTHING about
+#      throughput under concurrency, which is where the two would diverge most. Do not
+#      quote a ratio from here as a capacity claim.
+#   2. The rebuild is measured in RAILS_ENV=development, which is what serves the parity
+#      corpus on :3100. Development mode checks the filesystem for code changes on every
+#      request, does not eager-load, and annotates rendered views. That is overhead a
+#      production boot would not pay, so the rebuild's numbers here are a CEILING on its
+#      cost, not its best case. The oracle is likewise a development-grade server.
+#   3. Both systems are warm on the same corpus and the same data. Neither has an
+#      application cache doing the work for it (Rails' :memory_store is per-process and
+#      the templates are re-rendered per request), but neither has a cold OS page cache
+#      either.
+#   4. Localhost HTTP. No network, no TLS, no proxy. Real deployments add all three.
+#
+# ── SUBCOMMANDS ──────────────────────────────────────────────────────────────────────
+#   bin/benchmark [latency]   HTTP latency, both systems, per screen + summary
+#   bin/benchmark queries     in-process SQL profile of the REBUILD: queries per screen,
+#                             plus an N+1 detector (repeated query shapes). Boots the app
+#                             in-process and subscribes to "sql.active_record" — no new
+#                             gem, no change to the running server, read-only.
+#   bin/benchmark all         both, in that order
+#
+# Env: ORACLE_URL (default http://127.0.0.1:8099), REBUILD_URL (http://127.0.0.1:3100),
+#      BENCH_N (default 30), BENCH_WARMUP (default 3).
+
+require "net/http"
+require "uri"
+require "yaml"
+
+ROOT = File.expand_path("..", __dir__)
+CORPUS = File.join(ROOT, "spec/parity/corpus/requests.yml")
+
+ORACLE_URL  = ENV.fetch("ORACLE_URL", "http://127.0.0.1:8099")
+REBUILD_URL = ENV.fetch("REBUILD_URL", "http://127.0.0.1:3100")
+N       = Integer(ENV.fetch("BENCH_N", 30))
+WARMUP  = Integer(ENV.fetch("BENCH_WARMUP", 3))
+SLOW_RATIO = Float(ENV.fetch("BENCH_SLOW_RATIO", 1.5))
+
+def corpus
+  YAML.safe_load_file(CORPUS).fetch("requests")
+end
+
+# ── timing ───────────────────────────────────────────────────────────────────────────
+
+# One request, one fresh connection. Persistent connections would measure keep-alive
+# handling rather than the screen, and `php -S` and Puma treat it differently — a fresh
+# connection is the one thing both do identically.
+def time_get(base, path)
+  uri = URI.join(base, path)
+  t0 = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+  status = nil
+  bytes = 0
+  Net::HTTP.start(uri.host, uri.port, open_timeout: 5, read_timeout: 60) do |http|
+    res = http.get(uri.request_uri, "User-Agent" => "reversa-benchmark/1.0")
+    status = res.code.to_i
+    bytes = res.body.to_s.bytesize   # consume the body: an unread body is not a served request
+  end
+  t1 = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+  [(t1 - t0) * 1000.0, status, bytes]
+rescue StandardError => e
+  [Float::NAN, "ERR:#{e.class}", 0]
+end
+
+# Nearest-rank percentile. No interpolation: with 27 samples an interpolated p95 invents
+# a value between two observations that were never measured.
+def pct(sorted, p)
+  return Float::NAN if sorted.empty?
+  sorted[[(p / 100.0 * sorted.length).ceil - 1, 0].max]
+end
+
+def fmt(ms)
+  ms.nil? || (ms.respond_to?(:nan?) && ms.nan?) ? "  n/a" : format("%.1f", ms)
+end
+
+def latency
+  entries = corpus
+  puts
+  puts "══ LATENCY BASELINE ═══════════════════════════════════════════════════════════════"
+  puts "  oracle  #{ORACLE_URL}   (WordPress 7.2-alpha, php -S, single-threaded)"
+  puts "  rebuild #{REBUILD_URL}   (Rails 8.1, Puma 3 threads, RAILS_ENV=development)"
+  puts "  #{N} iterations per screen, first #{WARMUP} discarded as warm-up (#{N - WARMUP} kept),"
+  puts "  interleaved with alternating order. Sequential — one request outstanding at a time."
+  puts
+
+  rows = entries.map do |entry|
+    path = entry["path"]
+    o = []
+    r = []
+    statuses = { oracle: nil, rebuild: nil }
+    N.times do |i|
+      # alternate who goes first so "going second" is not a permanent advantage
+      if i.even?
+        ot, os, ob = time_get(ORACLE_URL, path)
+        rt, rs, rb = time_get(REBUILD_URL, path)
+      else
+        rt, rs, rb = time_get(REBUILD_URL, path)
+        ot, os, ob = time_get(ORACLE_URL, path)
+      end
+      next if i < WARMUP
+      o << ot unless ot.nan?
+      r << rt unless rt.nan?
+      statuses[:oracle] = os
+      statuses[:rebuild] = rs
+      @bytes ||= {}
+      @bytes[entry["screen"]] = [ob, rb]
+    end
+    os_ = o.sort
+    rs_ = r.sort
+    o50 = pct(os_, 50)
+    o95 = pct(os_, 95)
+    r50 = pct(rs_, 50)
+    r95 = pct(rs_, 95)
+    ratio = (o50.to_f.positive? && !r50.to_f.nan?) ? r50 / o50 : Float::NAN
+    { screen: entry["screen"], path: path, o50: o50, o95: o95, r50: r50, r95: r95,
+      ratio: ratio, ostatus: statuses[:oracle], rstatus: statuses[:rebuild],
+      samples: [os_.length, rs_.length] }
+  end
+
+  hdr = format("  %-26s %9s %9s   %9s %9s   %7s  %s", "screen", "orc p50", "orc p95",
+               "reb p50", "reb p95", "ratio", "")
+  puts hdr
+  puts "  " + "─" * (hdr.length - 2)
+  rows.each do |row|
+    flag = if row[:ratio].to_f.nan? then "?"
+           elsif row[:ratio] > SLOW_RATIO then "SLOW"
+           elsif row[:ratio] < 1.0 then "faster"
+           else ""
+           end
+    warn_status = (row[:ostatus] != row[:rstatus]) ? " [status #{row[:ostatus]}/#{row[:rstatus]}]" : ""
+    puts format("  %-26s %8sms %8sms   %8sms %8sms   %6.2fx  %s%s",
+                row[:screen], fmt(row[:o50]), fmt(row[:o95]), fmt(row[:r50]), fmt(row[:r95]),
+                row[:ratio], flag, warn_status)
+  end
+
+  # A screen only counts toward the summary if BOTH systems answered it. A refused
+  # connection is a hole in the measurement, not a zero — averaging over it would quietly
+  # flatter whichever side stayed up.
+  ok = rows.reject { |x| x[:ratio].to_f.nan? || x[:o50].to_f.nan? || x[:r50].to_f.nan? }
+  dropped = rows.length - ok.length
+  puts "  " + "─" * (hdr.length - 2)
+
+  # Summed over the corpus rather than averaged: the sum is "what one walk of every screen
+  # costs", which is a real quantity, where a mean of per-screen p50s weights a 500-byte
+  # robots.txt the same as a 90KB archive page.
+  total_o = ok.sum { |x| x[:o50] }
+  total_r = ok.sum { |x| x[:r50] }
+  ratios = ok.map { |x| x[:ratio] }.sort
+
+  puts
+  puts "══ SUMMARY ════════════════════════════════════════════════════════════════════════"
+  puts format("  screens measured           %d%s", ok.length,
+              dropped.positive? ? "  (#{dropped} DROPPED — a system refused or errored; see the table)" : "")
+  puts format("  corpus walk, oracle p50    %.0f ms  (sum of per-screen p50)", total_o)
+  puts format("  corpus walk, rebuild p50   %.0f ms", total_r)
+  puts format("  aggregate ratio            %.2fx  (rebuild / oracle over the whole corpus)",
+              total_o.positive? ? total_r / total_o : Float::NAN)
+  puts format("  per-screen ratio  median   %.2fx", pct(ratios, 50))
+  puts format("  per-screen ratio  best     %.2fx  (%s)", ratios.first, ok.min_by { |x| x[:ratio] }[:screen])
+  puts format("  per-screen ratio  worst    %.2fx  (%s)", ratios.last, ok.max_by { |x| x[:ratio] }[:screen])
+
+  slow = ok.select { |x| x[:ratio] > SLOW_RATIO }.sort_by { |x| -x[:ratio] }
+  puts
+  if slow.empty?
+    puts "  ✅ No screen is more than #{SLOW_RATIO}x the oracle's p50."
+  else
+    puts "  ⚠️  FINDING — #{slow.length} screen(s) materially slower than the oracle (> #{SLOW_RATIO}x p50):"
+    slow.each do |x|
+      puts format("       %-26s %.2fx   %sms vs %sms   %s",
+                  x[:screen], x[:ratio], fmt(x[:r50]), fmt(x[:o50]), x[:path].to_s.slice(0, 40))
+    end
+  end
+
+  # The corpus contains three entries for "/" (web.index, web.front_page, web.home) and two
+  # for the hello-world permalink. They are the same request measured independently, so the
+  # spread between them is this harness's own noise floor — quote no difference smaller.
+  dupes = rows.group_by { |x| x[:path] }.select { |_, v| v.length > 1 }
+  unless dupes.empty?
+    puts
+    puts "  Noise floor (corpus entries sharing a path — same request, independent measurements):"
+    dupes.each do |path, group|
+      r50s = group.map { |x| x[:r50] }.reject { |v| v.to_f.nan? }
+      next if r50s.length < 2
+
+      spread = (r50s.max - r50s.min) / r50s.min * 100.0
+      puts format("       %-42s rebuild p50 %s  → %.1f%% spread",
+                  path.to_s.slice(0, 42), r50s.map { |v| fmt(v) }.join(" / "), spread)
+    end
+  end
+
+  puts
+  puts "  CAVEATS: php -S is single-threaded, Puma runs 3 threads — but this benchmark is"
+  puts "  sequential, so no concurrency advantage is exercised and none is measured. These"
+  puts "  numbers are latency, NOT throughput. The rebuild is in development mode (reload"
+  puts "  checks, no eager load, view annotation), so its figures are a ceiling on its cost."
+  puts
+
+  slow
+end
+
+# ── query profile ────────────────────────────────────────────────────────────────────
+
+def queries
+  puts
+  puts "══ SQL PROFILE (rebuild, in-process) ══════════════════════════════════════════════"
+  puts "  Boots the app in-process and replays the corpus through ActionDispatch, counting"
+  puts "  \"sql.active_record\" events. Read-only: GETs only, no writes, the running server on"
+  puts "  :3100 is untouched. A screen issuing hundreds of queries is a finding whether or"
+  puts "  not it is slow today."
+  puts
+
+  ENV["RAILS_ENV"] ||= "development"
+  require File.join(ROOT, "config/environment")
+  require "rack/test"
+
+  session = ActionDispatch::Integration::Session.new(Rails.application)
+  session.host = "127.0.0.1"
+
+  results = corpus.map do |entry|
+    events = []
+    sub = ActiveSupport::Notifications.subscribe("sql.active_record") do |*args|
+      ev = ActiveSupport::Notifications::Event.new(*args)
+      next if ev.payload[:name].to_s =~ /SCHEMA|TRANSACTION/
+      events << { sql: ev.payload[:sql].to_s, name: ev.payload[:name].to_s,
+                  cached: !!ev.payload[:cached], duration: ev.duration }
+    end
+    begin
+      session.get(entry["path"])
+    rescue StandardError => e
+      ActiveSupport::Notifications.unsubscribe(sub)
+      next { screen: entry["screen"], error: "#{e.class}: #{e.message.slice(0, 80)}" }
+    end
+    ActiveSupport::Notifications.unsubscribe(sub)
+
+    real = events.reject { |e| e[:cached] }
+    cached = events.count { |e| e[:cached] }
+
+    # Fingerprint: strip literals so `WHERE id = 1` and `WHERE id = 2` collapse to one
+    # shape. That is the N+1 signature — the same shape, over and over, one row at a time.
+    shapes = real.group_by do |e|
+      e[:sql].gsub(/\b\d+\b/, "?").gsub(/'[^']*'/, "?").gsub(/\s+/, " ")
+             .gsub(/IN \((\?, )*\?\)/, "IN (?)").strip
+    end
+
+    # ⚠️ A repeated SHAPE is two different findings wearing one costume, and calling both
+    # "N+1" is how a profiler cries wolf. Split them by whether the LITERALS repeat too:
+    #
+    #   DUPLICATE — same shape, same literals. The identical question asked twice. Pure
+    #               waste; the fix is to ask once and keep the answer.
+    #   BATCHABLE — same shape, N distinct literals. N genuinely different rows fetched one
+    #               at a time. Nothing is wasted, but one `WHERE ... IN (...)` would do the
+    #               work of N round trips. This is the classic N+1.
+    #
+    # The first version of this harness reported 20 settings lookups on a post screen as an
+    # N+1. They were 20 DIFFERENT settings, each read exactly once — already optimal per
+    # row, batchable in principle, and not waste at all.
+    repeated = shapes.select { |_, v| v.length >= 5 }.sort_by { |_, v| -v.length }
+                     .map do |shape, occurrences|
+      distinct = occurrences.map { |e| e[:sql] }.uniq.length
+      kind = distinct < occurrences.length ? "DUPLICATE" : "BATCHABLE"
+      [shape, occurrences, kind, distinct]
+    end
+
+    { screen: entry["screen"], path: entry["path"], total: real.length, cached: cached,
+      ms: real.sum { |e| e[:duration] }, repeated: repeated }
+  end
+
+  hdr = format("  %-26s %8s %8s %9s   %s", "screen", "queries", "cached", "sql ms", "worst repeated shape")
+  puts hdr
+  puts "  " + "─" * (hdr.length - 2)
+  results.sort_by { |r| -(r[:total] || 0) }.each do |r|
+    if r[:error]
+      puts format("  %-26s %8s   %s", r[:screen], "ERR", r[:error])
+      next
+    end
+    top = r[:repeated].first
+    note = top ? format("%dx %-9s %s", top[1].length, top[2], top[0].slice(0, 50)) : ""
+    puts format("  %-26s %8d %8d %8.1fms   %s", r[:screen], r[:total], r[:cached], r[:ms], note)
+  end
+
+  puts
+  puts "══ N+1 CANDIDATES ═════════════════════════════════════════════════════════════════"
+  puts "  DUPLICATE = same shape AND same literals: the identical question asked twice, pure"
+  puts "  waste. BATCHABLE = same shape, N distinct literals: N real rows fetched one at a"
+  puts "  time, which one IN (...) would collapse. Only DUPLICATE is redundant work; only"
+  puts "  BATCHABLE is a classic N+1. Cached repeats are excluded — ActiveRecord already"
+  puts "  collapsed those and they never reach the wire."
+  puts
+  any = false
+  # `repeated` entries are [shape, occurrences, kind, distinct] — rank by how many times
+  # the worst shape fired, i.e. element 1's length.
+  results.reject { |r| r[:error] }.sort_by { |r| -(r[:repeated].first&.at(1)&.length || 0) }.each do |r|
+    next if r[:repeated].empty?
+    any = true
+    puts "  #{r[:screen]}  (#{r[:total]} queries)"
+    r[:repeated].first(4).each do |shape, occurrences, kind, distinct|
+      puts format("      %4dx  %-9s %2d distinct  %.1fms total  %s", occurrences.length, kind,
+                  distinct, occurrences.sum { |e| e[:duration] }, shape.slice(0, 88))
+    end
+    puts
+  end
+  puts "  ✅ No query shape repeats 5+ times uncached on any screen." unless any
+
+  totals = results.reject { |r| r[:error] }
+  puts
+  puts format("  corpus total: %d uncached queries across %d screens (%.0f ms of SQL)",
+              totals.sum { |r| r[:total] }, totals.length, totals.sum { |r| r[:ms] })
+  worst = totals.max_by { |r| r[:total] }
+  puts format("  heaviest screen: %s at %d queries", worst[:screen], worst[:total]) if worst
+  puts
+  results
+end
+
+case (ARGV.shift || "latency")
+when "latency" then latency
+when "queries" then queries
+when "all"     then latency; queries
+else abort "usage: bin/benchmark [latency|queries|all]"
+end

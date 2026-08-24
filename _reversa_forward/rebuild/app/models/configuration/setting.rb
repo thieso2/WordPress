@@ -32,6 +32,14 @@ module Configuration
     validate :name_is_writable
     validate :not_a_transient
 
+    # The invalidation half of the Configuration::Current read memo. `after_save` and
+    # `after_destroy`, NOT `after_commit`: under transactional tests after_commit never
+    # runs, and a stale read is a wrong answer while an over-eager flush is one query.
+    # A whole-memo flush rather than a per-name delete — a write is rare, a read is not,
+    # and "flush everything" has no ordering subtleties to get wrong.
+    after_save    { Current.flush_settings }
+    after_destroy { Current.flush_settings }
+
     scope :autoloaded, -> { where(autoload: true) }
 
     class ProtectedName < StandardError; end
@@ -78,10 +86,28 @@ module Configuration
       ALIASES.fetch(n, n)
     end
 
+    # Reads go through a per-request memo (Configuration::Current). The behaviour of this
+    # method is unchanged — same value, same `false` for absent, same BR-OPT-12 fallback;
+    # only the number of times it asks Active Record differs. See Configuration::Current
+    # for why, and for the invalidation contract the callbacks below uphold.
     def self.[](name)
       n = resolve_name(name)
       return false if n.empty?
 
+      # ⚠️ The memo is keyed by NAME ONLY, which is correct only because whoever changes
+      # WHICH `settings` table a name resolves to invalidates it. Under multisite that is
+      # the tenant schema on the connection's search_path, and Tenancy.apply_search_path!
+      # calls Configuration::Current.flush_settings for exactly this reason. Configuration
+      # deliberately does NOT reach for Tenancy::Current to key on: that edge closes the
+      # Configuration -> Tenancy -> Identity -> Configuration cycle, which bin/check_cycles
+      # rejects and topology_decision.md names as the primary risk re-forming.
+      memo = (Current.settings ||= {})
+      return memo[n] if memo.key?(n)
+
+      memo[n] = uncached_read(n)
+    end
+
+    def self.uncached_read(n)
       row = find_by(name: n)
       value = row&.value
       # BR-MIGRATE-012 (BR-OPT-12): get_option('home') returning an empty string falls
@@ -90,6 +116,7 @@ module Configuration
 
       value.nil? ? false : value
     end
+    private_class_method :uncached_read
 
     # BR-MIGRATE-011 (BR-OPT-05): updating an option that does not exist delegates to
     # add_option(). Active Record expresses that as an upsert.

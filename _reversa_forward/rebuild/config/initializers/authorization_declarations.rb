@@ -15,10 +15,11 @@ Rails.application.config.to_prepare do
 
   %w[
     web/archives#index web/archives#year web/archives#month web/archives#category
-    web/archives#tag web/archives#author
+    web/archives#tag web/archives#author web/archives#day
     web/singular#show web/pages#show web/embeds#show web/embeds#page web/attachments#show
     syndication/feeds#show syndication/feeds#comments
     syndication/sitemaps#index syndication/sitemaps#posts syndication/sitemaps#users
+    syndication/sitemaps#taxonomies
     syndication/robots#show
   ].each { |action| Access::Declarations.declare("GET #{action}", mode: :public, source: __FILE__) }
 
@@ -413,6 +414,13 @@ Rails.application.config.after_initialize do
   # OPTIONS is a description of the surface, not access to a record: the oracle answers it
   # for anonymous callers and narrows only the `Allow` header by capability.
   Access::Declarations.declare("OPTIONS public_api/options#show", mode: :public, source: __FILE__)
+  # Revisions (WP_REST_Revisions_Controller). `:authenticated`, then the parent's edit_post
+  # is enforced inside the controller where the verbatim wp_die string lives.
+  %w[GET\ public_api/revisions#index GET\ public_api/revisions#show
+     DELETE\ public_api/revisions#destroy].each do |identifier|
+    Access::Declarations.declare(identifier, mode: :authenticated, source: __FILE__)
+  end
+
 
 
 

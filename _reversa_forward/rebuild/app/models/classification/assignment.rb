@@ -15,9 +15,17 @@ module Classification
 
     # BR-MIGRATE-058 (BR-TAX-08): with append = false, terms present before but absent
     # from the new list are removed.
-    def self.set(classifiable, term_ids, append: false)
+    # `taxonomy:` scopes the REPLACE half. wp_set_object_terms() replaces within ONE taxonomy
+    # (it is called per taxonomy), so writing a post's categories must not disturb its tags.
+    # Without the scope the REST `categories` parameter would silently delete every tag on the
+    # record — which is why the editor's category box was left inert until now.
+    def self.set(classifiable, term_ids, append: false, taxonomy: nil)
       transaction do
         existing = where(classifiable: classifiable)
+        if taxonomy
+          tax_id = taxonomy.is_a?(Taxonomy) ? taxonomy.id : Taxonomy.find_by(name: taxonomy)&.id
+          existing = existing.where(term_id: Term.where(taxonomy_id: tax_id).select(:id))
+        end
         unless append
           existing.where.not(term_id: term_ids).destroy_all
         end

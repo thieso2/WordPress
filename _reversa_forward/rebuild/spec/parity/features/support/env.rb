@@ -45,6 +45,11 @@ Before do
     "term_assignments, post_status_transitions, post_attributes, revisions, " \
     "redirects, menus, menu_items RESTART IDENTITY CASCADE"
   )
+  # TRUNCATE bypasses Active Record, so Setting's after_save/after_destroy invalidation
+  # cannot see it. Reset the per-request setting memo explicitly or the first scenario to
+  # read a setting after a truncation gets the PREVIOUS scenario's value — a divergence the
+  # harness would have manufactured itself. See Configuration::Current.
+  Configuration::Current.reset
 end
 
 # The 60-second publication threshold (BR-MIGRATE-029/030) is an EXACT boundary, and the

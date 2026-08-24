@@ -12,8 +12,17 @@ module Web
   # Web::SingularController's block-theme path.
   class EmbedsController < ApplicationController
     def show
-      post = Publishing::Article.where(status: %w[published private])
-                                .find_by(slug: params[:slug])
+      # ⚠️ `private` is NOT publicly readable. WP gates it on the `read_private_posts`
+      # capability (map_meta_cap() -> 'read_post', wp-includes/class-wp-query.php's
+      # `get_posts()` only widens the status set for a user who has it); an anonymous
+      # visitor gets the 404 template. The front end has no actor at all
+      # (ApplicationController#current_actor is nil on every Web:: surface), so the
+      # visible set here is `published` and nothing else.
+      # ⚠️ Before this, /2026/03/private-article/ rendered the private article's full
+      # title and body to anonymous visitors while the oracle answered 404. Found by the
+      # corpus-widening pass; the 25-request corpus contained no private URL.
+      post = Publishing::Article.where(status: %w[published])
+                                .find_by(slug: encoded_slug)
       return not_found if post.nil?
 
       render_embed(post)
@@ -36,6 +45,20 @@ module Web
 
     private
 
+    # ⚠️ The same re-encoding Web::SingularController#encoded_slug does, and for the same
+    # reason: `post_name` is stored the way sanitize_title_with_dashes() wrote it, with
+    # every non-ASCII byte percent-encoded in LOWERCASE hex, while Rails hands the route
+    # segment over DECODED. Without it `/2026/03/…%e3%80%8c…-curly/embed/` 404s on the
+    # rebuild while the oracle renders it — i.e. EVERY post with a non-ASCII title had a
+    # dead oEmbed endpoint, which is exactly the URL the `<link rel="alternate">` in that
+    # post's own `<head>` advertises. Found by the corpus-widening pass; the corpus's only
+    # embed was Hello World's, whose slug is ASCII.
+    def encoded_slug
+      params[:slug].to_s.gsub(/[^\x00-\x7F]/) do |char|
+        char.bytes.map { |byte| format("%%%02x", byte) }.join
+      end
+    end
+
     def render_embed(post)
       # header-embed.php:14 — the one header the embed template sets.
       response.set_header("X-WP-embed", "true")
@@ -49,7 +72,7 @@ module Web
       parent_id = nil
       node = nil
       segments.each do |segment|
-        node = Publishing::Page.where(status: %w[published private], parent_id: parent_id)
+        node = Publishing::Page.where(status: %w[published], parent_id: parent_id)
                                .find_by(slug: segment)
         return nil if node.nil?
 

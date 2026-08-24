@@ -96,6 +96,7 @@ module Tenancy
     return unless enabled?
 
     connection.execute("SET search_path TO #{search_path_for(current_site)}")
+    invalidate_schema_scoped_caches!
     nil
   end
 
@@ -108,10 +109,31 @@ module Tenancy
     return unless enabled?
 
     connection.execute("SET search_path TO #{search_path_for(current_site)}")
+    invalidate_schema_scoped_caches!
   rescue StandardError
     # A connection that cannot accept the SET (mid-teardown, dead socket) is discarded by
     # the pool anyway; never raise out of a checkout callback.
     nil
+  end
+
+  # Anything memoized per request from a SCHEMA-SCOPED table is wrong the moment the
+  # search_path moves, so the switch invalidates it. Today that is exactly one thing:
+  # Configuration::Current, which memoizes `Setting.[]` for the life of a request
+  # (see bin/benchmark — settings are read 180+ times per screen).
+  #
+  # ⚠️ The dependency points THIS WAY on purpose. Keying the memo by Tenancy::Current
+  # inside Configuration would be the obvious fix and is the wrong one: it closes
+  # Configuration -> Tenancy -> Identity -> Configuration, the cycle bin/check_cycles
+  # exists to catch and the one migration_brief.md calls the primary risk. Tenancy already
+  # depends on the content core; Configuration is a leaf and stays one. The knowledge
+  # "a schema switch invalidates schema-scoped caches" belongs to whoever performs the
+  # switch, which is here.
+  #
+  # Found by the performance baseline: the first version of the memo was name-keyed with
+  # no invalidation here, and the network-admin spec caught one tenant's `blogname`
+  # surviving the switch back out.
+  def invalidate_schema_scoped_caches!
+    Configuration::Current.flush_settings
   end
 
   # BR-MS-05 (BR-MIGRATE-360): super admins sit ABOVE the role system and bypass every

@@ -54,12 +54,29 @@ module Parity
       # id is `'pwbox-' . $post->ID` — the same autoincrement post id `post-<n>` carries.
       /\b(pwbox-)\d+\b/,
       /\b(page-id-)\d+\b/,
+      # get_body_class(), wp-includes/post-template.php:728: `'parent-pageid-' . $parent_id`
+      # for a child page. Exactly the same autoincrement post id `page-id-` already
+      # carries on the line above, named after the PARENT instead of the page — the
+      # declared `stripAutoincrementIds` rule, not a new normalization. Added when the
+      # corpus grew a 4-level page path (/parent-page/child-page/grandchild-page/child-page/);
+      # the previous corpus's only child page happened to sit on a matching id.
+      /\b(parent-pageid-)\d+\b/,
       /\b(postid-)\d+\b/,
       /\b(cat-item-)\d+\b/,
       /\b(menu-item-)\d+\b/,
       /(\?p=)\d+/,
       /(\?page_id=)\d+/,
       /(\bid="comment-)\d+/,
+      # The same comment id again, in the three places get_comment_reply_link()
+      # (comment-template.php:1521) prints it: the `replytocom` query arg and the
+      # `data-commentid` / `data-postid` attributes it hands to comment-reply.js. Both
+      # sequences restart in the target — and the seeding pipeline inserts comment ROOTS
+      # before their replies to satisfy the parent foreign key, so even the ORDER of the
+      # ids differs while the thread structure (asserted by `depth-N`, `thread-even` and
+      # the nesting itself) is identical. Declared `stripAutoincrementIds`, not a new rule.
+      /(\?replytocom=)\d+/,
+      /(\bdata-commentid=")\d+/,
+      /(\bdata-postid=")\d+/,
       # The REST discovery links embed the record's id in the path. Same declared rule
       # (`stripAutoincrementIds`): the rebuild's sequences start from 1 while the oracle's
       # have counted every revision and machinery row the corpus ever created, so ids

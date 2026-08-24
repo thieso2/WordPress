@@ -108,3 +108,237 @@ requests:
   - screen: syndication.robots
     path: /robots.txt
     content_type: text
+
+  # ══════════════════════════════════════════════════════════════════════════════════
+  # CORPUS WIDENING — 2026-08-24.
+  #
+  # ⚠️ These are NOT manifest screens. golden/manifest.yaml names 18 LITERAL screens and
+  # that list is closed; the requests below are ADDITIONAL requests against the same web
+  # surface, chosen because each one reaches a code path the 25-request corpus never
+  # touched. The `web.` prefix is the surface, not a manifest key — nothing here should
+  # be looked up in golden/manifest.yaml.
+  #
+  # Every one of them was RUN against the oracle first (bin/parity capture is the record)
+  # and its expect_status taken from the oracle's answer, never assumed. Eight of them
+  # diverged on the first comparison; the fixes are cited at the divergence, in the code.
+  # Screens that could not be made to match honestly were LEFT OUT and are recorded in
+  # the "known gaps" block at the end of this file — a screen removed from the corpus to
+  # make the run green would be the one thing this harness must never do.
+  #
+  # The paths are resolved by tools/corpus_urls.php alongside the original 18.
+
+  # ── Pagination. `$wp_rewrite->pagination_base` — every archive rule gets a /page/N/
+  #    form, and core/query-pagination PRINTS those URLs on screens already in the
+  #    corpus. The rebuild had no routes for them and answered its own links with a 404.
+  - screen: web.home_paged
+    path: /page/2/
+    golden: golden-web-home-paged.html
+  - screen: web.home_paged_beyond_last
+    # BR-MIGRATE-045's second arm: an empty PAGED archive always 404s, unlike an empty
+    # unpaged one. 11 published posts, posts_per_page 10 — page 3 never had content.
+    path: /page/3/
+    expect_status: 404
+    golden: golden-web-home-paged-beyond-last.html
+  - screen: web.archive_year_paged
+    path: /2026/page/2/
+    golden: golden-web-archive-year-paged.html
+  - screen: web.date_month_paged
+    path: /2026/03/page/2/
+    golden: golden-web-date-month-paged.html
+  - screen: web.category_paged_empty
+    # The paged form of a TERM archive: BR-MIGRATE-045 404s it even though the term exists.
+    path: /category/top-category/page/2/
+    expect_status: 404
+    golden: golden-web-category-paged-empty.html
+
+  # ── The DAY arm of the date permastruct — a whole rewrite rule the corpus never used.
+  - screen: web.date_day
+    path: /2026/03/15/
+    golden: golden-web-date-day.html
+  - screen: web.date_day_paged
+    path: /2026/03/15/page/2/
+    golden: golden-web-date-day-paged.html
+  - screen: web.date_empty
+    # ⚠️ The OTHER half of BR-MIGRATE-045, and the half that is easy to get backwards:
+    # WP::handle_404() lets an empty tag/category/author/post-type archive stay 200
+    # because it has a queried OBJECT, and a date archive has none — so an empty month
+    # is a 404 while `web.author_no_posts` below is a 200. Asked of the oracle, not
+    # inferred.
+    path: /2026/08/
+    expect_status: 404
+    golden: golden-web-date-empty.html
+
+  # ── Taxonomy and author archives the corpus under-covered ──────────────────────────
+  - screen: web.category_deep
+    # Three levels deep. web.taxonomy stops at two, and the third level is where
+    # get_term_link()'s ancestor walk and the subtree post query actually differ.
+    path: /category/top-category/middle-category/leaf-category/
+    golden: golden-web-category-deep.html
+  - screen: web.category_default
+    # `uncategorized`: term_id 1, one post, the only term the installer creates.
+    path: /category/uncategorized/
+    golden: golden-web-category-default.html
+  - screen: web.tag_percent_encoded
+    # sanitize_title() percent-encodes non-ASCII in LOWERCASE hex and class-wp.php matches
+    # the RAW segment; Rails hands it over DECODED. This URL 404'd on the rebuild.
+    path: /tag/tag-with-%f0%9f%98%80-emoji/
+    golden: golden-web-tag-percent-encoded.html
+  - screen: web.author_no_posts
+    # An author archive with an empty loop and a queried object — 200, see web.date_empty.
+    path: /author/oracle_editor/
+    golden: golden-web-author-no-posts.html
+
+  # ── Search with an empty result set: the `search-no-results` body class arm ─────────
+  - screen: web.search_no_results
+    path: /?s=zzzznotfoundzzzz
+    golden: golden-web-search-no-results.html
+
+  # ── Hierarchical pages. web.page only ever asked for the ROOT of the tree. ──────────
+  - screen: web.page_child
+    path: /parent-page/child-page/
+    golden: golden-web-page-child.html
+  - screen: web.page_deep_duplicate_slug
+    # BR-MIGRATE-033 made concrete: `child-page` appears TWICE in this tree under
+    # different parents, and only the full path disambiguates. Four levels.
+    path: /parent-page/child-page/grandchild-page/child-page/
+    golden: golden-web-page-deep-duplicate-slug.html
+
+  # ── Singular posts whose CONTENT or STATUS takes a different path ──────────────────
+  - screen: web.single_password_protected
+    # get_the_password_form() instead of the content, `post-password-required` body class.
+    path: /2026/03/password-protected/
+    golden: golden-web-single-password-protected.html
+  - screen: web.single_private_anonymous
+    # ⚠️ SECURITY. An anonymous visitor must get the 404 template, not the article. The
+    # rebuild served the private article's full title and body here.
+    path: /2026/03/private-article/
+    expect_status: 404
+    golden: golden-web-single-private-anonymous.html
+  - screen: web.single_scheduled_anonymous
+    # `future` — the other unpublished status reachable by permalink.
+    path: /2026/03/scheduled-for-the-future/
+    expect_status: 404
+    golden: golden-web-single-scheduled-anonymous.html
+  - screen: web.single_kses
+    # The KSES payload carrier: every BR-KSES-04/05/06/07 colon form in one post body.
+    path: /2026/03/kses-payload-carrier/
+    golden: golden-web-single-kses.html
+  - screen: web.single_sticky
+    path: /2026/03/sticky-front-page-article/
+    golden: golden-web-single-sticky.html
+  - screen: web.single_astral_slug
+    # 4-byte UTF-8 in the title AND in the percent-encoded slug.
+    path: /2026/03/emoji-%f0%9f%98%80%f0%9f%a7%ac%f0%9f%9a%80-%c2%b7-math-%f0%9d%94%98%f0%9d%94%ab%f0%9d%94%a6%f0%9d%94%a0%f0%9d%94%ac%f0%9d%94%a1%f0%9d%94%a2-%f0%9d%95%ac%f0%9d%96%91%f0%9d%96%8c%f0%9d%96%8a%f0%9d%96%87/
+    golden: golden-web-single-astral-slug.html
+  - screen: web.single_backslash_title
+    # T-08's post. Its NEIGHBOURS are where the `%title` substitution bug showed up, so
+    # web.single_kses and web.single_sticky (its adjacent posts) carry that assertion too.
+    path: /2026/03/backslash-title-windows-path-cusersthiesfile-txt-regex-ds-literal-n-not-a-newline-latex-frac12-escaped-quote-and/
+    golden: golden-web-single-backslash-title.html
+  - screen: web.single_long_slug
+    # BR-MIGRATE-035: 200 bytes INCLUDING the numeric suffix.
+    path: /2026/03/long-slug-segment-long-slug-segment-long-slug-segment-long-slug-segment-long-slug-segment-long-slug-segment-long-slug-segment-long-slug-segment-long-slug-segment-long-slug-segment-long-slug-segment-lo/
+    golden: golden-web-single-long-slug.html
+  # ⚠️ NOT ADDED: /2026/03/published-article-…-curly/ — the richest single in the corpus
+  # (featured image, three attachments, seven approved comments four levels deep, a
+  # pingback and a trackback). It is the ONE candidate that could not be made to match
+  # honestly; see known gap "avatar loading" below. It was still worth capturing: two real
+  # bugs and one normalizer gap were found through it before it was set aside.
+
+  # ── An embed of a post that is NOT Hello World ─────────────────────────────────────
+  - screen: web.embed_password_protected
+    # Two arms web.embed cannot reach: get_the_excerpt()'s protected-post sentence, and
+    # get_comments_link()'s `#respond` (zero comments) rather than `#comments`.
+    path: /2026/03/password-protected/embed/
+    golden: golden-web-embed-password-protected.html
+
+  - screen: web.embed_astral_slug
+    # ⚠️ This one guards a fix directly: Web::EmbedsController did not re-encode the slug,
+    # so EVERY post with a non-ASCII title had a dead `/embed/` — the exact URL its own
+    # `<link rel="alternate" type="application/json+oembed">` advertises.
+    path: /2026/03/emoji-%f0%9f%98%80%f0%9f%a7%ac%f0%9f%9a%80-%c2%b7-math-%f0%9d%94%98%f0%9d%94%ab%f0%9d%94%a6%f0%9d%94%a0%f0%9d%94%ac%f0%9d%94%a1%f0%9d%94%a2-%f0%9d%95%ac%f0%9d%96%91%f0%9d%96%8c%f0%9d%96%8a%f0%9d%96%87/embed/
+    golden: golden-web-embed-astral-slug.html
+
+  # ── Sitemaps the INDEX already advertised and the rebuild answered with a 404 ───────
+  - screen: syndication.sitemap_pages
+    path: /wp-sitemap-posts-page-1.xml
+    content_type: xml
+  - screen: syndication.sitemap_taxonomies_category
+    path: /wp-sitemap-taxonomies-category-1.xml
+    content_type: xml
+  - screen: syndication.sitemap_taxonomies_post_tag
+    path: /wp-sitemap-taxonomies-post_tag-1.xml
+    content_type: xml
+
+# ══════════════════════════════════════════════════════════════════════════════════════
+# KNOWN GAPS — URLs the ORACLE serves that are DELIBERATELY NOT in the corpus, because
+# the rebuild does not answer them the way the oracle does and the honest fix is larger
+# than a corpus pass. Recorded here so the corpus's silence is a statement rather than an
+# omission. Each was measured against the oracle on 2026-08-24.
+#
+#   oracle              rebuild   URL                                     what is missing
+#   ------------------  --------  --------------------------------------  ----------------
+#   200 rdf+xml         200 rss2  /feed/rdf/                              feed-rdf.php (RSS 1.0) is not
+#   200 rss (0.92)      200 rss2  /feed/rss/                              implemented; FeedsController#show
+#                                                                         ignores :variant unless it is
+#                                                                         `atom`, so BOTH serve RSS 2.0 —
+#                                                                         wrong document AND wrong
+#                                                                         Content-Type for rdf.
+#   200 rss+xml         404       /category/.../leaf-category/feed/       scoped feeds: the feed rewrite
+#   200 rss+xml         404       /tag/flat-tag-one/feed/                 endpoint exists on every archive
+#   200 rss+xml         404       /author/oracle_author/feed/             and on every permalink
+#   200 rss+xml         404       /2026/03/hello-world/feed/              (EP_PERMALINK). Only /feed/,
+#   200 rss+xml         404       /2026/feed/                             /feed/atom/ and /comments/feed/
+#                                                                         are routed.
+#   200 xml             404       /wp-sitemap.xsl                         WP_Sitemaps_Stylesheet. EVERY
+#   200 xml             404       /wp-sitemap-index.xsl                   sitemap in the corpus points at
+#                                                                         these two with an
+#                                                                         <?xml-stylesheet?> PI, so both
+#                                                                         are dead links in the rebuild.
+#   301 → /2026/03/hello-world/   200  /2026/03/hello-world (no slash)     redirect_canonical() is not
+#   301 → /parent-page/           200  /parent-page                        ported: the rebuild serves the
+#   301 → the permalink           200  /?p=1                               page at the non-canonical URL
+#   301 → the page                200  /?page_id=22                        instead of 301ing to the
+#   301 → the term archive        200  /?cat=4                             canonical one.
+#   200 html            404       /2026/03/hello-world/comment-page-1/    the comment-page endpoint.
+#   302 → w-logo…png    404       /favicon.ico                            wp_favicon_request().
+#   302 → the permalink 404       /2026/03/hello-world/trackback/         the trackback endpoint.
+#
+# ── The four gaps found on ONE screen, /2026/03/published-article-…-curly/ and its
+#    /embed/. Both are OUT of the corpus; two of the four were fixed and are asserted by
+#    other screens, two are open.
+#
+#   FIXED, and now covered elsewhere:
+#     * a pingback/trackback comment rendered a real gravatar. get_avatar_data() returns
+#       `url = false` for any comment type outside get_avatar_comment_types() (default
+#       `['comment']`), so the oracle prints an EMPTY `<div class="wp-block-avatar">`.
+#       Fixed in Composition::Renderers::PostBlocks (AVATAR_COMMENT_TYPES).
+#     * `posts.comment_count` counted EVERY comment. wp_update_comment_count_now() counts
+#       `comment_approved = '1'` only, so the corpus post's public count read 10 where the
+#       oracle prints 7 (it carries one pending, one spam and one trashed comment).
+#       Fixed in lib/seeding/pipeline.rb and corrected in the seeded data.
+#
+#   OPEN — the reason the screen is not in the corpus:
+#     * AVATAR LOADING. On this screen the oracle prints `loading='lazy'` on all five
+#       comment avatars; the rebuild prints none. Composition::Renderers::PostBlocks
+#       already records the cause — wp_get_loading_optimization_attributes() decides from
+#       a PAGE-SCOPED media counter that the rebuild does not keep ("this needs a counter
+#       on RenderContext"). ⚠️ And the naive reading of that function does not reproduce
+#       the oracle either: wp_omit_loading_attr_threshold() is 3, yet the FIRST avatar
+#       after the featured image is already lazy, while Hello World's lone avatar (the
+#       first content media element on ITS page) is not. Two data points, and they fit a
+#       threshold of 1, not 3. Implementing the rule from the source would be guessing;
+#       it has to be derived from the oracle first. Left out rather than guessed at.
+#     * EMBED FEATURED IMAGE. `/…-curly/embed/` — print_embed_thumbnail() renders
+#       `<div class="wp-embed-featured-image square">` with the MEDIUM size and a
+#       four-candidate srcset. Presentation::EmbedPage renders no thumbnail at all. This
+#       one is a straightforward gap, not an unknown: it needs the intermediate-size
+#       resolution the rebuild's attachment_image() does not yet do
+#       ("neither resolves to an intermediate file for this corpus" — no longer true).
+#
+# NOT a rebuild gap, recorded for completeness:
+#   `terms.count` stores the PADDED count in the target and the RAW one in the legacy;
+#   see Classification::Term.with_direct_published_posts. Observable on the taxonomy
+#   sitemap, which is in the corpus above and green because the provider asks the raw
+#   question directly. One stored counter cannot answer both, and a second column is a
+#   schema change.

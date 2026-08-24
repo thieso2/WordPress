@@ -1880,9 +1880,17 @@ module Composition
           date = Dates.the_date(adjacent, Site.date_format)
           rel = navigation_type == "next" ? "next" : "prev"
 
-          inner = link.gsub("%title", title).gsub("%date", date)
+          # ⚠️ BLOCK form, not the two-argument form. `str_replace()` (link-template.php:2050)
+          # substitutes LITERALLY; Ruby's String#gsub expands `\&`, `\0`, `\1`… inside a
+          # STRING replacement. The corpus has a post titled `… escaped quote \" and \'`,
+          # whose texturized title contains `\&#8221;` — the two-argument form turned that
+          # into `%title#8221;` (the whole match re-inserted) and collapsed `\\` to `\`,
+          # i.e. the rebuild PRINTED ITS OWN PLACEHOLDER on the next/previous post link of
+          # every neighbour of that article. Found by the corpus-widening pass; no golden
+          # covered a post adjacent to the backslash-titled one.
+          inner = link.gsub("%title") { title }.gsub("%date") { date }
           inner = %(<a href="#{Links.permalink(adjacent)}" rel="#{rel}">#{inner}</a>)
-          template.gsub("%link", inner)
+          template.gsub("%link") { inner }
         end
 
         # get_adjacent_post(), wp-includes/link-template.php:1734 — strictly earlier or
@@ -2073,9 +2081,24 @@ module Composition
           queried.is_a?(Identity::User) ? queried : nil
         end
 
+        # get_avatar_comment_types(), wp-includes/link-template.php:4331 — the default
+        # list, and AD-01 removes the filter that could extend it.
+        AVATAR_COMMENT_TYPES = %w[comment].freeze
+
         def render_for_comment(comment_id, size, attributes, image_class, image_styles)
           comment = Discussion::Comment.find_by(id: comment_id)
           return "" if comment.nil?
+
+          # ⚠️ get_avatar_data(), wp-includes/link-template.php: for a WP_Comment the very
+          # first thing it does is `if ( ! is_avatar_comment_type( get_comment_type() ) )
+          # { $args['url'] = false; return; }`, and get_avatar_comment_types() defaults to
+          # `array( 'comment' )`. A PINGBACK or TRACKBACK therefore has NO avatar at all
+          # and the block renders an empty `<div class="wp-block-avatar"></div>`.
+          # The rebuild hashed the pingback's (empty) author email and printed a real
+          # gravatar URL for it — a request to a third party the legacy never makes.
+          # Found by the corpus-widening pass: the corpus's only commented post was Hello
+          # World, whose single comment is of type `comment`.
+          return "<div #{attributes}></div>" unless AVATAR_COMMENT_TYPES.include?(comment.kind.to_s)
 
           email = comment.user&.email || comment.author_email
           avatar = Avatars.img(email: email, size: size,

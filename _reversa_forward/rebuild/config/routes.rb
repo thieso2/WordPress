@@ -211,17 +211,53 @@ Rails.application.routes.draw do
   get "/robots.txt", to: "syndication/robots#show", as: :robots, defaults: { format: "text" }
   get "/wp-sitemap.xml", to: "syndication/sitemaps#index", as: :sitemap_index, defaults: { format: "xml" }
   get "/wp-sitemap-posts-:type-:page.xml", to: "syndication/sitemaps#posts", as: :sitemap_posts, defaults: { format: "xml" }
+  get "/wp-sitemap-taxonomies-:taxonomy-:page.xml", to: "syndication/sitemaps#taxonomies",
+      as: :sitemap_taxonomies, defaults: { format: "xml" }
   get "/wp-sitemap-users-:page.xml", to: "syndication/sitemaps#users", as: :sitemap_users, defaults: { format: "xml" }
   get "/feed(/:variant)", to: "syndication/feeds#show", as: :feed, defaults: { format: "xml" }
   get "/comments/feed", to: "syndication/feeds#comments", as: :comments_feed, defaults: { format: "xml" }
 
   # Front-end read path -- Wave 2.
+  #
+  # ⚠️ PAGINATION. `$wp_rewrite->pagination_base` ("page") is appended to EVERY archive
+  # rewrite rule by class-wp-rewrite.php::generate_rewrite_rules() ($paged, :1170), and
+  # get_pagenum_link() (link-template.php:2432, ported verbatim in query_blocks.rb:191)
+  # PRINTS those URLs in the core/query-pagination block on every archive the corpus
+  # renders. Until these routes existed the rebuild emitted `<SITE>/page/2/` links and
+  # then answered them with its own 404 screen -- a dead link in the golden output that
+  # the 25-request corpus never followed. Found by the corpus-widening pass.
+  # Declared BEFORE the unpaged forms so the literal `page` segment wins, which is the
+  # same precedence WP's rewrite array has.
+  get "/page/:paged", to: "web/archives#index", as: :paged_home, constraints: { paged: /\d+/ }
+  get "/author/:login/page/:paged", to: "web/archives#author", as: :paged_author_archive,
+      constraints: { paged: /\d+/ }
+  get "/category/*path/page/:paged", to: "web/archives#category", as: :paged_category_archive,
+      constraints: { paged: /\d+/ }
+  get "/tag/:slug/page/:paged", to: "web/archives#tag", as: :paged_tag_archive,
+      constraints: { paged: /\d+/ }
+
   get "/author/:login", to: "web/archives#author", as: :author_archive
   get "/category/*path", to: "web/archives#category", as: :category_archive
   get "/tag/:slug", to: "web/archives#tag", as: :tag_archive
 
   # The permalink structure is /%year%/%monthnum%/%postname%/ -- Routing::PermalinkStructure.
   # Date archives are the same prefix with the trailing segments absent.
+  #
+  # ⚠️ The DAY archive and the paged date archives are declared BEFORE the permalink and
+  # attachment routes on purpose. class-wp-rewrite.php builds the date rules from
+  # `$this->get_date_permastruct()` ahead of the post permastruct, so `/2026/03/15/` is a
+  # day archive and never a post whose slug happens to be "15"; likewise `/2026/03/page/2/`
+  # is page 2 of the month archive and not the attachment `page` under a post named `03`.
+  # Rails matches in declaration order, so declaration order IS that precedence.
+  get "/:year/:monthnum/page/:paged", to: "web/archives#month", as: :paged_month_archive,
+      constraints: { year: /\d{4}/, monthnum: /\d{2}/, paged: /\d+/ }
+  get "/:year/page/:paged", to: "web/archives#year", as: :paged_year_archive,
+      constraints: { year: /\d{4}/, paged: /\d+/ }
+  get "/:year/:monthnum/:day/page/:paged", to: "web/archives#day", as: :paged_day_archive,
+      constraints: { year: /\d{4}/, monthnum: /\d{2}/, day: /\d{2}/, paged: /\d+/ }
+  get "/:year/:monthnum/:day", to: "web/archives#day", as: :day_archive,
+      constraints: { year: /\d{4}/, monthnum: /\d{2}/, day: /\d{2}/ }
+
   get "/:year/:monthnum/:slug", to: "web/singular#show", as: :permalink,
       constraints: { year: /\d{4}/, monthnum: /\d{2}/ }
   # The `/embed/` endpoint on a post permalink (EP_PERMALINK, wp-includes/embed.php via
@@ -403,6 +439,12 @@ Rails.application.routes.draw do
 
     get "/wp/v2/blocks",     to: "public_api/blocks#index", as: :rest_blocks
     get "/wp/v2/blocks/:id", to: "public_api/blocks#show",  constraints: { id: /\d+/ }
+
+    # Revisions — WP_REST_Revisions_Controller. Found missing by driving Gutenberg's own
+    # revisions panel; the request specs had never asked for it.
+    get    "/wp/v2/:parent_type/:parent/revisions",     to: "public_api/revisions#index",   as: :rest_revisions, constraints: { parent_type: /posts|pages/, parent: /\d+/ }
+    get    "/wp/v2/:parent_type/:parent/revisions/:id", to: "public_api/revisions#show",    constraints: { parent_type: /posts|pages/, parent: /\d+/, id: /\d+/ }
+    delete "/wp/v2/:parent_type/:parent/revisions/:id", to: "public_api/revisions#destroy", constraints: { parent_type: /posts|pages/, parent: /\d+/, id: /\d+/ }
 
     # OPTIONS on any REST path — the route descriptor + `Allow` header core-data reads to
     # decide which controls the editor may offer. Declared before the catch-all so it is not

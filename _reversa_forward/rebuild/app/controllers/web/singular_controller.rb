@@ -6,7 +6,16 @@ module Web
   # different things about it.
   class SingularController < ApplicationController
     def show
-      post = Publishing::Article.where(status: %w[published private])
+      # ⚠️ `private` is NOT publicly readable. WP gates it on the `read_private_posts`
+      # capability (map_meta_cap() -> 'read_post', wp-includes/class-wp-query.php's
+      # `get_posts()` only widens the status set for a user who has it); an anonymous
+      # visitor gets the 404 template. The front end has no actor at all
+      # (ApplicationController#current_actor is nil on every Web:: surface), so the
+      # visible set here is `published` and nothing else.
+      # ⚠️ Before this, /2026/03/private-article/ rendered the private article's full
+      # title and body to anonymous visitors while the oracle answered 404. Found by the
+      # corpus-widening pass; the 25-request corpus contained no private URL.
+      post = Publishing::Article.where(status: %w[published])
                                 .find_by(slug: encoded_slug)
       # A slug that moved leaves a Routing::Redirect behind, replacing the legacy's
       # `_wp_old_slug` postmeta (AD-03).

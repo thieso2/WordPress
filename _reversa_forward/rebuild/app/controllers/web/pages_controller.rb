@@ -29,7 +29,7 @@ module Web
       parent_id = nil
       node = nil
       segments.each do |segment|
-        node = Publishing::Page.where(status: %w[published private], parent_id: parent_id)
+        node = Publishing::Page.where(status: %w[published], parent_id: parent_id)
                                .find_by(slug: segment)
         return nil if node.nil?
 
