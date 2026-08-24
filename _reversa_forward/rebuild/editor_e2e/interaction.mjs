@@ -71,5 +71,19 @@ const headNode = data.blocks.find((b) => b.name === "core/heading");
 assert(/Inserted heading/.test(headNode.innerHTML), "inserted heading serialized into stored markup");
 assert(Number(headNode.attrs.level) === 2, "inserted heading carries its level attribute");
 
+// ── RESTORE the fixture post to its pre-test draft state (idempotent re-runs; the
+//    corpus must never carry an e2e-published post into the parity gate) ─────────────
+const restored = await page.evaluate(async (id) => {
+  const tok = document.querySelector('meta[name="csrf-token"]')?.getAttribute("content") || "";
+  const r = await fetch(`/console/posts/${id}`, {
+    method: "PATCH", credentials: "same-origin",
+    headers: { "Content-Type": "application/json", Accept: "application/json", "X-CSRF-Token": tok },
+    body: JSON.stringify({ command: "draft", title: "E2E seed title", excerpt: "",
+      blocks: [{ name: "core/paragraph", attrs: {}, innerHTML: "<p>Original body</p>", innerContent: ["<p>Original body</p>"], innerBlocks: [] }] })
+  });
+  return (await r.json()).ok;
+}, POST);
+assert(restored, "fixture post restored to its pre-test draft state");
+
 console.log("\nISLAND_E2E_PASS");
 await browser.close();

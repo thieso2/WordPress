@@ -1,3 +1,157 @@
-<%# P-LIST instantiation — renders the Console::ListModel the controller built through the
-    one shared list partial. All content, columns and LITERAL strings come from @list. %>
-<%= render "console/shared/list", list: @list %>
+<%# console.edit-tags — the terms screen. Legacy edit-tags.php lays the inline "Add New"
+    form in the left column and WP_Terms_List_Table in the right; here the shared P-LIST
+    partial renders the list and this view adds the taxonomy's on-screen write affordances
+    (Add form + Quick Edit template/JS). All LITERAL strings come verbatim from the legacy
+    (class-wp-taxonomy.php default labels / edit-tags.php). -%>
+<style>
+  .term-screen { display: flex; gap: 1.5rem; align-items: flex-start; flex-wrap: wrap; }
+  .term-screen .col-left { flex: 0 0 22rem; max-width: 100%; }
+  .term-screen .col-right { flex: 1 1 28rem; min-width: 0; }
+  .form-wrap h2 { margin: 0 0 .5rem; }
+  .form-field { margin: 0 0 1rem; }
+  .form-field label { display: block; font-weight: 600; margin-bottom: .25rem; }
+  .form-field input[type=text], .form-field textarea, .form-field select { width: 100%; max-width: 22rem; }
+  .form-field p { color: var(--muted, #50575e); font-size: .85rem; margin: .3rem 0 0; }
+  .inline-edit-row input, .inline-edit-row select { margin-right: .4rem; }
+</style>
+
+<div class="term-screen">
+  <% if @can_create %>
+    <div class="col-left">
+      <div class="form-wrap">
+        <%# edit-tags.php:439 <h2> and :587 submit — $tax->labels->add_new_item. %>
+        <h2><%= add_new_item %></h2>
+        <%= form_with url: create_path, method: :post, data: { turbo: false } do %>
+          <div class="form-field form-required term-name-wrap">
+            <label for="tag-name"><%= "Name" %></label>
+            <input name="name" id="tag-name" type="text" size="40" value="" aria-required="true" />
+            <p>The name is how it appears on your site.</p>
+          </div>
+          <div class="form-field term-slug-wrap">
+            <label for="tag-slug"><%= "Slug" %></label>
+            <input name="slug" id="tag-slug" type="text" size="40" value="" />
+            <p>The &#8220;slug&#8221; is the URL-friendly version of the name. It is usually all lowercase and contains only letters, numbers, and hyphens.</p>
+          </div>
+          <% if @taxonomy.hierarchical? %>
+            <div class="form-field term-parent-wrap">
+              <label for="parent"><%= parent_item %></label>
+              <select name="parent" id="parent">
+                <option value="-1"><%= "None" %></option>
+                <% Classification::Term.where(taxonomy_id: @taxonomy.id).order(:name).each do |t| %>
+                  <option value="<%= t.id %>"><%= t.name %></option>
+                <% end %>
+              </select>
+              <p>Categories, unlike tags, can have a hierarchy. You might have a Jazz category, and under that have children categories for Bebop and Big Band. Totally optional.</p>
+            </div>
+          <% end %>
+          <div class="form-field term-description-wrap">
+            <label for="tag-description"><%= "Description" %></label>
+            <textarea name="description" id="tag-description" rows="5" cols="40"></textarea>
+            <p>The description is not prominent by default; however, some themes may show it.</p>
+          </div>
+          <p class="submit">
+            <button type="submit" class="button button-primary"><%= add_new_item %></button>
+          </p>
+        <% end %>
+      </div>
+    </div>
+  <% end %>
+
+  <div class="col-right">
+    <%= render "console/shared/list", list: @list %>
+  </div>
+</div>
+
+<%# WP_Terms_List_Table::inline_edit() — the hidden Quick Edit template row the JS clones
+    into a term row when "Quick Edit" is clicked. Posts name/slug/parent to #inline_save. %>
+<template id="inline-edit-template">
+  <tr class="inline-edit-row">
+    <td colspan="<%= @list.columns.length + (@list.bulk_actions? ? 1 : 0) %>" class="colspanchange">
+      <fieldset class="inline-edit-wrapper">
+        <legend class="inline-edit-legend"><%= "Quick Edit" %></legend>
+        <label><span class="title"><%= "Name" %></span>
+          <input type="text" name="name" class="ptitle" value="" /></label>
+        <label><span class="title"><%= "Slug" %></span>
+          <input type="text" name="slug" class="ptitle" value="" /></label>
+        <% if @taxonomy.hierarchical? %>
+          <label><span class="title"><%= parent_item %></span>
+            <select name="parent">
+              <option value="-1"><%= "None" %></option>
+              <% Classification::Term.where(taxonomy_id: @taxonomy.id).order(:name).each do |t| %>
+                <option value="<%= t.id %>"><%= t.name %></option>
+              <% end %>
+            </select></label>
+        <% end %>
+        <div class="inline-edit-save submit">
+          <button type="button" class="save button button-primary"><%= update_item %></button>
+          <button type="button" class="cancel button"><%= "Cancel" %></button>
+          <span class="error" role="alert"></span>
+        </div>
+      </fieldset>
+    </td>
+  </tr>
+</template>
+
+<script>
+(function () {
+  var taxonomy = <%= @taxonomy.name.to_json.html_safe %>;
+  var tpl = document.getElementById("inline-edit-template");
+  var table = document.querySelector(".col-right .wp-list-table");
+  if (!tpl || !table) return;
+
+  function closeEditor() {
+    var open = table.querySelector("tr.inline-edit-row.is-open");
+    if (open) { var hidden = open.previousSibling; if (hidden) hidden.style.display = ""; open.remove(); }
+  }
+
+  table.addEventListener("click", function (e) {
+    var trigger = e.target.closest(".editinline a, a.editinline, .editinline button");
+    if (trigger) {
+      e.preventDefault();
+      closeEditor();
+      var row = trigger.closest("tr");
+      var id = (row.id || "").split("-").pop();
+      var data = document.getElementById("inline_" + id);
+      if (!data) return;
+      var frag = tpl.content.cloneNode(true);
+      var editRow = frag.querySelector("tr");
+      editRow.classList.add("is-open");
+      editRow.dataset.termId = id;
+      var name = data.querySelector(".name"), slug = data.querySelector(".slug"), parent = data.querySelector(".parent");
+      if (name) editRow.querySelector("input[name=name]").value = name.textContent;
+      if (slug) editRow.querySelector("input[name=slug]").value = slug.textContent;
+      var psel = editRow.querySelector("select[name=parent]");
+      if (psel && parent) psel.value = parent.textContent || "-1";
+      row.style.display = "none";
+      row.parentNode.insertBefore(editRow, row.nextSibling);
+      return;
+    }
+    if (e.target.closest(".inline-edit-row .cancel")) { e.preventDefault(); closeEditor(); return; }
+    var save = e.target.closest(".inline-edit-row .save");
+    if (save) {
+      e.preventDefault();
+      var editRow = save.closest("tr");
+      var id = editRow.dataset.termId;
+      var body = new FormData();
+      body.append("name", editRow.querySelector("input[name=name]").value);
+      body.append("slug", editRow.querySelector("input[name=slug]").value);
+      var psel = editRow.querySelector("select[name=parent]");
+      if (psel) body.append("parent", psel.value);
+      var token = document.querySelector("meta[name=csrf-token]");
+      var headers = {};
+      if (token) headers["X-CSRF-Token"] = token.getAttribute("content");
+      fetch("/console/terms/" + taxonomy + "/" + id + "/inline", { method: "POST", headers: headers, body: body })
+        .then(function (r) { return r.text().then(function (t) { return { ok: r.ok, text: t }; }); })
+        .then(function (res) {
+          if (!res.ok) { var err = editRow.querySelector(".error"); if (err) err.textContent = res.text; return; }
+          var tmp = document.createElement("tbody");
+          tmp.innerHTML = res.text.trim();
+          var fresh = tmp.querySelector("tr");
+          var hidden = editRow.previousSibling;
+          if (fresh && hidden) { hidden.parentNode.replaceChild(fresh, hidden); }
+          editRow.remove();
+        });
+    }
+  });
+})();
+</script>

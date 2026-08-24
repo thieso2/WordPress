@@ -10,6 +10,7 @@
     #editor-fallback form below; without JavaScript that form still edits the raw block
     markup and saves through the identical command path (progressive enhancement). %>
 <% @editor_island = true %>
+<% @island_asset = "editor" %>
 <div id="editor-root"
      data-post-id="<%= @post.id %>"
      data-post-new="<%= @post.auto_draft? %>"

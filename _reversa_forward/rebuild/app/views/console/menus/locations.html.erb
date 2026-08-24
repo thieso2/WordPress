@@ -1,0 +1,48 @@
+<% content_for :title, "Menus" %>
+<%# nav-menus.php:851 — the "Manage Locations" sub-screen. Assign each registered theme
+    menu location to a menu. LITERAL strings verbatim: "Menu Location", "Assigned Menu",
+    "— Select a Menu —", "Save Changes"; the save emits "Menu locations updated." -%>
+<div class="wrap">
+  <h1 class="wp-heading-inline">Menus</h1>
+  <hr class="wp-header-end">
+
+  <nav class="nav-tab-wrapper">
+    <a href="/console/menus" class="nav-tab">Edit Menus</a>
+    <a href="/console/menus?tab=locations" class="nav-tab nav-tab-active">Manage Locations</a>
+  </nav>
+
+  <div id="menu-locations-wrap">
+    <form method="post" action="/console/menus" id="menu-locations">
+      <%= hidden_field_tag(:authenticity_token, form_authenticity_token) %>
+      <input type="hidden" name="save_nav_menu_locations" value="1">
+      <table class="widefat fixed" id="menu-locations-table">
+        <thead>
+          <tr>
+            <th scope="col" class="manage-column column-locations">Menu Location</th>
+            <th scope="col" class="manage-column column-menus">Assigned Menu</th>
+          </tr>
+        </thead>
+        <tbody class="menu-locations">
+          <% @locations.each do |slug, label| %>
+            <tr class="menu-locations-row">
+              <td class="menu-location-title">
+                <label for="locations-<%= slug %>"><%= label %></label>
+              </td>
+              <td class="menu-location-menus">
+                <select name="menu_locations[<%= slug %>]" id="locations-<%= slug %>">
+                  <option value="0">&mdash; Select a Menu &mdash;</option>
+                  <% @menus.each do |m| %>
+                    <option value="<%= m.id %>" <%= "selected" if @assigned[slug] == m.id %>><%= m.name %></option>
+                  <% end %>
+                </select>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+      <p class="button-controls wp-clearfix">
+        <button type="submit" class="button button-primary left" id="nav-menu-locations">Save Changes</button>
+      </p>
+    </form>
+  </div>
+</div>

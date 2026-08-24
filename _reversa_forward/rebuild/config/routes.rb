@@ -33,6 +33,13 @@ Rails.application.routes.draw do
   delete "/console/posts/:id/lock",      to: "console/posts#unlock",     as: :unlock_console_post
   post   "/console/posts/:id/steal",     to: "console/posts#steal",      as: :steal_console_post
   get    "/console/site-editor",         to: "console/site_editor#show", as: :console_site_editor
+  # Site Editor React island (DEV-012, D-3): template browser, template block editing, and
+  # Global Styles over the theme.json cascade.
+  get   "/console/site-editor/templates",           to: "console/site_editor#templates_index", as: :console_site_editor_templates
+  get   "/console/site-editor/templates/:id/blocks", to: "console/site_editor#template_blocks", as: :console_site_editor_template_blocks
+  match "/console/site-editor/templates/:id",       to: "console/site_editor#update_template", as: :console_site_editor_template, via: %i[patch put]
+  get   "/console/site-editor/styles",              to: "console/site_editor#styles",          as: :console_site_editor_styles
+  match "/console/site-editor/styles",              to: "console/site_editor#update_styles",   via: %i[patch put]
 
   # ── Wave 4: the P-EDIT single-record console edit screens (target_screens.md § P-EDIT
   # instantiations). Modernized mode: LITERAL strings, model-backed saves, Access object
@@ -125,6 +132,21 @@ Rails.application.routes.draw do
 
   # Informational pages (console.about/.credits/.freedoms/.contribute/.privacy) — DEV-009:
   # the rebuild's own content. Constrained so the glob below never reads a page slug here.
+  # ── Admin parity pass (2026-08-24): actions the audited screens were missing ────────
+  # Each has a matching AD-04 declaration in config/initializers/authorization_declarations.rb.
+  get   "/console/media/new",                        to: "console/media#new",           as: :new_console_medium
+  post  "/console/media/new",                        to: "console/media#create",        as: :create_console_medium
+  match "/console/terms/:taxonomy",                  to: "console/terms_list#create",   via: %i[post]
+  post  "/console/terms/:taxonomy/:id/inline",       to: "console/terms_list#inline_save", as: :console_term_inline
+  get   "/console/comments/:id/reply",               to: "console/comments#reply",      as: :reply_console_comment
+  post  "/console/comments/:id/reply",               to: "console/comments#create_reply"
+  post  "/console/quick-draft",                      to: "console/dashboard#quick_draft", as: :console_quick_draft
+  post  "/console/posts/:id/revisions/restore",      to: "console/revisions#restore",   as: :restore_console_post_revision
+  post  "/console/themes/:slug/enable-auto-update",  to: "console/themes#enable_auto_update"
+  post  "/console/themes/:slug/disable-auto-update", to: "console/themes#disable_auto_update"
+  post  "/console/tools/export-personal-data/bulk",  to: "console/data_requests#bulk",  as: :console_export_personal_data_bulk
+  post  "/console/tools/erase-personal-data/bulk",   to: "console/data_requests#bulk",       as: :console_erase_personal_data_bulk
+
   get  "/console/:page", to: "console/info#show", as: :console_info,
        constraints: { page: /about|credits|freedoms|contribute|privacy/ }
 
@@ -264,4 +286,6 @@ Rails.application.routes.draw do
   get "/*path/embed", to: "web/embeds#page", as: :page_embed, format: false
   # Hierarchical pages: /parent-page/child-page/ -- BR-MIGRATE-033's (type, parent) scope.
   get "/*path", to: "web/pages#show", as: :page_permalink, format: false
+
+
 end

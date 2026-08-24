@@ -47,6 +47,34 @@ module Console
       end
     end
 
+    # GET /console/comments/:id/reply — the Reply row action (class-wp-comments-list-table
+    # .php:871). The legacy expands an inline reply form; here it is a page over the same
+    # comment form. Gated on edit_comment of the parent, like the inline reply.
+    def reply
+      @parent = @comment
+      @page_title = "Reply to Comment"
+      render :reply
+    end
+
+    # POST /console/comments/:id/reply — creates a child comment on the parent's post,
+    # authored by the current moderator and approved (a moderator reply is trusted).
+    def create_reply
+      parent = @comment
+      @reply = Discussion::Comment.new(
+        post: parent.post, parent: parent, user: current_actor,
+        author_name: current_actor.display_name, author_email: current_actor.email,
+        content: params[:content].to_s, status: "approved"
+      )
+      if @reply.save
+        redirect_to console_comments_path, status: :see_other
+      else
+        @parent = parent
+        @page_title = "Reply to Comment"
+        flash.now[:error] = @reply.errors.full_messages.to_sentence
+        render :reply, status: :unprocessable_content
+      end
+    end
+
     private
 
     # edit-form-comment.php radio values 1 / 0 / spam (comment_approved), mapped onto the

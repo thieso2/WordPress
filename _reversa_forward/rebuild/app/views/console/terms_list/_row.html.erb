@@ -1,0 +1,9 @@
+<%# The single updated term row wp_ajax_inline_save_tag() returns after a Quick Edit save
+    (WP_Terms_List_Table::single_row). The JS swaps this in for the edited row. Cells are
+    the same LITERAL-safe fragments the list builds. -%>
+<tr id="console.edit-tags-<%= term.id %>">
+  <td class="column-name"><%= raw name_html %></td>
+  <td class="column-description"><%= description_html %></td>
+  <td class="column-slug"><%= slug_html %></td>
+  <td class="column-count"><%= raw count_html %></td>
+</tr>

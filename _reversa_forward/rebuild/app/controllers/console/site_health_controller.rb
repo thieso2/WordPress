@@ -6,7 +6,8 @@ module Console
   class SiteHealthController < BaseController
     include Chrome
 
-    DENIED = "Sorry, you are not allowed to access the Site Health page."
+    # site-health.php:48 wp_die() — LITERAL, verbatim.
+    DENIED = "Sorry, you are not allowed to access site health information."
 
     # site-health.php gates on `view_site_health_checks`. In the legacy that capability
     # is not held by any role — it is GRANTED at runtime by the `user_has_cap` filter

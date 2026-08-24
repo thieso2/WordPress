@@ -10,14 +10,17 @@ const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const watch = process.argv.includes("--watch");
 
 const options = {
-  entryPoints: [resolve(root, "app/frontend/editor/index.jsx")],
+  entryPoints: [
+    { in: resolve(root, "app/frontend/editor/index.jsx"), out: "editor" },
+    { in: resolve(root, "app/frontend/site_editor/index.jsx"), out: "site_editor" }
+  ],
   bundle: true,
   format: "esm",
   target: ["es2020"],
   jsx: "automatic",
   minify: !watch,
   sourcemap: true,
-  outfile: resolve(root, "app/assets/builds/editor.js"),
+  outdir: resolve(root, "app/assets/builds"),
   define: { "process.env.NODE_ENV": watch ? '"development"' : '"production"' },
   logLevel: "info"
 };

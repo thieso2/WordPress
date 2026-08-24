@@ -97,6 +97,14 @@ Rails.application.config.to_prepare do
   # arm), which only the editor and administrator roles hold.
   Access::Declarations.declare("GET console/site_editor#show", mode: :policy,
                                policy: Access::SitePolicy, action: :edit_theme_options, source: __FILE__)
+  # The Site Editor island's API actions share the edit_theme_options gate (site-editor.php).
+  ["GET console/site_editor#templates_index", "GET console/site_editor#template_blocks",
+   "PATCH console/site_editor#update_template", "PUT console/site_editor#update_template",
+   "GET console/site_editor#styles", "PATCH console/site_editor#update_styles",
+   "PUT console/site_editor#update_styles"].each do |route|
+    Access::Declarations.declare(route, mode: :policy, policy: Access::SitePolicy,
+                                 action: :edit_theme_options, source: __FILE__)
+  end
 
   # ── Wave 4: appearance — console.themes / console.theme-install / console.nav-menus ──
   # themes.php:12 gates on `switch_themes` OR `edit_theme_options`; theme-install.php:15 on
@@ -269,7 +277,24 @@ end
 
 # The build check. Walks the real routing table and refuses to boot on an omission.
 Rails.application.config.after_initialize do
+  # ── Admin parity pass (2026-08-24): declarations for the newly built actions ────────
+  # Every route added in the same pass; AD-04 fails boot if any is left undeclared.
+  Access::Declarations.declare("GET console/media#new", mode: :authenticated, source: __FILE__)
+  Access::Declarations.declare("POST console/media#create", mode: :authenticated, source: __FILE__)
+  Access::Declarations.declare("POST console/terms_list#create", mode: :authenticated, source: __FILE__)
+  Access::Declarations.declare("POST console/terms_list#inline_save", mode: :authenticated, source: __FILE__)
+  Access::Declarations.declare("GET console/comments#reply", mode: :authenticated, source: __FILE__)
+  Access::Declarations.declare("POST console/comments#create_reply", mode: :authenticated, source: __FILE__)
+  Access::Declarations.declare("POST console/dashboard#quick_draft", mode: :authenticated, source: __FILE__)
+  Access::Declarations.declare("POST console/revisions#restore", mode: :authenticated, source: __FILE__)
+  Access::Declarations.declare("POST console/data_requests#bulk", mode: :authenticated, source: __FILE__)
+  Access::Declarations.declare("POST console/themes#enable_auto_update", mode: :policy,
+                               policy: Access::SitePolicy, action: :update_themes, source: __FILE__)
+  Access::Declarations.declare("POST console/themes#disable_auto_update", mode: :policy,
+                               policy: Access::SitePolicy, action: :update_themes, source: __FILE__)
+
   next if Rails.env.test?
+
 
   identifiers = Rails.application.routes.routes.filter_map do |route|
     controller = route.defaults[:controller]
@@ -293,4 +318,6 @@ Rails.application.config.after_initialize do
     a valid answer -- the point is that it is an answer. Under BR-REST-05 an undeclared
     route is public at runtime, and AD-01 means there is no filter to correct it later.
   MSG
+
+
 end

@@ -67,7 +67,8 @@ RSpec.describe "the editor shell", type: :request do
       expect(edoc.at_css("title").text).to include("Edit Post")
       expect(response.body).to include("Add title")               # edit-form-blocks.php:281
       expect(response.body).to include("Type / to choose a block") # :275
-      expect(response.body).to include("deferred: react-island (DEV-012, D-3)")
+      expect(response.body).to include(%(id="editor-root"))    # the React island mount (DEV-012, D-3)
+      expect(response.body).to match(%r{/assets/editor-[0-9a-f]+\.js})
       expect(post.reload.edit_lock_by_id).to eq(editor_user("editor").id)
       expect(post.edit_lock_at).to be_present
     end
@@ -234,11 +235,12 @@ RSpec.describe "the editor shell", type: :request do
 
   # ── console.site-editor ───────────────────────────────────────────────────────────
   describe "GET /console/site-editor" do
-    it "admits an administrator (edit_theme_options) with the honest placeholder" do
+    it "admits an administrator (edit_theme_options) and mounts the Site Editor island" do
       sign_in_as("administrator")
       get "/console/site-editor"
       expect(response).to have_http_status(:ok)
-      expect(response.body).to include("deferred: react-island (DEV-012, D-3)")
+      expect(response.body).to include(%(id="site-editor-root"))
+      expect(response.body).to match(%r{/assets/site_editor-[0-9a-f]+\.js})
     end
 
     it "forbids an editor, who lacks edit_theme_options" do

@@ -97,6 +97,13 @@ module Console
                 else
                   params[:selection].to_s
                 end
+
+      # options-permalink.php:128-145 — the Optional category/tag rewrite prefixes are
+      # written independently of the structure. Non-empty values are slash-normalized
+      # (str_replace '#','' then collapse '/+' with a leading '/'); empty stays ''.
+      Configuration::Setting.set("category_base", normalize_rewrite_base(params[:category_base])) if params.key?(:category_base)
+      Configuration::Setting.set("tag_base", normalize_rewrite_base(params[:tag_base])) if params.key?(:tag_base)
+
       @change = Routing::PermalinkStructure.change_to(pattern)
 
       if @change.applied?
@@ -129,6 +136,15 @@ module Console
     # about that; it stores nothing yet.
     def update_connectors
       redirect_after_submit(settings_path_for("connectors"), notice: SAVED_NOTICE)
+    end
+
+    # options-permalink.php:131-133 — normalize a custom category/tag base. '#' stripped,
+    # a leading slash added and repeated slashes collapsed; an empty value stays ''.
+    def normalize_rewrite_base(raw)
+      value = raw.to_s.delete("#")
+      return "" if value.empty?
+
+      ("/" + value).gsub(%r{/+}, "/")
     end
 
     def settings_path_for(section)

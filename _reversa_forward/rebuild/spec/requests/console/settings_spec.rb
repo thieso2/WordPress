@@ -158,4 +158,159 @@ RSpec.describe "console.settings", type: :request do
       expect(response.body).to include("Sorry, you are not allowed to manage privacy options on this site.")
     end
   end
+
+  # ── General: Administration Email Address + Week Starts On (options-general.php:265,577)
+  describe "GET /console/settings (general) — admin email and week start" do
+    before { login_as("con_admin") }
+
+    it "renders the Administration Email Address field bound to admin_email" do
+      Configuration::Setting.set("admin_email", "boss@example.test")
+      get "/console/settings"
+      expect(response.body).to include("Administration Email Address")
+      expect(response.body).to include(%(name="new_admin_email"))
+      expect(response.body).to include("boss@example.test")
+      expect(response.body).to include("an email will be sent to your new address to confirm it")
+    end
+
+    it "renders the Week Starts On weekday select" do
+      get "/console/settings"
+      expect(response.body).to include("Week Starts On")
+      expect(response.body).to include(%(name="start_of_week"))
+      %w[Sunday Monday Saturday].each { |d| expect(response.body).to include(d) }
+    end
+
+    it "persists new_admin_email and start_of_week on save" do
+      post "/console/settings", params: {
+        blogname: "x", new_admin_email: "new@example.test", start_of_week: "6"
+      }
+      expect(response).to have_http_status(:see_other)
+      expect(Configuration::Setting["new_admin_email"]).to eq("new@example.test")
+      expect(Configuration::Setting["start_of_week"]).to eq(6)
+    end
+  end
+
+  # ── Writing: the Formatting fieldset (options-writing.php:70-77)
+  describe "GET/POST /console/settings/writing — Formatting" do
+    before { login_as("con_admin") }
+
+    it "renders the Formatting flags with their LITERAL labels" do
+      get "/console/settings/writing"
+      expect(response.body).to include("Formatting")
+      expect(response.body).to include("Convert emoticons like")
+      expect(response.body).to include("to graphics on display")
+      expect(response.body).to include("WordPress should correct invalidly nested XHTML automatically")
+    end
+
+    it "persists use_smilies and use_balanceTags (unchecked stores '0')" do
+      Configuration::Setting.set("use_smilies", "1")
+      post "/console/settings/writing", params: { use_balanceTags: "1" } # no use_smilies
+      expect(response).to have_http_status(:see_other)
+      expect(Configuration::Setting["use_balanceTags"]).to eq("1")
+      expect(Configuration::Setting["use_smilies"]).to eq("0")
+    end
+  end
+
+  # ── Reading: feed content length (options-reading.php:190-195)
+  describe "GET/POST /console/settings/reading — rss_use_excerpt" do
+    before { login_as("con_admin") }
+
+    it "renders the Full text / Excerpt control" do
+      get "/console/settings/reading"
+      expect(response.body).to include("For each post in a feed, include")
+      expect(response.body).to include("Full text")
+      expect(response.body).to include("Excerpt")
+      expect(response.body).to include(%(name="rss_use_excerpt"))
+    end
+
+    it "persists rss_use_excerpt" do
+      post "/console/settings/reading", params: { show_on_front: "posts", rss_use_excerpt: "1" }
+      expect(response).to have_http_status(:see_other)
+      expect(Configuration::Setting["rss_use_excerpt"]).to eq(1)
+    end
+  end
+
+  # ── Discussion: the full comment-behaviour set (options-discussion.php:48-193)
+  describe "GET/POST /console/settings/discussion — the full option set" do
+    before { login_as("con_admin") }
+
+    it "renders every functional comment-behaviour label VERBATIM" do
+      get "/console/settings/discussion"
+      [
+        "Default post settings",
+        "Attempt to notify any blogs linked to from the post",
+        "Allow link notifications from other blogs (pingbacks and trackbacks) on new posts",
+        "Allow people to submit comments on new posts",
+        "Comment author must fill out name and email",
+        "Users must be registered and logged in to comment",
+        "Show comments cookies opt-in checkbox, allowing comment author cookies to be set",
+        "Enable threaded (nested) comments",
+        "Number of levels for threaded (nested) comments",
+        "Comment Pagination",
+        "Break comments into pages",
+        "Top level comments per page",
+        "Comments page to display by default",
+        "Comments to display at the top of each page",
+        "Email me whenever",
+        "Anyone posts a comment",
+        "A comment is held for moderation",
+      ].each { |s| expect(response.body).to include(s), "missing #{s.inspect}" }
+    end
+
+    it "persists the default-post, threading, pagination and notify options" do
+      post "/console/settings/discussion", params: {
+        default_pingback_flag: "1", default_ping_status: "open", default_comment_status: "open",
+        require_name_email: "1", comment_registration: "1",
+        show_comments_cookies_opt_in: "1", thread_comments: "1", thread_comments_depth: "7",
+        page_comments: "1", comments_per_page: "25", default_comments_page: "oldest", comment_order: "desc",
+        comments_notify: "1", moderation_notify: "1"
+      }
+      expect(response).to have_http_status(:see_other)
+      expect(Configuration::Setting["default_pingback_flag"]).to eq("1")
+      expect(Configuration::Setting["default_ping_status"]).to eq("open")
+      expect(Configuration::Setting["default_comment_status"]).to eq("open")
+      expect(Configuration::Setting["comment_registration"]).to eq("1")
+      expect(Configuration::Setting["thread_comments_depth"]).to eq(7)
+      expect(Configuration::Setting["comments_per_page"]).to eq(25)
+      expect(Configuration::Setting["default_comments_page"]).to eq("oldest")
+      expect(Configuration::Setting["comment_order"]).to eq("desc")
+      expect(Configuration::Setting["moderation_notify"]).to eq("1")
+    end
+
+    it "stores an unchecked open/closed status as '' (closed)" do
+      Configuration::Setting.set("default_comment_status", "open")
+      post "/console/settings/discussion", params: { comment_moderation: "1" } # no status
+      expect(Configuration::Setting["default_comment_status"]).to eq("")
+    end
+  end
+
+  # ── Permalinks: the Optional category/tag base section (options-permalink.php:408-453)
+  describe "GET/POST /console/settings/permalinks — Optional bases" do
+    before { login_as("con_admin") }
+
+    it "renders the Optional category/tag base inputs" do
+      get "/console/settings/permalinks"
+      expect(response.body).to include("Optional")
+      expect(response.body).to include("Category base")
+      expect(response.body).to include("Tag base")
+      expect(response.body).to include(%(name="category_base"))
+      expect(response.body).to include(%(name="tag_base"))
+    end
+
+    it "persists a slash-normalized category_base and tag_base alongside a valid structure" do
+      post "/console/settings/permalinks", params: {
+        selection: "/%postname%/", category_base: "topics", tag_base: "labels"
+      }
+      expect(response).to have_http_status(:see_other)
+      expect(Configuration::Setting["category_base"]).to eq("/topics")
+      expect(Configuration::Setting["tag_base"]).to eq("/labels")
+    end
+
+    it "stores an empty base as '' (defaults used)" do
+      post "/console/settings/permalinks", params: {
+        selection: "/%postname%/", category_base: "", tag_base: ""
+      }
+      expect(Configuration::Setting["category_base"]).to eq("")
+      expect(Configuration::Setting["tag_base"]).to eq("")
+    end
+  end
 end

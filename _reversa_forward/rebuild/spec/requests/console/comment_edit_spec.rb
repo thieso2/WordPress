@@ -57,4 +57,66 @@ RSpec.describe "console.comment", type: :request do
     expect(response).to have_http_status(:not_found)
     expect(body_text).to include("Invalid comment ID.")
   end
+
+  # ── Defect 10 — the submitdelete link in the editor (edit-form-comment.php:403). With
+  # trash enabled the label is the LITERAL "Move to Trash"; it posts to the shared bulk
+  # endpoint (a trash, routed through the DEV-004 confirmation).
+  it "renders the 'Move to Trash' delete link in the editor" do
+    login_as("con_editor")
+    get "/console/comments/#{comment.id}/edit"
+    del = doc.at_css("#delete-action .submitdelete")
+    expect(del).to be_present
+    expect(del.text.strip).to eq("Move to Trash")
+    form = del.ancestors("form").first
+    expect(form["action"]).to eq("/console/comments/bulk")
+  end
+
+  it "trashing from the editor goes through the confirmation and then trashes" do
+    login_as("con_editor")
+    # the delete link posts an unconfirmed trash → interstitial (DEV-004)
+    post "/console/comments/bulk", params: { bulk_action: "trash", confirmed: "0", ids: [comment.id] }
+    expect(response).to have_http_status(:ok)
+    expect(comment.reload.status).not_to eq("trashed")
+    post "/console/comments/bulk", params: { bulk_action: "trash", confirmed: "1", ids: [comment.id] }
+    expect(response).to have_http_status(:see_other)
+    expect(comment.reload.status).to eq("trashed")
+  end
+
+  # ── Defect 3 — the Reply row action leads to a reply endpoint that creates a child
+  # comment (class-wp-comments-list-table.php:871). Needs the reply route the integrator
+  # applies (routes_to_add / declarations_to_add); skipped until then so the suite stays
+  # green in isolation.
+  context "the Reply endpoint (requires the applied reply route)" do
+    before do
+      unless Rails.application.routes.url_helpers.respond_to?(:reply_console_comment_path)
+        skip "reply route pending integrator (see routes_to_add/declarations_to_add)"
+      end
+    end
+
+    it "renders a reply form with the LITERAL Comment/Reply strings" do
+      login_as("con_editor")
+      get "/console/comments/#{comment.id}/reply"
+      expect(response).to have_http_status(:ok)
+      expect(body_text).to include("Comment").and include("Reply")
+    end
+
+    it "creates a child comment on the parent's post" do
+      login_as("con_editor")
+      parent = comment # materialise the lazy `let` BEFORE counting, or its own row counts
+      expect do
+        post "/console/comments/#{parent.id}/reply", params: { content: "A moderator reply" }
+      end.to change { Discussion::Comment.count }.by(1)
+      expect(response).to have_http_status(:see_other)
+      child = Discussion::Comment.order(:id).last
+      expect(child.parent_id).to eq(comment.id)
+      expect(child.post_id).to eq(comment.post_id)
+      expect(child.content).to eq("A moderator reply")
+    end
+
+    it "denies a subscriber the reply form (edit_comment gate)" do
+      login_as("con_subscriber")
+      get "/console/comments/#{comment.id}/reply"
+      expect(response).to have_http_status(:forbidden)
+    end
+  end
 end

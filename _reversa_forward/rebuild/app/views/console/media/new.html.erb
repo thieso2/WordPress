@@ -1,0 +1,33 @@
+<%# console.media-new — wp-admin/media-new.php. The upload screen: h1 "Upload Media"
+    ($title, media-new.php:41) over media_upload_form() (includes/media.php:2112). LITERAL
+    strings verbatim: "Drop files to upload", "or", "Select Files", "Upload", "Cancel",
+    "Maximum upload file size: %s.". The plupload async path targets POST /console/media
+    (the API-shaped web/uploads#create); this no-JS Browser Uploader posts the file field
+    `async-upload` back here (POST /console/media/new) and lands on the Media Library. %>
+<h1><%= @page_title %></h1>
+
+<form enctype="multipart/form-data" method="post" action="/console/media/new" class="wp-upload-form media-upload-form type-form validate" id="file-form">
+  <%= hidden_field_tag :authenticity_token, form_authenticity_token %>
+
+  <div id="drag-drop-area">
+    <div class="drag-drop-inside">
+      <p class="drag-drop-info"><%= "Drop files to upload" %></p>
+      <p><%= "or" %></p>
+      <p class="drag-drop-buttons"><input id="plupload-browse-button" type="button" value="<%= "Select Files" %>" class="button" /></p>
+    </div>
+  </div>
+
+  <div id="html-upload-ui">
+    <p id="async-upload-wrap">
+      <label class="screen-reader-text" for="async-upload"><%= "Upload" %></label>
+      <input type="file" name="async-upload" id="async-upload" />
+      <button type="submit" class="button button-primary" id="html-upload"><%= "Upload" %></button>
+      <a href="/console/media"><%= "Cancel" %></a>
+    </p>
+    <div class="clear"></div>
+  </div>
+
+  <p class="max-upload-size">
+    <%= "Maximum upload file size: #{number_to_human_size(Console::MediaController::MAX_UPLOAD_SIZE)}." %>
+  </p>
+</form>

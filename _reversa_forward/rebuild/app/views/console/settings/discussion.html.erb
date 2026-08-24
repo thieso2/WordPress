@@ -7,8 +7,95 @@
 <%= render "console/settings/nav" %>
 
 <%= form_with url: settings_path_for("discussion"), method: :post do %>
-  <table class="form-table" role="presentation">
+  <table class="form-table indent-children" role="presentation">
     <tbody>
+      <tr>
+        <th scope="row">Default post settings</th>
+        <td><fieldset>
+          <legend class="screen-reader-text"><span>Default post settings</span></legend>
+          <label for="default_pingback_flag">
+            <input name="default_pingback_flag" type="checkbox" id="default_pingback_flag" value="1" <%= "checked" if on?("default_pingback_flag") %>>
+            Attempt to notify any blogs linked to from the post</label><br>
+          <label for="default_ping_status">
+            <input name="default_ping_status" type="checkbox" id="default_ping_status" value="open" <%= "checked" if current("default_ping_status").to_s == "open" %>>
+            Allow link notifications from other blogs (pingbacks and trackbacks) on new posts</label><br>
+          <label for="default_comment_status">
+            <input name="default_comment_status" type="checkbox" id="default_comment_status" value="open" <%= "checked" if current("default_comment_status").to_s == "open" %>>
+            Allow people to submit comments on new posts</label><br>
+          <p class="description">Individual posts may override these settings. Changes here will only be applied to new posts.</p>
+        </fieldset></td>
+      </tr>
+      <tr>
+        <th scope="row">Other comment settings</th>
+        <td><fieldset>
+          <legend class="screen-reader-text"><span>Other comment settings</span></legend>
+          <label for="require_name_email"><input type="checkbox" name="require_name_email" id="require_name_email" value="1" <%= "checked" if on?("require_name_email") %>> Comment author must fill out name and email</label><br>
+          <label for="comment_registration">
+            <input name="comment_registration" type="checkbox" id="comment_registration" value="1" <%= "checked" if on?("comment_registration") %>>
+            Users must be registered and logged in to comment</label><br>
+          <input name="close_comments_for_old_posts" type="checkbox" id="close_comments_for_old_posts" value="1" <%= "checked" if on?("close_comments_for_old_posts") %>> <label for="close_comments_for_old_posts">Automatically close comments on old posts</label>
+          <ul>
+            <li>
+              <label for="close_comments_days_old">Close comments when post is how many days old</label>
+              <input name="close_comments_days_old" type="number" step="1" min="0" id="close_comments_days_old" value="<%= input_value("close_comments_days_old") %>" class="small-text">
+            </li>
+          </ul>
+          <input name="show_comments_cookies_opt_in" type="checkbox" id="show_comments_cookies_opt_in" value="1" <%= "checked" if on?("show_comments_cookies_opt_in") %>>
+          <label for="show_comments_cookies_opt_in">Show comments cookies opt-in checkbox, allowing comment author cookies to be set</label><br>
+          <input name="thread_comments" type="checkbox" id="thread_comments" value="1" <%= "checked" if on?("thread_comments") %>>
+          <label for="thread_comments">Enable threaded (nested) comments</label>
+          <ul>
+            <li>
+              <label for="thread_comments_depth">Number of levels for threaded (nested) comments</label>
+              <select name="thread_comments_depth" id="thread_comments_depth">
+                <% (2..10).each do |i| %>
+                  <option value="<%= i %>" <%= "selected" if current("thread_comments_depth").to_i == i %>><%= i %></option>
+                <% end %>
+              </select>
+            </li>
+          </ul>
+        </fieldset></td>
+      </tr>
+      <tr>
+        <th scope="row">Comment Pagination</th>
+        <td><fieldset>
+          <legend class="screen-reader-text"><span>Comment Pagination</span></legend>
+          <input name="page_comments" type="checkbox" id="page_comments" value="1" <%= "checked" if on?("page_comments") %>>
+          <label for="page_comments">Break comments into pages</label>
+          <ul>
+            <li>
+              <label for="comments_per_page">Top level comments per page</label>
+              <input name="comments_per_page" type="number" step="1" min="0" id="comments_per_page" value="<%= input_value("comments_per_page") %>" class="small-text">
+            </li>
+            <li>
+              <label for="default_comments_page">Comments page to display by default</label>
+              <select name="default_comments_page" id="default_comments_page">
+                <option value="newest" <%= "selected" if current("default_comments_page").to_s == "newest" %>>last page</option>
+                <option value="oldest" <%= "selected" if current("default_comments_page").to_s == "oldest" %>>first page</option>
+              </select>
+            </li>
+            <li>
+              <label for="comment_order">Comments to display at the top of each page</label>
+              <select name="comment_order" id="comment_order">
+                <option value="asc" <%= "selected" if current("comment_order").to_s == "asc" %>>older</option>
+                <option value="desc" <%= "selected" if current("comment_order").to_s == "desc" %>>newer</option>
+              </select>
+            </li>
+          </ul>
+        </fieldset></td>
+      </tr>
+      <tr>
+        <th scope="row">Email me whenever</th>
+        <td><fieldset>
+          <legend class="screen-reader-text"><span>Email me whenever</span></legend>
+          <label for="comments_notify">
+            <input name="comments_notify" type="checkbox" id="comments_notify" value="1" <%= "checked" if on?("comments_notify") %>>
+            Anyone posts a comment</label><br>
+          <label for="moderation_notify">
+            <input name="moderation_notify" type="checkbox" id="moderation_notify" value="1" <%= "checked" if on?("moderation_notify") %>>
+            A comment is held for moderation</label>
+        </fieldset></td>
+      </tr>
       <tr>
         <th scope="row">Before a comment appears</th>
         <td><fieldset>
@@ -16,9 +103,7 @@
           <label for="comment_moderation">
             <input name="comment_moderation" type="checkbox" id="comment_moderation" value="1" <%= "checked" if on?("comment_moderation") %>>
             Comment must be manually approved</label><br>
-          <label for="comment_previously_approved">
-            <input name="comment_previously_approved" type="checkbox" id="comment_previously_approved" value="1" <%= "checked" if on?("comment_previously_approved") %>>
-            Comment author must have a previously approved comment</label>
+          <label for="comment_previously_approved"><input type="checkbox" name="comment_previously_approved" id="comment_previously_approved" value="1" <%= "checked" if on?("comment_previously_approved") %>> Comment author must have a previously approved comment</label>
         </fieldset></td>
       </tr>
       <tr>
@@ -38,17 +123,6 @@
           <legend class="screen-reader-text"><span>Disallowed Comment Keys</span></legend>
           <p><label for="disallowed_keys">When a comment contains any of these words in its content, author name, URL, email, IP address, or browser&#8217;s user agent string, it will be put in the Trash. One word or IP address per line. It will match inside words, so &#8220;press&#8221; will match &#8220;WordPress&#8221;.</label></p>
           <textarea name="disallowed_keys" rows="10" cols="50" id="disallowed_keys" class="large-text code"><%= current("disallowed_keys") %></textarea>
-        </fieldset></td>
-      </tr>
-      <tr>
-        <th scope="row">Other comment settings</th>
-        <td><fieldset>
-          <legend class="screen-reader-text"><span>Other comment settings</span></legend>
-          <label for="close_comments_for_old_posts">
-            <input name="close_comments_for_old_posts" type="checkbox" id="close_comments_for_old_posts" value="1" <%= "checked" if on?("close_comments_for_old_posts") %>>
-            Automatically close comments on old posts</label><br>
-          <label for="close_comments_days_old">Close comments when post is how many days old</label>
-          <input name="close_comments_days_old" type="number" step="1" min="0" id="close_comments_days_old" value="<%= input_value("close_comments_days_old") %>" class="small-text"> days
         </fieldset></td>
       </tr>
     </tbody>

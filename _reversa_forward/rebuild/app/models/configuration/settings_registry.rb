@@ -35,6 +35,9 @@ module Configuration
       def cast(raw)
         value = case type
                 when :boolean then checkbox(raw)
+                # default_comment_status / default_ping_status store 'open' or ''
+                # (options-discussion.php value="open"); an absent checkbox is 'closed'.
+                when :openclose then raw.to_s == "open" ? "open" : ""
                 when :integer then raw.to_s.strip.empty? ? default : raw.to_i
                 else raw.to_s
                 end
@@ -79,13 +82,21 @@ module Configuration
         f("blogdescription", :string, "", ESC_HTML),
         f("siteurl", :string, ""),
         f("home", :string, ""),
+        # options-general.php:265 — the field is new_admin_email; its value is bound to
+        # admin_email in the view (the confirmation-email flow's pending address).
+        f("new_admin_email", :string, ""),
         f("timezone_string", :string, ""),
         f("date_format", :string, "F j, Y"),
         f("time_format", :string, "g:i a"),
         f("users_can_register", :boolean, "0"),
         f("default_role", :string, "subscriber"),
+        # options-general.php:577 — Week Starts On (0=Sunday..6=Saturday). WP default 1.
+        f("start_of_week", :integer, 1),
       ],
       "writing" => [
+        # options-writing.php:70-77 — the Formatting fieldset.
+        f("use_smilies", :boolean, "1"),
+        f("use_balanceTags", :boolean, "0"),
         f("default_category", :integer, 1),
         f("mailserver_url", :string, "mail.example.com"),
         f("mailserver_login", :string, "login@example.com"),
@@ -99,19 +110,41 @@ module Configuration
         f("page_for_posts", :integer, 0),
         f("posts_per_page", :integer, 10),
         f("posts_per_rss", :integer, 10),
+        # options-reading.php:190 — For each post in a feed, include (0=Full text,1=Excerpt).
+        f("rss_use_excerpt", :integer, 0),
         f("blog_public", :boolean, "1"),
       ],
       # ⚠️ The whole comment-moderation policy (target_screens.md:538). The three
       # deviations BR-CMT-04/08/10 live in Discussion::ModerationPolicy already; this
       # screen only writes the option values that policy reads.
       "discussion" => [
+        # Default post settings (options-discussion.php:47-68).
+        f("default_pingback_flag", :boolean, "0"),
+        f("default_ping_status", :openclose, "open"),
+        f("default_comment_status", :openclose, "open"),
+        # Other comment settings (options-discussion.php:69-146).
+        f("require_name_email", :boolean, "1"),
+        f("comment_registration", :boolean, "0"),
+        f("close_comments_for_old_posts", :boolean, "0"),
+        f("close_comments_days_old", :integer, 14),
+        f("show_comments_cookies_opt_in", :boolean, "1"),
+        f("thread_comments", :boolean, "1"),
+        f("thread_comments_depth", :integer, 5),
+        # Comment Pagination (options-discussion.php:147-176).
+        f("page_comments", :boolean, "0"),
+        f("comments_per_page", :integer, 50),
+        f("default_comments_page", :string, "newest"),
+        f("comment_order", :string, "asc"),
+        # Email me whenever (options-discussion.php:177-193).
+        f("comments_notify", :boolean, "1"),
+        f("moderation_notify", :boolean, "1"),
+        # Before a comment appears (options-discussion.php:170-180).
         f("comment_moderation", :boolean, "0"),
         f("comment_previously_approved", :boolean, "1"),
+        # Comment Moderation (options-discussion.php:181-198).
         f("comment_max_links", :integer, 2),
         f("moderation_keys", :text, ""),
         f("disallowed_keys", :text, ""),
-        f("close_comments_for_old_posts", :boolean, "0"),
-        f("close_comments_days_old", :integer, 14),
       ],
       "media" => [
         f("thumbnail_size_w", :integer, 150),
@@ -134,6 +167,11 @@ module Configuration
         # this low namespace stays a leaf. The controller writes this option through
         # Routing::PermalinkStructure.change_to, so the two never diverge in practice.
         f("permalink_structure", :string, "/%year%/%monthnum%/%postname%/"),
+        # options-permalink.php:408-453 — the Optional section. Custom rewrite prefixes;
+        # written through the controller's #update_permalinks alongside the structure,
+        # not the plain save (permalinks has its own write path).
+        f("category_base", :string, ""),
+        f("tag_base", :string, ""),
       ],
       # privacy page selection is written through the controller's own flow
       # (wp_page_for_privacy_policy is a post id; T-12 remapped it at seed).

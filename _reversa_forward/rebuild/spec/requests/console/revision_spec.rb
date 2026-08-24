@@ -49,3 +49,78 @@ RSpec.describe "console.revision", type: :request do
     expect(body_text).to include("Invalid post ID.")
   end
 end
+
+# ── Defect fixes: linked heading with _draft_or_post_title, and the action=restore
+# state transition (revision.php:36-83, :107-110).
+RSpec.describe "console.revision — heading + restore", type: :request do
+  before { seed_console_accounts!; host! "127.0.0.1" }
+
+  let(:post_record) { create_article!(author: actor("con_editor"), title: "Versioned") }
+
+  def add_revision!(title:, content:)
+    Publishing::Revision.create!(post: post_record, author: actor("con_editor"),
+                                 title: title, content: content, excerpt: "")
+  end
+
+  it "links the post title inside the heading to the editor (revision.php:109)" do
+    add_revision!(title: "Versioned", content: "x")
+    login_as("con_editor")
+    get "/console/posts/#{post_record.id}/revisions"
+    expect(response).to have_http_status(:ok)
+    heading = doc.at_css("h1")
+    expect(heading.text).to include("Compare Revisions of")
+    link = heading.at_css("a")
+    expect(link).to be_present
+    expect(link["href"]).to eq("/console/posts/#{post_record.id}/edit")
+    expect(link.text).to eq("Versioned")
+  end
+
+  it "substitutes '(no title)' for an empty post title (revision.php:108)" do
+    empty = Publishing::Article.create!(author: actor("con_editor"), title: "",
+                                        content: "", excerpt: "", status: :draft)
+    Publishing::Revision.create!(post: empty, author: actor("con_editor"),
+                                 title: "", content: "body", excerpt: "")
+    login_as("con_editor")
+    get "/console/posts/#{empty.id}/revisions"
+    expect(response).to have_http_status(:ok)
+    expect(doc.at_css("h1").text).to include("(no title)")
+  end
+
+  it "restores the parent post's fields from a revision and redirects to the editor" do
+    add_revision!(title: "Versioned", content: "the original body")
+    # The parent has since diverged from that revision.
+    post_record.update!(content: "a later body", actor: actor("con_editor"))
+    revision = post_record.revisions.regular.newest_first.to_a.last
+    login_as("con_editor")
+
+    post "/console/posts/#{post_record.id}/revisions/restore", params: { revision: revision.id }
+
+    expect(response).to have_http_status(:see_other)
+    expect(response).to redirect_to(edit_console_post_path(post_record))
+    expect(post_record.reload.content).to eq("the original body")
+  end
+
+  it "sets the LITERAL 'Post restored to revision from' notice" do
+    add_revision!(title: "Versioned", content: "the original body")
+    revision = post_record.revisions.regular.newest_first.first
+    login_as("con_editor")
+    post "/console/posts/#{post_record.id}/revisions/restore", params: { revision: revision.id }
+    follow_redirect!
+    expect(body_text).to include("Post restored to revision from")
+  end
+
+  it "denies restore to an actor who cannot edit the parent post (403)" do
+    add_revision!(title: "Versioned", content: "x")
+    revision = post_record.revisions.regular.first
+    login_as("con_subscriber")
+    post "/console/posts/#{post_record.id}/revisions/restore", params: { revision: revision.id }
+    expect(response).to have_http_status(:forbidden)
+    expect(body_text).to include("Sorry, you are not allowed to view revisions of this post.")
+  end
+
+  it "404s an unknown revision id" do
+    login_as("con_editor")
+    post "/console/posts/#{post_record.id}/revisions/restore", params: { revision: 999999 }
+    expect(response).to have_http_status(:not_found)
+  end
+end

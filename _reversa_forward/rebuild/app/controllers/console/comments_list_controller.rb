@@ -22,14 +22,21 @@ module Console
       @page_title = "Comments"
       @screen = "console.edit-comments"
 
-      relation = ordered(status_scoped(Discussion::Comment.all)).includes(:post)
+      relation = ordered(type_scoped(status_scoped(Discussion::Comment.all))).includes(:post)
       page = list_page(relation, strategy: :exact)
+      # extra_tablenav (class-wp-comments-list-table.php:449) renders the Empty Spam/Trash
+      # submit only when the actor `current_user_can( 'moderate_comments' )`.
+      @can_moderate = site_can?("moderate_comments")
       @list = build_list(page)
       render "console/comments_list/index"
     end
 
     # POST /console/comments/bulk
     def bulk
+      # current_action() (class-wp-comments-list-table.php:475) — the 'delete_all' submit
+      # (Empty Spam / Empty Trash) empties the whole current view rather than selected ids.
+      return empty_current_status if params[:delete_all].present?
+
       return redirect_to(list_path, status: :see_other) unless bulk_action_chosen? && bulk_ids.any?
 
       action = bulk_action_name
@@ -46,7 +53,9 @@ module Console
     private
 
     DESTRUCTIVE = %w[spam trash delete].freeze
-    SORTABLE = %w[date].freeze
+    # get_sortable_columns(), class-wp-comments-list-table.php:574 — author
+    # (comment_author), response (comment_post_ID) and date (comment_date) all sort.
+    SORTABLE = %w[author response date].freeze
 
     def status_scoped(scope)
       case current_status
@@ -54,7 +63,18 @@ module Console
       when "approved" then scope.in_approved
       when "spam"     then scope.in_spam
       when "trash"    then scope.in_trashed
+      when "mine"     then scope.where(user_id: current_actor&.id).where.not(status: %w[spam trashed])
       else scope.where.not(status: %w[spam trashed]) # "all" excludes spam and trash
+      end
+    end
+
+    # comment_type_dropdown (class-wp-comments-list-table.php:521): 'comment' shows real
+    # comments, 'pings' shows pingbacks/trackbacks. The type slug maps onto comments.kind.
+    def type_scoped(scope)
+      case params[:comment_type].to_s
+      when "comment" then scope.where(kind: "comment")
+      when "pings"   then scope.where(kind: %w[pingback trackback])
+      else scope
       end
     end
 
@@ -66,7 +86,12 @@ module Console
 
     def ordered(scope)
       dir = list_order.upcase
-      scope.order(Arel.sql("comments.submitted_at #{dir}, comments.id #{dir}"))
+      column = case list_orderby(SORTABLE, default: "date")
+               when "author"   then "comments.author_name" # comment_author
+               when "response" then "comments.post_id"      # comment_post_ID
+               else "comments.submitted_at"                 # comment_date
+               end
+      scope.order(Arel.sql("#{column} #{dir}, comments.id #{dir}"))
     end
 
     def build_list(page)
@@ -85,17 +110,18 @@ module Console
         empty_message: current_status == "trash" ? "No comments found in Trash." : "No comments found.",
         query: list_query,
         order: list_order,
-        orderby: "date",
+        orderby: list_orderby(SORTABLE, default: "date"),
         search_query: params[:s].presence
       )
     end
 
-    # get_columns(), class-wp-comments-list-table.php:497 — LITERAL.
+    # get_columns(), class-wp-comments-list-table.php:497 — LITERAL. Author and response
+    # are sortable too (get_sortable_columns, :574).
     def columns
       [
-        ListModel::Column.new(key: "author", label: "Author", sortable: false),
+        ListModel::Column.new(key: "author", label: "Author", sortable: true, sort_key: "author"),
         ListModel::Column.new(key: "comment", label: "Comment", sortable: false),
-        ListModel::Column.new(key: "response", label: "In response to", sortable: false),
+        ListModel::Column.new(key: "response", label: "In response to", sortable: true, sort_key: "response"),
         ListModel::Column.new(key: "date", label: "Submitted on", sortable: true, sort_key: "date")
       ]
     end
@@ -132,6 +158,10 @@ module Console
       all_count = counts.reject { |s, _| %w[spam trashed].include?(s) }.values.sum
       cur = current_status
       tabs = [tab("all", "All", all_count, cur.empty? || cur == "all", nil)]
+      # get_views (:250) — 'Mine' filters to the current user's own comments (user_id).
+      mine_count = Discussion::Comment.where(user_id: current_actor&.id)
+                                      .where.not(status: %w[spam trashed]).count
+      tabs << tab("mine", "Mine", mine_count, cur == "mine", "mine")
       STATUS_TAB.each do |key, label|
         model_status = key == "trash" ? "trashed" : (key == "pending" ? "pending" : key)
         n = counts[model_status].to_i
@@ -180,18 +210,46 @@ module Console
     # Row actions gated on CommentPolicy — approve/unapprove/spam/trash all map to
     # edit_comment (class-wp-comments-list-table row actions). The exact set shown depends
     # on the comment's current status, as the legacy's handle_row_actions does.
+    #
+    # handle_row_actions (class-wp-comments-list-table.php:721). Preorder:
+    # Approve | Unapprove | Reply | Quick Edit | Edit | Spam/Not Spam | Trash/Restore |
+    # Delete Permanently. On the 'All' view BOTH approve and unapprove show (:786); on a
+    # single-status view only the transition away from the row's own status shows (:768).
+    # Reply/Quick Edit/Edit are hidden on spam and trash rows (:849). Not Spam (:814),
+    # Restore (:824) and Delete Permanently (:834) are the spam/trash restore + purge
+    # actions. EMPTY_TRASH_DAYS is on (Trash tab exists), so Delete Permanently is only
+    # offered on spam/trash rows and Move to Trash elsewhere.
     def row_actions(comment)
       return [] unless can?(Access::CommentPolicy, comment, :edit)
 
       acts = []
-      if comment.approved?
+      all_view = current_status.empty? || current_status == "all"
+      if all_view
+        acts << action_button("Approve", "approve", comment, key: "approve")
         acts << action_button("Unapprove", "unapprove", comment, key: "unapprove")
-      else
+      elsif comment.approved?
+        acts << action_button("Unapprove", "unapprove", comment, key: "unapprove")
+      elsif comment.pending?
         acts << action_button("Approve", "approve", comment, key: "approve")
       end
-      acts << action_button("Edit", nil, comment, path: "/console/comments/#{comment.id}/edit", key: "edit")
-      acts << action_button("Spam", "spam", comment, destructive: true, key: "spam")
-      unless comment.trashed?
+
+      unless comment.spam? || comment.trashed?
+        acts << action_button("Reply", nil, comment, path: "/console/comments/#{comment.id}/reply", key: "reply")
+        acts << action_button("Quick Edit", nil, comment, path: "/console/comments/#{comment.id}/edit", key: "quickedit")
+        acts << action_button("Edit", nil, comment, path: "/console/comments/#{comment.id}/edit", key: "edit")
+      end
+
+      if comment.spam?
+        acts << action_button("Not Spam", "unspam", comment, key: "unspam")
+      else
+        acts << action_button("Spam", "spam", comment, destructive: true, key: "spam")
+      end
+
+      acts << action_button("Restore", "untrash", comment, key: "untrash") if comment.trashed?
+
+      if comment.spam? || comment.trashed?
+        acts << action_button("Delete Permanently", "delete", comment, destructive: true, key: "delete")
+      else
         acts << action_button("Trash", "trash", comment, destructive: true, key: "trash")
       end
       acts
@@ -216,15 +274,47 @@ module Console
         when "approve"   then comment.approve!(by: current_actor)
         when "unapprove" then comment.unapprove!(by: current_actor)
         when "spam"      then comment.mark_spam!(by: current_actor)
-        when "unspam"    then comment.unapprove!(by: current_actor)
+        when "unspam"    then restore_prior_status!(comment)
         when "trash"     then comment.trash!(by: current_actor)
-        when "untrash"   then comment.unapprove!(by: current_actor)
+        when "untrash"   then restore_prior_status!(comment)
         when "delete"    then comment.destroy!
         else next
         end
         count += 1
       end
       count
+    end
+
+    # wp_unspam_comment / wp_untrash_comment (comment.php:326,340) restore the status the
+    # comment held BEFORE it was spammed/trashed (the legacy stores it in comment_meta /
+    # _wp_trash_meta_status). There is no comment_meta table here, so the prior status is
+    # read from the moderation_verdicts trail: the most recent approved/pending verdict.
+    # An approved comment restored from Spam/Trash returns to approved, not pending.
+    def restore_prior_status!(comment)
+      prior = comment.moderation_verdicts
+                     .where(outcome: %w[approved pending])
+                     .order(decided_at: :desc, id: :desc).first&.outcome
+      if prior == "approved"
+        comment.approve!(by: current_actor)
+      else
+        comment.unapprove!(by: current_actor)
+      end
+    end
+
+    # extra_tablenav 'delete_all' (class-wp-comments-list-table.php:449) — Empty Spam /
+    # Empty Trash purges every comment in the current view. Routed through the DEV-004
+    # confirmation like any permanent delete.
+    def empty_current_status
+      status = current_status
+      unless %w[spam trash].include?(status)
+        return redirect_to(list_path(status: status), status: :see_other)
+      end
+
+      comments = status_scoped(Discussion::Comment.all).to_a
+      return confirm_bulk("delete", comments) unless bulk_confirmed?
+
+      count = run_bulk("delete", comments)
+      redirect_to list_path(status: status), notice: bulk_notice("delete", count), status: :see_other
     end
 
     def confirm_bulk(action, comments)

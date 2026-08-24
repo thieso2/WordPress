@@ -31,6 +31,13 @@
         </td>
       </tr>
       <tr>
+        <th scope="row"><label for="new_admin_email">Administration Email Address</label></th>
+        <td>
+          <input name="new_admin_email" type="email" id="new_admin_email" aria-describedby="new-admin-email-description" value="<%= input_value("admin_email") %>" class="regular-text ltr">
+          <p class="description" id="new-admin-email-description">This address is used for admin purposes. If you change this, an email will be sent to your new address to confirm it. <strong>The new address will not become active until confirmed.</strong></p>
+        </td>
+      </tr>
+      <tr>
         <th scope="row">Membership</th>
         <td><fieldset>
           <legend class="screen-reader-text"><span>Membership</span></legend>
@@ -63,6 +70,16 @@
       <tr>
         <th scope="row"><label for="time_format">Time Format</label></th>
         <td><input name="time_format" type="text" id="time_format" value="<%= input_value("time_format") %>" class="regular-text"></td>
+      </tr>
+      <tr>
+        <th scope="row"><label for="start_of_week">Week Starts On</label></th>
+        <td>
+          <select name="start_of_week" id="start_of_week">
+            <% %w[Sunday Monday Tuesday Wednesday Thursday Friday Saturday].each_with_index do |day, i| %>
+              <option value="<%= i %>" <%= "selected" if current("start_of_week").to_i == i %>><%= day %></option>
+            <% end %>
+          </select>
+        </td>
       </tr>
     </tbody>
   </table>

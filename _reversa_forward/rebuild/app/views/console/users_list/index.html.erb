@@ -1,3 +1,45 @@
 <%# P-LIST instantiation — renders the Console::ListModel the controller built through the
     one shared list partial. All content, columns and LITERAL strings come from @list. %>
 <%= render "console/shared/list", list: @list %>
+
+<%# extra_tablenav() (class-wp-users-list-table.php:298-320) — the bulk "Change role to…"
+    control, gated on promote_users and on the table having rows. wp_dropdown_roles() lists
+    the editable roles (subscriber → administrator), then the mocked "No role" option. It
+    submits `new_role` + `changeit`, which the bulk endpoint maps to the 'promote' action.
+    The shared list partial owns the checkbox column, so on submit the selected `ids[]` are
+    mirrored into this form. LITERAL strings verbatim from the oracle. -%>
+<% if @can_promote_users %>
+  <%= form_with url: "/console/users/bulk", method: :post, id: "change-role-form", data: { turbo: false } do %>
+    <div class="alignleft actions">
+      <label class="screen-reader-text" for="new_role"><%= raw "Change role to&hellip;" %></label>
+      <select name="new_role" id="new_role">
+        <option value=""><%= raw "Change role to&hellip;" %></option>
+        <option value="subscriber"><%= "Subscriber" %></option>
+        <option value="contributor"><%= "Contributor" %></option>
+        <option value="author"><%= "Author" %></option>
+        <option value="editor"><%= "Editor" %></option>
+        <option value="administrator"><%= "Administrator" %></option>
+        <option value="none"><%= raw "&mdash; No role for this site &mdash;" %></option>
+      </select>
+      <button type="submit" name="changeit" id="changeit" class="button"><%= "Change" %></button>
+    </div>
+  <% end %>
+
+  <script>
+    (function () {
+      var form = document.getElementById("change-role-form");
+      if (!form) return;
+      form.addEventListener("submit", function () {
+        form.querySelectorAll('input[name="ids[]"].mirrored-id').forEach(function (n) { n.remove(); });
+        document.querySelectorAll('input[name="ids[]"]:checked').forEach(function (cb) {
+          var hidden = document.createElement("input");
+          hidden.type = "hidden";
+          hidden.name = "ids[]";
+          hidden.value = cb.value;
+          hidden.className = "mirrored-id";
+          form.appendChild(hidden);
+        });
+      });
+    })();
+  </script>
+<% end %>

@@ -1,3 +1,34 @@
 <%# P-LIST instantiation — renders the Console::ListModel the controller built through the
-    one shared list partial. All content, columns and LITERAL strings come from @list. %>
+    one shared list partial. All content, columns and LITERAL strings come from @list.
+
+    extra_tablenav (class-wp-comments-list-table.php:411) adds two controls the shared
+    list partial does not carry: the comment-type filter dropdown (:521) and the Empty
+    Spam / Empty Trash purge submit (:449). They render here, above the list, with their
+    LITERAL strings; placement differs from the legacy tablenav (DEV-002, declared UI). -%>
+<div class="alignleft actions comments-extra-tablenav">
+  <%# comment_type_dropdown (:521) — 'All comment types' / 'Comments' / 'Pings' + Filter. %>
+  <%= form_with url: "/console/comments", method: :get, data: { turbo: false } do %>
+    <% if params[:status].present? %><%= hidden_field_tag :status, params[:status] %><% end %>
+    <label class="screen-reader-text" for="filter-by-comment-type"><%= "Filter by comment type" %></label>
+    <select id="filter-by-comment-type" name="comment_type">
+      <option value=""><%= "All comment types" %></option>
+      <option value="comment" <%= "selected" if params[:comment_type] == "comment" %>><%= "Comments" %></option>
+      <option value="pings" <%= "selected" if params[:comment_type] == "pings" %>><%= "Pings" %></option>
+    </select>
+    <button type="submit" id="post-query-submit" class="button"><%= "Filter" %></button>
+  <% end %>
+
+  <%# Empty Spam / Empty Trash (:449) — only on the Spam/Trash views, only when the actor
+      can moderate and the view has items. Posts delete_all to the bulk endpoint. %>
+  <% if @can_moderate && %w[spam trash].include?(params[:status].to_s) && @list.any_rows? %>
+    <%= form_with url: "/console/comments/bulk", method: :post, data: { turbo: false } do %>
+      <%= hidden_field_tag :status, params[:status] %>
+      <%= hidden_field_tag :delete_all, "1" %>
+      <button type="submit" id="delete_all" class="button apply">
+        <%= params[:status] == "spam" ? "Empty Spam" : "Empty Trash" %>
+      </button>
+    <% end %>
+  <% end %>
+</div>
+
 <%= render "console/shared/list", list: @list %>

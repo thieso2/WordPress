@@ -71,7 +71,8 @@ RSpec.describe "console.themes", type: :request do
       delete "/console/themes/#{active.slug}"
       expect(Presentation::Theme.where(slug: active.slug)).to exist
       follow_redirect!
-      expect(response.body).to include("Sorry, you cannot delete the active theme.")
+      # themes.php:304, the delete-active-child branch the guard emulates — VERBATIM.
+      expect(response.body).to include("You cannot delete a theme while it has an active child theme.")
     end
 
     it "answers a missing theme with the LITERAL not-found string" do
@@ -79,6 +80,36 @@ RSpec.describe "console.themes", type: :request do
       delete "/console/themes/does-not-exist"
       expect(response).to have_http_status(:not_found)
       expect(response.body).to include("The requested theme does not exist.")
+    end
+  end
+
+  # themes.php:83-124 — per-theme auto-update opt-in stored in the `auto_update_themes`
+  # site option. The screen's behaviour is the preference write plus its verbatim notice;
+  # WP-Cron's executor is out of scope (AD-01), the recorded preference is not.
+  describe "the auto-update toggle" do
+    it "enables auto-updates (Theme will be auto-updated.)" do
+      login_as("con_admin")
+      post "/console/themes/twentytwentyfour/enable-auto-update"
+      expect(response).to have_http_status(:see_other)
+      expect(Configuration::Setting["auto_update_themes"]).to include("twentytwentyfour")
+      follow_redirect!
+      expect(response.body).to include("Theme will be auto-updated.")
+    end
+
+    it "disables auto-updates (Theme will no longer be auto-updated.)" do
+      login_as("con_admin")
+      Configuration::Setting.set("auto_update_themes", ["twentytwentyfour"])
+      post "/console/themes/twentytwentyfour/disable-auto-update"
+      expect(response).to have_http_status(:see_other)
+      expect(Configuration::Setting["auto_update_themes"]).not_to include("twentytwentyfour")
+      follow_redirect!
+      expect(response.body).to include("Theme will no longer be auto-updated.")
+    end
+
+    it "forbids a subscriber from toggling auto-updates" do
+      login_as("con_subscriber")
+      post "/console/themes/twentytwentyfour/enable-auto-update"
+      expect(response).to have_http_status(:forbidden)
     end
   end
 end

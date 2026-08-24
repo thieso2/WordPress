@@ -54,6 +54,16 @@
         </td>
       </tr>
       <tr>
+        <th scope="row">For each post in a feed, include</th>
+        <td><fieldset>
+          <legend class="screen-reader-text"><span>For each post in a feed, include</span></legend>
+          <p>
+            <label><input name="rss_use_excerpt" type="radio" value="0" <%= "checked" if current("rss_use_excerpt").to_i == 0 %>> Full text</label><br>
+            <label><input name="rss_use_excerpt" type="radio" value="1" <%= "checked" if current("rss_use_excerpt").to_i == 1 %>> Excerpt</label>
+          </p>
+        </fieldset></td>
+      </tr>
+      <tr>
         <th scope="row">Search engine visibility</th>
         <td><fieldset>
           <legend class="screen-reader-text"><span>Search engine visibility</span></legend>

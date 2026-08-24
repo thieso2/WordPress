@@ -1,42 +1,145 @@
-<%# console.index — wp-admin/index.php, modernized. Declared widget grid (DEV-002). -%>
+<%# console.index — wp-admin/index.php, modernized. Declared widget grid (DEV-002). All
+    FUNCTIONAL strings are VERBATIM from wp-admin/includes/dashboard.php (DEV-009). -%>
 <% @page_title = "Dashboard" %>
 <h1 class="wp-heading-inline">Dashboard</h1>
 <hr class="wp-header-end">
 
 <div class="dashboard-widgets" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1rem">
-  <section class="widget">
+  <%# ── At a Glance (wp_dashboard_right_now, dashboard.php:300) ─────────────────── -%>
+  <section class="widget" id="dashboard_right_now">
     <h2>At a Glance</h2>
-    <table class="widefat">
-      <tbody>
-        <tr><td><%= @counts[:posts] %></td><td><%= "Post".pluralize(@counts[:posts]) %></td></tr>
-        <tr><td><%= @counts[:pages] %></td><td><%= "Page".pluralize(@counts[:pages]) %></td></tr>
-        <tr><td><%= @counts[:comments] %></td><td><%= "Comment".pluralize(@counts[:comments]) %></td></tr>
-      </tbody>
-    </table>
-    <% if @search_discouraged %>
-      <p class="description" style="margin-top:.5rem">Search engines discouraged</p>
-    <% end %>
+    <div class="main">
+      <ul>
+        <%# %s Published post / posts — _n, dashboard.php:310-313 -%>
+        <% if @posts_count.positive? %>
+          <% post_text = "#{number_with_delimiter(@posts_count)} #{@posts_count == 1 ? "Published post" : "Published posts"}" %>
+          <li class="post-count">
+            <% if @can_edit_posts %><%= link_to post_text, "/console/posts?post_status=publish&post_type=post" %><% else %><span><%= post_text %></span><% end %>
+          </li>
+        <% end %>
+        <%# %s Published page / pages — _n, dashboard.php:314-315 -%>
+        <% if @pages_count.positive? %>
+          <% page_text = "#{number_with_delimiter(@pages_count)} #{@pages_count == 1 ? "Published page" : "Published pages"}" %>
+          <li class="page-count">
+            <% if @can_edit_pages %><%= link_to page_text, "/console/pages?post_status=publish&post_type=page" %><% else %><span><%= page_text %></span><% end %>
+          </li>
+        <% end %>
+        <%# %s Comment / Comments (approved) + %s Comment(s) in moderation — dashboard.php:336-353 -%>
+        <% if @approved_comments.positive? || @moderated_comments.positive? %>
+          <% comment_text = "#{number_with_delimiter(@approved_comments)} #{@approved_comments == 1 ? "Comment" : "Comments"}" %>
+          <li class="comment-count">
+            <%= link_to comment_text, "/console/comments" %>
+          </li>
+          <% mod_text = "#{number_with_delimiter(@moderated_comments)} #{@moderated_comments == 1 ? "Comment in moderation" : "Comments in moderation"}" %>
+          <li class="comment-mod-count<%= " hidden" unless @moderated_comments.positive? %>">
+            <%= link_to mod_text, "/console/comments?comment_status=moderated", class: "comments-in-moderation-text" %>
+          </li>
+        <% end %>
+      </ul>
+      <% if @search_discouraged %>
+        <%# 'Search engines discouraged' → options-reading.php (dashboard.php:407-410) -%>
+        <p class="search-engines-info"><%= link_to "Search engines discouraged", "/console/settings/reading" %></p>
+      <% end %>
+    </div>
   </section>
 
-  <section class="widget">
+  <%# ── Activity (wp_dashboard_site_activity, dashboard.php:942) ────────────────── -%>
+  <section class="widget" id="dashboard_activity">
     <h2>Activity</h2>
-    <% if @recent_posts.any? %>
-      <h3>Recently Published</h3>
-      <table class="widefat">
-        <tbody>
-          <% @recent_posts.each do |post| %>
-            <tr>
-              <td><%= post.published_at&.strftime("%b %-d") %></td>
-              <td><%= link_to post.title.presence || "(no title)", "/console/posts/#{post.id}/edit" %></td>
-            </tr>
-          <% end %>
-        </tbody>
-      </table>
-    <% else %>
-      <p class="no-items">No activity yet.</p>
-    <% end %>
-    <% if @pending_comments.positive? %>
-      <p class="description"><%= link_to "#{@pending_comments} #{"comment".pluralize(@pending_comments)} awaiting moderation", "/console/comments?comment_status=moderated" %></p>
-    <% end %>
+    <div id="activity-widget">
+      <% if @future_posts.any? %>
+        <div id="future-posts" class="activity-block">
+          <h3>Publishing Soon</h3>
+          <ul>
+            <% @future_posts.each do |post| %>
+              <li>
+                <span><%= post.published_at&.strftime("%b %-d") %></span>
+                <%= link_to post.title.presence || "(no title)", "/console/posts/#{post.id}/edit" %>
+              </li>
+            <% end %>
+          </ul>
+        </div>
+      <% end %>
+
+      <% if @recent_posts.any? %>
+        <div id="published-posts" class="activity-block">
+          <h3>Recently Published</h3>
+          <ul>
+            <% @recent_posts.each do |post| %>
+              <li>
+                <span><%= post.published_at&.strftime("%b %-d") %></span>
+                <%= link_to post.title.presence || "(no title)", "/console/posts/#{post.id}/edit" %>
+              </li>
+            <% end %>
+          </ul>
+        </div>
+      <% end %>
+
+      <% if @recent_comments.any? %>
+        <div id="latest-comments" class="activity-block">
+          <h3>Recent Comments</h3>
+          <ul id="the-comment-list">
+            <% @recent_comments.each do |comment| %>
+              <li>
+                <%= link_to comment.author_name.presence || "Anonymous", "/console/comments/#{comment.id}/edit" %>
+                <span class="comment-excerpt"><%= truncate(comment.content.to_s, length: 100) %></span>
+              </li>
+            <% end %>
+          </ul>
+        </div>
+      <% end %>
+
+      <% if @future_posts.empty? && @recent_posts.empty? && @recent_comments.empty? %>
+        <div class="no-activity">
+          <p><%= "No activity yet!" %></p>
+        </div>
+      <% end %>
+    </div>
   </section>
+
+  <%# ── Quick Draft (wp_dashboard_quick_press, dashboard.php:551) ──────────────── -%>
+  <% if @can_create_posts %>
+    <section class="widget" id="dashboard_quick_press">
+      <h2>Quick Draft</h2>
+      <% if @quick_draft_error.present? %>
+        <div class="notice notice-error" role="alert"><p><%= @quick_draft_error %></p></div>
+      <% end %>
+      <%= form_with url: "/console/quick-draft", method: :post, local: true, id: "quick-press" do %>
+        <div class="input-text-wrap" id="title-wrap">
+          <label for="title"><%= "Title" %></label>
+          <input type="text" name="post_title" id="title" autocomplete="off">
+        </div>
+        <div class="textarea-wrap" id="description-wrap">
+          <label for="content"><%= "Content" %></label>
+          <textarea name="content" id="content" placeholder="What&#8217;s on your mind?" rows="3" autocomplete="off"></textarea>
+        </div>
+        <p class="submit">
+          <input type="hidden" name="post_type" value="post">
+          <%= submit_tag "Save Draft", name: "save", id: "save-post", class: "button button-primary" %>
+        </p>
+      <% end %>
+
+      <% if @recent_drafts&.any? %>
+        <div class="drafts">
+          <% if @recent_drafts.size > 3 %>
+            <p class="view-all"><%= link_to "View all drafts", "/console/posts?post_status=draft" %></p>
+          <% end %>
+          <h2><%= "Your Recent Drafts" %></h2>
+          <ul>
+            <% @recent_drafts.first(3).each do |draft| %>
+              <li>
+                <div class="draft-title">
+                  <%= link_to draft.title.presence || "(no title)", "/console/posts/#{draft.id}/edit" %>
+                  <time datetime="<%= draft.updated_at&.iso8601 %>"><%= draft.updated_at&.strftime("%B %-d, %Y") %></time>
+                </div>
+                <% if draft.content.present? %>
+                  <p class="draft-content"><%= truncate(draft.content.to_s, length: 80) %></p>
+                <% end %>
+              </li>
+            <% end %>
+          </ul>
+        </div>
+      <% end %>
+    </section>
+  <% end %>
 </div>

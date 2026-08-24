@@ -15,8 +15,9 @@ RSpec.describe Configuration::SettingsRegistry do
 
     it "owns exactly the settings target_screens.md assigns to general" do
       names = described_class.section("general").map(&:name)
-      expect(names).to eq(%w[blogname blogdescription siteurl home timezone_string
-                             date_format time_format users_can_register default_role])
+      expect(names).to eq(%w[blogname blogdescription siteurl home new_admin_email
+                             timezone_string date_format time_format
+                             users_can_register default_role start_of_week])
     end
   end
 

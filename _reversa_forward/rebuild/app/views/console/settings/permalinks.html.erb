@@ -53,5 +53,20 @@
       </tr>
     </tbody>
   </table>
+
+  <h2 class="title">Optional</h2>
+  <p class="permalink-structure-optional-description">If you like, you may enter custom structures for your category and tag URLs here. For example, using <code>topics</code> as your category base would make your category links like <code><%= site_url %>/topics/uncategorized/</code>. If you leave these blank the defaults will be used.</p>
+  <table class="form-table" role="presentation">
+    <tbody>
+      <tr>
+        <th><label for="category_base">Category base</label></th>
+        <td><input name="category_base" id="category_base" type="text" value="<%= current("category_base") %>" class="regular-text code"></td>
+      </tr>
+      <tr>
+        <th><label for="tag_base">Tag base</label></th>
+        <td><input name="tag_base" id="tag_base" type="text" value="<%= current("tag_base") %>" class="regular-text code"></td>
+      </tr>
+    </tbody>
+  </table>
   <p class="submit"><input type="submit" name="submit" id="submit" class="button button-primary" value="Save Changes"></p>
 <% end %>

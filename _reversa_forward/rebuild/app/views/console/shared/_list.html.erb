@@ -70,6 +70,35 @@
         <button type="submit" class="button action">Apply</button>
       </div>
     <% end %>
+    <%# extra_tablenav's Empty Trash (submit_button 'delete_all') — posts through this same
+        bulk form so it re-uses the DEV-004 confirmation the controller applies to deletes. %>
+    <% empty_trash = list.filters.find { |flt| flt.kind == :empty_trash } %>
+    <% if empty_trash %>
+      <div class="actions emptytrash">
+        <button type="submit" name="<%= empty_trash.name %>" value="1" class="button apply"><%= empty_trash.label %></button>
+      </div>
+    <% end %>
+    <%# months_dropdown + categories_dropdown + submit_button( 'Filter' ) — a GET form that
+        narrows the list by date/category (class-wp-posts-list-table.php:574-599). %>
+    <% select_filters = list.filters.select { |flt| flt.kind == :select } %>
+    <% if select_filters.any? %>
+      <div class="actions filter-actions">
+        <%= form_with url: list.base_path, method: :get, data: { turbo: false } do %>
+          <% list.query.except("m", "cat", "paged").each do |k, v| %>
+            <%= hidden_field_tag k, v %>
+          <% end %>
+          <% select_filters.each do |flt| %>
+            <label class="screen-reader-text" for="filter-<%= flt.name %>"><%= flt.label %></label>
+            <select name="<%= flt.name %>" id="filter-<%= flt.name %>">
+              <% Array(flt.options).each do |opt_label, opt_value| %>
+                <option value="<%= opt_value %>" <%= "selected" if flt.value.to_s == opt_value.to_s %>><%= opt_label %></option>
+              <% end %>
+            </select>
+          <% end %>
+          <button type="submit" class="button">Filter</button>
+        <% end %>
+      </div>
+    <% end %>
     <% if list.filters.any? { |flt| flt.kind == :search } %>
       <div class="search-box">
         <% search = list.filters.find { |flt| flt.kind == :search } %>

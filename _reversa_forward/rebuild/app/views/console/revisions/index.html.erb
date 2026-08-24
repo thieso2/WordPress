@@ -1,7 +1,9 @@
 <%# console.revision — the server-rendered field diff (revision.php's readable half). The
     drag-slider timeline is the deferred React island (DEV-012); this is the honest shell:
     the revision list and a two-revision diff of the revisioned fields. %>
-<h1><%= @heading %></h1>
+<%# revision.php:107-110 — 'Compare Revisions of “%s”', the title LINKED to the editor,
+    with _draft_or_post_title() ('(no title)') when the title is empty. -%>
+<h1>Compare Revisions of &#8220;<a href="/console/posts/<%= @post.id %>/edit"><%= @heading_title %></a>&#8221;</h1>
 <p><a href="/console/posts/<%= @post.id %>/edit"><%= "← Go to editor" %></a></p>
 
 <% if @revisions.empty? %>
@@ -16,6 +18,13 @@
           <td><%= rev.author&.display_name %></td>
           <td>
             <a href="/console/posts/<%= @post.id %>/revisions?to=<%= rev.id %>"><%= "Compare" %></a>
+          </td>
+          <td>
+            <%# revision.php action=restore — a real state transition on the parent post. -%>
+            <%= form_with url: "/console/posts/#{@post.id}/revisions/restore", method: :post, local: true, class: "restore-revision" do %>
+              <input type="hidden" name="revision" value="<%= rev.id %>">
+              <%= submit_tag "Restore This Revision", name: "restore", class: "button" %>
+            <% end %>
           </td>
         </tr>
       <% end %>

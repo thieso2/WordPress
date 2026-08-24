@@ -16,6 +16,15 @@ RSpec.describe "console.user-new", type: :request do
     expect(doc.at_css("button[type=submit]").text.strip).to eq("Add User")
   end
 
+  # user-new.php:537 + :633 — the "Send User Notification" checkbox defaults to CHECKED.
+  it "defaults the Send User Notification checkbox to checked" do
+    login_as("con_admin")
+    get "/console/users/new"
+    box = doc.at_css("input[name='send_user_notification']")
+    expect(box).not_to be_nil
+    expect(box["checked"]).not_to be_nil
+  end
+
   it "creates the user and assigns the role (a ROW)" do
     login_as("con_admin")
     expect {

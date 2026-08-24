@@ -23,15 +23,53 @@ module Console
     # GET /console/posts/:id/revisions.
     def index
       @page_title = "Revisions" # revision.php:113 (LITERAL, used in the <title>)
-      # revision.php:110 — the heading is 'Compare Revisions of “%s”'.
-      @heading = %(Compare Revisions of “#{@post.title}”)
+      # revision.php:107-110 — the heading is 'Compare Revisions of “%s”', where %s is the
+      # post title LINKED to the editor, and _draft_or_post_title() substitutes '(no title)'
+      # for an empty title. The view builds the linked heading from these two.
+      @heading_title = post_title
       @revisions = @post.revisions.regular.newest_first.to_a
       select_pair
       @diffs = Publishing::Revision::FIELDS.index_with { |field| diff_field(field) } if @from || @to
       render :index
     end
 
+    # POST /console/posts/:id/revisions/restore — revision.php action=restore (:36-83).
+    # wp_restore_post_revision(): a real state transition on the PARENT post. The route gate
+    # is :authenticated; edit_post on the parent is enforced by `authorize_edit` (the
+    # before_action above), the same capability revision.php:42 checks. A post held under
+    # another editor's live lock is not restored (wp_check_post_lock, :56-58); revisions are
+    # gated by wp_revisions_enabled (:51-54). On success it redirects to the editor with the
+    # 'restored to revision' message (edit-form-advanced.php:180 / :195, message=5).
+    def restore
+      revision = @post.revisions.regular.find_by(id: params[:revision])
+      return not_found!("Invalid revision ID.") if revision.nil? # revision.php:38-39
+
+      # revision.php:51-54 — don't restore when revisions are disabled (and not an autosave).
+      unless Publishing::Post.revisions_enabled?
+        return redirect_to edit_console_post_path(@post), status: :see_other
+      end
+
+      # revision.php:56-58 — don't restore a post another editor holds locked.
+      if @post.edit_lock_holder_if_live(actor: current_actor)
+        return redirect_to edit_console_post_path(@post), status: :see_other
+      end
+
+      # wp_restore_post_revision() → wp_update_post() of the revisioned fields. The update
+      # itself records a fresh revision (Post#record_revision), as the legacy does.
+      @post.actor = current_actor
+      @post.update!(title: revision.title, content: revision.content, excerpt: revision.excerpt)
+
+      noun = @post.is_a?(Publishing::Page) ? "Page" : "Post"
+      when_restored = revision.created_at.strftime("%B %-d, %Y @ %H:%M")
+      # edit-form-advanced.php:180 / :195 — 'Post restored to revision from %s.'
+      redirect_to edit_console_post_path(@post), status: :see_other,
+                  notice: "#{noun} restored to revision from #{when_restored}."
+    end
+
     private
+
+    # revision.php:108 — _draft_or_post_title(): the post title, or '(no title)' when empty.
+    def post_title = @post.title.presence || "(no title)"
 
     def load_post
       @post = Publishing::Post.find_by(id: params[:id])

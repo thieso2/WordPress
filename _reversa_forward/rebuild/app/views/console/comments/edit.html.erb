@@ -49,3 +49,14 @@
     <a class="button button-link" href="/console/comments"><%= "Cancel" %></a>
   </div>
 <% end %>
+
+<%# edit-form-comment.php:403 — the submitdelete link in #major-publishing-actions. With
+    trash enabled (EMPTY_TRASH_DAYS) the label is "Move to Trash"; it posts to the shared
+    bulk endpoint so it goes through the same DEV-004 confirmation as a list-side trash.
+    A separate form: it must not nest inside the update form above. %>
+<div id="delete-action">
+  <%= button_to "Move to Trash", "/console/comments/bulk", method: :post,
+        params: { bulk_action: "trash", confirmed: "0", "ids[]" => @comment.id },
+        form_class: "submitdelete-form", class: "button button-link submitdelete",
+        data: { turbo: false } %>
+</div>

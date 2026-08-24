@@ -1,0 +1,72 @@
+<%# console.users — the "Delete Users" screen (users.php:284-486). Unlike the shared DEV-004
+    confirmation, deleting a user forces a per-user choice for that user's content: delete it
+    all, or attribute it to another user (wp_delete_user($id, $reassign)). LITERAL strings
+    verbatim from users.php. Re-posts the bulk request with confirmed=1 and the per-user
+    delete_option[]/reassign_user[] choices. -%>
+<h1 class="wp-heading-inline"><%= "Delete Users" %></h1>
+<hr class="wp-header-end">
+
+<% if @delete_error %>
+  <div class="notice notice-error" role="alert"><p><strong><%= "Error:" %></strong> <%= "Please select an option." %></p></div>
+<% end %>
+
+<% if @delete_users.length == 1 %>
+  <p><%= "You have specified this user for deletion:" %></p>
+<% else %>
+  <p><%= "You have specified these users for deletion:" %></p>
+<% end %>
+
+<%= form_with url: "/console/users/bulk", method: :post, data: { turbo: false } do %>
+  <%= hidden_field_tag :bulk_action, "delete" %>
+  <%= hidden_field_tag :confirmed, "1" %>
+
+  <ul>
+    <% @delete_users.each do |user| %>
+      <li>
+        <% if user.id == @delete_current_id %>
+          <%# :348-354 — the current user is shown but never deleted. %>
+          <%= raw "ID ##{ERB::Util.html_escape(user.id)}: #{ERB::Util.html_escape(user.login)} <strong>The current user will not be deleted.</strong>" %>
+        <% else %>
+          <input type="hidden" name="ids[]" value="<%= user.id %>" />
+          <% if @delete_has_content[user.id] %>
+            <fieldset>
+              <legend>
+                <%= raw "<strong>#{ERB::Util.html_escape(user.login)}</strong> (ID ##{user.id}): #{ERB::Util.html_escape('What should be done with the content owned by this user?')}" %>
+              </legend>
+              <ul>
+                <li>
+                  <input type="radio" id="delete_option_<%= user.id %>" name="delete_option[<%= user.id %>]" value="delete" required />
+                  <label for="delete_option_<%= user.id %>"><%= "Delete all content." %></label>
+                </li>
+                <li>
+                  <input type="radio" id="reassign_option_<%= user.id %>" name="delete_option[<%= user.id %>]" value="reassign" required />
+                  <label for="reassign_option_<%= user.id %>"><%= "Attribute all content to another user." %></label>
+
+                  <label for="reassign_user_<%= user.id %>" class="screen-reader-text"><%= "Select a user to attribute the content to." %></label>
+                  <select name="reassign_user[<%= user.id %>]" id="reassign_user_<%= user.id %>">
+                    <option value=""><%= "Select a user" %></option>
+                    <% @delete_reassign_candidates.each do |cand| %>
+                      <option value="<%= cand.id %>"><%= "#{cand.display_name} (#{cand.login})" %></option>
+                    <% end %>
+                  </select>
+                </li>
+              </ul>
+            </fieldset>
+          <% else %>
+            <input type="hidden" name="delete_option[<%= user.id %>]" value="delete" required />
+            <p>
+              <%= raw "<strong>#{ERB::Util.html_escape(user.login)}</strong> (ID ##{user.id}): #{ERB::Util.html_escape('This user does not have any content.')}" %>
+            </p>
+          <% end %>
+        <% end %>
+      </li>
+    <% end %>
+  </ul>
+
+  <% if @delete_deletable.any? %>
+    <button type="submit" class="button button-primary"><%= "Confirm Deletion" %></button>
+    <%= link_to "Cancel", "/console/users", class: "button" %>
+  <% else %>
+    <p><%= "There are no valid users selected for deletion." %></p>
+  <% end %>
+<% end %>

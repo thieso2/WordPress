@@ -1,5 +1,5 @@
 <% content_for :title, "Menus" %>
-<%# nav-menus.php in modernized mode. Tabs, the menu-name form, the add-items panel and
+<%# nav-menus.php in modernized mode. Tabs, the menu-name form, the add-items panels and
     the structure tree. Every LITERAL string verbatim; the jQuery drag-drop UI is replaced
     by explicit move controls (server-side, DEV-012 React island out of scope). -%>
 <div class="wrap">
@@ -7,8 +7,8 @@
   <hr class="wp-header-end">
 
   <nav class="nav-tab-wrapper">
-    <a href="/console/menus" class="nav-tab nav-tab-active">Edit Menus</a>
-    <a href="/console/menus?action=locations" class="nav-tab">Manage Locations</a>
+    <a href="/console/menus" class="nav-tab<%= " nav-tab-active" unless @active_tab == "locations" %>">Edit Menus</a>
+    <a href="/console/menus?tab=locations" class="nav-tab<%= " nav-tab-active" if @active_tab == "locations" %>">Manage Locations</a>
   </nav>
 
   <div class="menu-picker">
@@ -38,17 +38,82 @@
   <% if @menu&.persisted? %>
     <div class="menu-edit">
       <h2>Add menu items</h2>
-      <%# Custom Links panel — the target arm with no picker dependency. Post and term
-          targets use the same endpoint with kind=post|term and a target_id. -%>
-      <form method="post" action="/console/menus/<%= @menu.id %>/items" class="add-custom-link">
-        <%= hidden_field_tag(:authenticity_token, form_authenticity_token) %>
-        <input type="hidden" name="kind" value="custom">
-        <p><label for="custom-menu-item-url">URL</label>
-          <input id="custom-menu-item-url" type="text" name="url" value="https://"></p>
-        <p><label for="custom-menu-item-name">Link Text</label>
-          <input id="custom-menu-item-name" type="text" name="label" value=""></p>
-        <button type="submit" class="button submit-add-to-menu">Add to Menu</button>
-      </form>
+      <%# The four initial add panels (nav-menu.php:233): Pages, Posts, Custom Links,
+          Categories. Each posts to the one add-item endpoint, choosing its target arm
+          with `kind` (post / custom / term) and a `target_id`. -%>
+      <div class="add-post-type-page accordion-section">
+        <h3>Pages</h3>
+        <% if @pages.present? %>
+          <form method="post" action="/console/menus/<%= @menu.id %>/items" class="add-page">
+            <%= hidden_field_tag(:authenticity_token, form_authenticity_token) %>
+            <input type="hidden" name="kind" value="post">
+            <label for="add-page-target">Pages
+              <select id="add-page-target" name="target_id">
+                <% @pages.each do |page| %>
+                  <option value="<%= page.id %>"><%= page.title %></option>
+                <% end %>
+              </select>
+            </label>
+            <button type="submit" class="button submit-add-to-menu">Add to Menu</button>
+          </form>
+        <% else %>
+          <p class="no-items">No items.</p>
+        <% end %>
+      </div>
+
+      <div class="add-post-type-post accordion-section">
+        <h3>Posts</h3>
+        <% if @posts.present? %>
+          <form method="post" action="/console/menus/<%= @menu.id %>/items" class="add-post">
+            <%= hidden_field_tag(:authenticity_token, form_authenticity_token) %>
+            <input type="hidden" name="kind" value="post">
+            <label for="add-post-target">Posts
+              <select id="add-post-target" name="target_id">
+                <% @posts.each do |post| %>
+                  <option value="<%= post.id %>"><%= post.title %></option>
+                <% end %>
+              </select>
+            </label>
+            <button type="submit" class="button submit-add-to-menu">Add to Menu</button>
+          </form>
+        <% else %>
+          <p class="no-items">No items.</p>
+        <% end %>
+      </div>
+
+      <%# Custom Links panel — the target arm with no picker dependency. -%>
+      <div class="add-custom-links accordion-section">
+        <h3>Custom Links</h3>
+        <form method="post" action="/console/menus/<%= @menu.id %>/items" class="add-custom-link">
+          <%= hidden_field_tag(:authenticity_token, form_authenticity_token) %>
+          <input type="hidden" name="kind" value="custom">
+          <p><label for="custom-menu-item-url">URL</label>
+            <input id="custom-menu-item-url" type="text" name="url" value="https://"></p>
+          <p><label for="custom-menu-item-name">Link Text</label>
+            <input id="custom-menu-item-name" type="text" name="label" value=""></p>
+          <button type="submit" class="button submit-add-to-menu">Add to Menu</button>
+        </form>
+      </div>
+
+      <div class="add-category accordion-section">
+        <h3>Categories</h3>
+        <% if @categories.present? %>
+          <form method="post" action="/console/menus/<%= @menu.id %>/items" class="add-category-form">
+            <%= hidden_field_tag(:authenticity_token, form_authenticity_token) %>
+            <input type="hidden" name="kind" value="term">
+            <label for="add-category-target">Categories
+              <select id="add-category-target" name="target_id">
+                <% @categories.each do |term| %>
+                  <option value="<%= term.id %>"><%= term.name %></option>
+                <% end %>
+              </select>
+            </label>
+            <button type="submit" class="button submit-add-to-menu">Add to Menu</button>
+          </form>
+        <% else %>
+          <p class="no-items">No items.</p>
+        <% end %>
+      </div>
 
       <h3>Menu Settings</h3>
       <%# Rename — its own form so nothing is nested (the tree below carries per-item

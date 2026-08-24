@@ -47,6 +47,17 @@
                       method: :delete, class: "button delete-theme", form_class: "inline",
                       form: { data: { turbo_confirm: "Are you sure you want to delete this theme?" } } %>
               <% end %>
+              <%# themes.php:783 — per-theme auto-update toggle. Enabled themes show
+                  "Disable auto-updates"; the rest "Enable auto-updates". -%>
+              <span class="auto-update-setting">
+                <% if @auto_updates.include?(theme.slug) %>
+                  <%= button_to "Disable auto-updates", "/console/themes/#{theme.slug}/disable-auto-update",
+                        method: :post, class: "button-link toggle-auto-update", form_class: "inline" %>
+                <% else %>
+                  <%= button_to "Enable auto-updates", "/console/themes/#{theme.slug}/enable-auto-update",
+                        method: :post, class: "button-link toggle-auto-update", form_class: "inline" %>
+                <% end %>
+              </span>
             </td>
           </tr>
         <% end %>
