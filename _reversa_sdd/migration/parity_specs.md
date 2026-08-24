@@ -15,6 +15,13 @@ hash: "sha256:cb6dc239726aa289548da64dec0b483cbdf557113b44ed441b827a5e49d11c07"
 > Required reading before this: `paradigm_decision.md`, `topology_decision.md`,
 > `screen_modernization_decision.md`.
 
+> 🔭 **Status.** The corpus described here has been widened from 25 to **53 screens**.
+> Widening it made 13 of 28 new URLs diverge on first capture (46%) and uncovered nine real
+> defects — including private posts being served to anonymous visitors — every one of which
+> was invisible while the 25-screen gate was green. See `as_built.md`. The strongest
+> practical lesson of this migration is that **corpus breadth found more defects per hour
+> than any other activity**.
+
 ## The single fact that shapes this entire document
 
 **The legacy system ships with no tests.** `inventory.md` §1 and TD-18 record it: no PHPUnit config,

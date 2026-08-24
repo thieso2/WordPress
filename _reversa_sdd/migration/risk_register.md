@@ -512,3 +512,28 @@ RISK-012) are organizational and have no technical mitigation — they are manag
 - **RISK-016** — implication 2 again. With filters gone, each rule's unfiltered default is the whole
   specification, so cross-module couplings that the extraction could only see from outside a module
   must be verified from outside a wave.
+
+
+---
+
+## Risk status after the build (2026-08-24)
+
+> Added when the build reached its current state. See `as_built.md` for the whole picture.
+
+| Risk | Now |
+|---|---|
+| **RISK-010** — the editor is unspecifiable from Reversa's artifacts | ✅ **RETIRED, by a route the register did not consider.** Rather than reconstruct the editor from observation, the rebuild now runs the **upstream `@wordpress/*` packages themselves** against its own wp/v2 API (DEV-015). The risk was never "can we rebuild Gutenberg" — it was "can we specify it", and the answer was to stop trying to. The work relocated to the REST surface, which IS fully specified by the oracle. |
+| **RISK-018** — the platform carve-out (a React island inside a Hotwire console) | ✅ **RETIRED.** The carve-out exists and is larger than anticipated (a ~21 MB bundle on three screens), but it is upstream code rather than bespoke, so it carries no ongoing specification burden. |
+| **RISK-001** — the oracle is the only executable definition | 🔴 **Unchanged and vindicated.** Every defect found late in this project was found by asking the oracle something the corpus had not asked before. The oracle's value went UP, not down, as the rebuild matured. |
+| **RISK-013** — estimated pagination totals are observably different | Unchanged. |
+| **RISK-014** — encoding fidelity | Held: the corpus carries 4-byte UTF-8, emoji and backslash-heavy text, and the widened corpus added percent-encoded term slugs, which found two real 404 bugs. |
+
+### New risks the build introduced
+
+| # | Risk | Severity |
+|---|---|---|
+| **RISK-019** | ⚠️ **Licence.** The bundled `@wordpress/*` packages are GPL-2.0-or-later; the rebuild declares **no licence of its own**. This is legal exposure, not engineering debt, and it is the one open item that cannot be resolved by writing code. | **HIGH** |
+| **RISK-020** | **No CI.** Every gate result on record was produced by hand on a quiet machine. Nothing prevents a commit from silently breaking parity, and the project's own history shows how easily a green gate hides defects. | **HIGH** |
+| **RISK-021** | **Coverage floor mistaken for coverage.** 262/363 rules carry a citation, but a citation means only that an id was written beside an implementation. 101 rules have neither. Reading 72% as "72% verified" would overstate the position materially. | **MEDIUM** |
+| **RISK-022** | **Performance is 1.99× the oracle**, concentrated in Ruby CPU inside the block renderers rather than in SQL (~7% of wall time). Correct and slower is still a migration risk; there is no target and no budget. | **MEDIUM** |
+| **RISK-023** | **Unreviewed raw-HTML surface.** 22 `html_safe`/`raw` uses in the render path, none security-reviewed. The private-post disclosure found by the widened corpus shows this class of defect is present, not theoretical. | **MEDIUM** |

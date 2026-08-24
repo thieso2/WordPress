@@ -14,6 +14,11 @@ hash: "sha256:bbce06af292db47ee09d47c8be14bba2465ad61eb28d20e2e76653989aed9571"
 > **Target**: WordPress `7.2-alpha-63330` (1,900 PHP files, ~670,500 lines, 44 modules) rebuilt on
 > Ruby on Rails 7.1+ / PostgreSQL. 363 of 431 extracted business rules carry forward.
 
+> 🔭 **This document describes what was PLANNED, and is preserved as that record.** For what
+> was actually BUILT — including three deviations added afterwards, the 46% first-pass
+> divergence rate when the parity corpus was widened, and the one open item with legal
+> exposure — read **`as_built.md`** first.
+
 ## ⚠️ Required reading first
 
 1. **`paradigm_decision.md`** — non-negotiable. **Option 1: adopt the Rails idiom**,
@@ -157,14 +162,14 @@ Full detail in `ambiguity_log.md § DEFERRED TO CODING`. None blocks starting.
 
 | # | Item |
 |---|---|
-| D-1 | Correct three bookkeeping totals in `discard_log.md` and `target_business_rules.md` (no rule is missing — the tallies are) |
+| D-1 | Correct three bookkeeping totals in `discard_log.md` and `target_business_rules.md` (no rule is missing — the tallies are) — still open |
 | D-2 | ⚠️ Decide whether a **theme** fatal error needs a recovery mechanism — plugins are gone, themes are not |
-| D-3 | ✅ **Post/page block editor React island BUILT & verified** (2026-08-24, see `screen_deviation_log.md` DEV-012). Remaining: the `console.site-editor` template/Global-Styles island. |
-| D-4 | Run the golden capture, then **remove the DEV-001 exception** |
-| D-5 | ◐ Editor interaction proof authored as a live-browser test (`editor_e2e/interaction.mjs`, DEV-012); broader oracle-observed interaction specs remain for the Site Editor. |
+| D-3 | ✅ **RESOLVED — and overtaken.** The React island was built, then RETIRED: both editors now run the real upstream Gutenberg against this rebuild's own wp/v2 API (DEV-015). The island's scope question is therefore moot. |
+| D-4 | ✅ **RESOLVED.** Goldens captured; the corpus has since been widened 25 → 53 screens, which found 9 real bugs including a security defect. See `as_built.md`. |
+| D-5 | ✅ **RESOLVED.** Editor behaviour is proven by driving the real editors in a browser (`editor_e2e/run.sh`, `gb_paths.mjs` — 13 write-path checks). Driving them found two defects every request spec had missed. |
 | D-6 | Decide the typed settings registry |
 | D-7 | Cross-check the screen inventory — `reversa-visor` never ran, so 144 is one reading, not two |
-| D-8 | Specify production infrastructure — the brief records it as "not specified" |
+| D-8 | Specify production infrastructure — Dockerfiles now exist for the rebuild and the oracle, but nothing connects them to an environment, and there is **no CI**. Still open. |
 
 ## Auto-decided items
 
