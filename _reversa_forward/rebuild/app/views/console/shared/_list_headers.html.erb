@@ -1,0 +1,27 @@
+<%# print_column_headers( $with_id ) — class-wp-list-table.php:1188. Rendered TWICE per
+    table: once in <thead> with the column ids, once in <tfoot> without them (display()
+    calls print_column_headers( false ) for the footer row). The check column repeats too,
+    with its own Select All checkbox and a fresh id from the legacy's $cb_counter, so both
+    ends of a long list can select everything. LITERAL strings verbatim. -%>
+<% list = local_assigns.fetch(:list) %>
+<% with_id = local_assigns.fetch(:with_id, true) %>
+<% cb_id = local_assigns.fetch(:cb_id) %>
+<% if list.bulk_actions? %>
+  <td <%= 'id="cb"'.html_safe if with_id %> class="manage-column column-cb check-column">
+    <input id="<%= cb_id %>" type="checkbox" class="cb-select-all">
+    <%# class-wp-list-table.php:1215 — 'Select All' (hidden accessibility text). %>
+    <label for="<%= cb_id %>"><span class="screen-reader-text">Select All</span></label>
+  </td>
+<% end %>
+<% list.columns.each do |col| %>
+  <% sort = column_sort_state(list, col) %>
+  <th scope="col" <%= "id=\"#{col.key}\"".html_safe if with_id %>
+      class="manage-column column-<%= col.key %><%= " #{sort[:classes].join(' ')}" if sort %>"
+      <%= "aria-sort=\"#{sort[:aria_sort]}\"".html_safe if sort && sort[:aria_sort] %>>
+    <% if sort %>
+      <%= link_to list_url(list, sort_query(list, col.sort_key)) do %><span><%= raw col.label %></span><span class="sorting-indicators"><span class="sorting-indicator asc" aria-hidden="true"></span><span class="sorting-indicator desc" aria-hidden="true"></span></span><% if sort[:order_text] %> <span class="screen-reader-text"><%= sort[:order_text] %></span><% end %><% end %>
+    <% else %>
+      <span><%= raw col.label %></span>
+    <% end %>
+  </th>
+<% end %>

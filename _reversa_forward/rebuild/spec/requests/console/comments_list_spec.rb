@@ -28,7 +28,7 @@ RSpec.describe "console.edit-comments (Comments list)", type: :request do
     get "/console/comments"
     expect(response).to have_http_status(:ok)
     expect(doc.at_css("h1").text).to include("Comments")
-    headers = doc.css("thead th, thead td").map(&:text).map(&:strip)
+    headers = header_labels
     expect(headers).to include("Author", "Comment", "In response to", "Submitted on")
     expect(body_text).to include("Alice").and include("First thought")
   end

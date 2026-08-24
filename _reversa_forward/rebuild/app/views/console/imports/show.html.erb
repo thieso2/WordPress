@@ -1,0 +1,211 @@
+<%# console.import — wp-admin/import.php, MODERNIZED.
+
+    import.php itself is a list of importer PLUGINS to install; AD-01 removed the
+    extension system, so this screen is the thing that list existed to reach — a real,
+    built-in reader for the WXR file /console/tools/export writes. See
+    Console::ImportsController for the full ruling.
+
+    INFORMATION ARCHITECTURE: the WordPress Importer's own three steps, in its order —
+    (1) upload, (2) Assign Authors + Import Attachments, (3) results. Styling is the
+    rebuild's; no wp-admin CSS is copied.
+
+    STRINGS. Marked LITERAL where the corpus has one:
+      · "Import"                                                    import.php:19
+      · "Import posts, pages, comments, custom fields, categories, and tags from a
+         WordPress export file."                      wp-admin/includes/import.php:206
+      · "You will first be asked to map the authors in this export file to users on the
+         site. For each author, you may choose to map to an existing user on the site or
+         to create a new user."                       wp-admin/includes/export.php:507-509
+      · "Sorry, you are not allowed to import content into this site."  import.php:15
+      · the empty-file error                          wp-admin/includes/import.php:80-89
+    The WordPress Importer is a PLUGIN and is not in the corpus, so its step headings and
+    button labels have no literal source. Those are the rebuild's own wording and are
+    NOT claimed as literal (DEV-009).
+-%>
+<h1 class="wp-heading-inline">Import</h1>
+<hr class="wp-header-end">
+
+<p>Import posts, pages, comments, custom fields, categories, and tags from a WordPress export file.</p>
+
+<% case @step %>
+<% when :upload %>
+  <%# Step 1 — the upload. `multipart` because the payload is a file; the field is named
+      `import`, the name wp_import_handle_upload() reads ($_FILES['import']). -%>
+  <h2>Upload a WordPress eXtended RSS (WXR) file</h2>
+  <p>Choose a WXR file exported from a WordPress site — including the one this site&#8217;s own
+     <%= link_to "Export", "/console/tools/export" %> screen produces — then upload it. Nothing is
+     written until you have reviewed the next screen.</p>
+
+  <%= form_with url: "/console/tools/import", method: :post, multipart: true do %>
+    <p>
+      <label for="import">Choose a file from your computer:</label>
+      <input type="file" id="import" name="import" accept=".xml,.wxr,text/xml,application/xml">
+    </p>
+    <p class="submit">
+      <input type="submit" name="submit" id="submit" class="button button-primary" value="Upload file and import">
+    </p>
+  <% end %>
+
+  <h2>What this importer reads</h2>
+  <ul class="ul-disc">
+    <li>Posts and pages, with their status, publication date, slug, menu order, excerpt, content and parent.</li>
+    <li>Categories, tags and any other taxonomy the file names, including each record&#8217;s terms.</li>
+    <li>Comments, with their threading (a reply keeps its parent) and approval state.</li>
+    <li>Custom fields, minus the keys this system already holds as columns of their own.</li>
+    <li>Authors, mapped to existing accounts or created on the next screen.</li>
+  </ul>
+  <p class="description">
+    Attachments are <strong>not</strong> fetched: the files live on the site the export came from, and
+    this importer makes no outbound requests. Every attachment in the file is listed in the result
+    summary so you can see exactly what was left behind. Post types this system does not hold as
+    content — navigation menus, templates, revisions — are listed the same way rather than dropped
+    silently.
+  </p>
+
+<% when :assign %>
+  <%# Step 2 — Assign Authors + Import Attachments, the WordPress Importer's second
+      screen. The controller resolved every suggestion and the whole user list; this
+      view asks Access nothing (BR-CAP-05). -%>
+  <div class="notice notice-info" role="status">
+    <p>Read <strong><%= @filename.presence || "the uploaded file" %></strong>:
+      <%= pluralize(@document.items.length, "item") %>,
+      <%= pluralize(@document.terms.length, "term") %>,
+      <%= pluralize(@document.author_keys.length, "author") %>.
+      Nothing has been imported yet.</p>
+  </div>
+
+  <%= form_with url: "/console/tools/import/run", method: :post do %>
+    <input type="hidden" name="token" value="<%= @token %>">
+
+    <h2>Assign Authors</h2>
+    <%# export.php:507-509, LITERAL — kept on ONE line so the rendered text is the legacy's
+        string and not the legacy's string with the view's indentation in the middle of it. -%>
+    <p>You will first be asked to map the authors in this export file to users on the site. For each author, you may choose to map to an existing user on the site or to create a new user.</p>
+
+    <% if @authors.empty? %>
+      <p class="no-items">This file names no authors.</p>
+    <% else %>
+      <table class="widefat striped">
+        <thead>
+          <tr><th scope="col">Author in the export</th><th scope="col">Assign to</th></tr>
+        </thead>
+        <tbody>
+          <% @authors.each do |author| %>
+            <tr>
+              <th scope="row">
+                <strong><%= author[:label] %></strong>
+                <% if author[:key] != author[:label] %><br><code><%= author[:key] %></code><% end %>
+                <% if author[:email].present? %><br><span class="description"><%= author[:email] %></span><% end %>
+              </th>
+              <td>
+                <fieldset>
+                  <legend class="screen-reader-text"><span>Assign <%= author[:key] %> to</span></legend>
+                  <p>
+                    <label>
+                      <input type="radio" name="authors[<%= author[:key] %>][mode]" value="create"
+                             <%= "checked" if author[:suggested].nil? %>>
+                      Create a new user
+                    </label>
+                  </p>
+                  <p>
+                    <label>
+                      <input type="radio" name="authors[<%= author[:key] %>][mode]" value="existing"
+                             <%= "checked" if author[:suggested].present? %>>
+                      Assign to an existing user
+                    </label>
+                    <%= select_tag "authors[#{author[:key]}][user_id]",
+                                   options_for_select(@users, author[:suggested]&.id),
+                                   include_blank: true %>
+                  </p>
+                  <p>
+                    <label>
+                      <input type="radio" name="authors[<%= author[:key] %>][mode]" value="skip">
+                      Do not assign an author
+                    </label>
+                  </p>
+                </fieldset>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+      <p class="description">A newly created user is created with <strong>authentication disabled</strong>:
+         a WXR file carries no password, so there is nothing to copy. Set one from
+         <%= link_to "Users", "/console/users" %> before the account can sign in.</p>
+    <% end %>
+
+    <h2>Import Attachments</h2>
+    <p>
+      <label>
+        <input type="checkbox" name="fetch_attachments" value="1" disabled>
+        Download and import file attachments
+      </label>
+    </p>
+    <p class="description">
+      <strong>Out of scope in this build, and disabled rather than pretended.</strong> Importing an
+      attachment means fetching the file from the site the export came from, over the network, once
+      per record. This importer makes no outbound requests, so every attachment in the file is
+      reported as skipped — with its source URL — instead of being half-created as a media record
+      pointing at a file that is not here.
+    </p>
+
+    <p class="submit">
+      <input type="submit" name="submit" id="submit" class="button button-primary" value="Submit">
+      <%= link_to "Cancel", "/console/tools/import", class: "button" %>
+    </p>
+  <% end %>
+
+<% when :done %>
+  <%# Step 3 — the per-record summary. Every record the run touched gets a line, with a
+      reason next to anything that is not "Imported": an importer that reports only a
+      total is an importer you cannot audit. Same discipline as the seeding report's
+      dead-letter queue (lib/seeding/report.rb). -%>
+  <% if @result.clean? %>
+    <div class="notice notice-success" role="status">
+      <p>Import finished. <%= pluralize(@result.imported, "record") %> imported,
+         <%= @result.existing %> already here, <%= @result.skipped %> skipped.</p>
+    </div>
+  <% else %>
+    <div class="notice notice-error" role="alert">
+      <p>Import finished with <%= pluralize(@result.failed, "failure") %>.
+         <%= pluralize(@result.imported, "record") %> imported,
+         <%= @result.existing %> already here, <%= @result.skipped %> skipped.
+         Every failure is listed below with its reason; nothing was coerced into a default.</p>
+    </div>
+  <% end %>
+
+  <% if @result.notes.any? %>
+    <h2>Notes</h2>
+    <ul class="ul-disc">
+      <% @result.notes.each do |note| %><li><%= note %></li><% end %>
+    </ul>
+  <% end %>
+
+  <h2>Results</h2>
+  <% if @result.total.zero? %>
+    <p class="no-items">The file carried nothing this system could import.</p>
+  <% else %>
+    <table class="widefat striped">
+      <thead>
+        <tr>
+          <th scope="col">Kind</th>
+          <th scope="col">Record</th>
+          <th scope="col">Result</th>
+          <th scope="col">Detail</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @result.records.each do |row| %>
+          <tr>
+            <td><%= row.kind %></td>
+            <th scope="row"><%= row.label %></th>
+            <td><%= Importing::Result::OUTCOME_LABELS.fetch(row.outcome) %></td>
+            <td><%= row.detail %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  <% end %>
+
+  <p class="submit"><%= link_to "Import another file", "/console/tools/import", class: "button" %></p>
+<% end %>

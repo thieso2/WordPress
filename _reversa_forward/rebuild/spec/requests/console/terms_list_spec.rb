@@ -35,7 +35,7 @@ RSpec.describe "console.edit-tags (Terms list)", type: :request do
     login_as("con_editor")
     get "/console/terms/category"
     expect(response).to have_http_status(:ok)
-    headers = doc.css("thead th, thead td").map(&:text).map(&:strip)
+    headers = header_labels
     expect(headers).to include("Name", "Description", "Slug", "Count")
     expect(body_text).to include("Jazz").and include("Blues")
   end

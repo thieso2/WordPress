@@ -78,7 +78,13 @@ module Console
     #     the rebuild builds the screen, so the navigation admits it.
     MENU = [
       { key: "console.index", label: "Dashboard", path: "/console", capability: nil,
-        children: [{ key: "console.index", label: "Home", path: "/console", capability: nil }] },
+        children: [
+          { key: "console.index", label: "Home", path: "/console", capability: nil },
+          # wp-admin registers My Sites under Dashboard ONLY when is_multisite(). `read` is
+          # held by every role, so unlike the Network entry this one cannot express
+          # "multisite only" through its capability alone — hence the explicit flag.
+          { key: "console.my-sites", label: "My Sites", path: "/console/my-sites", capability: nil, multisite: true }
+        ] },
       { separator: true },
       { key: "console.edit", label: "Posts", path: "/console/posts", capability: "edit_posts",
         children: [
@@ -116,8 +122,15 @@ module Console
       { key: "console.tools", label: "Tools", path: "/console/tools", capability: "edit_posts",
         children: [
           { key: "console.tools",                 label: "Available Tools",      path: "/console/tools",                        capability: "edit_posts" },
+          { key: "console.import",                label: "Import",               path: "/console/tools/import",                 capability: "import" },
           { key: "console.export",                label: "Export",               path: "/console/tools/export",                 capability: "export" },
-          { key: "console.site-health",           label: "Site Health",          path: "/console/tools/site-health",            capability: "view_site_health_checks" },
+          # menu.php names `view_site_health_checks`, but NO role holds that capability: the
+          # legacy GRANTS it at runtime through the user_has_cap filter
+          # wp_maybe_grant_site_health_caps() (capabilities.php:1356) to whoever holds
+          # `install_plugins`. AD-01 removed the filter channel, so — exactly as
+          # Console::SiteHealthController already does — the menu gates on the underlying
+          # primitive, which admits precisely the users the filter would have.
+          { key: "console.site-health",           label: "Site Health",          path: "/console/tools/site-health",            capability: "install_plugins" },
           { key: "console.export-personal-data",  label: "Export Personal Data", path: "/console/tools/export-personal-data",   capability: "export_others_personal_data" },
           { key: "console.erase-personal-data",   label: "Erase Personal Data",  path: "/console/tools/erase-personal-data",    capability: "erase_others_personal_data" }
         ] },
@@ -130,6 +143,22 @@ module Console
           { key: "console.options-media",      label: "Media",       path: "/console/settings/media",      capability: "manage_options" },
           { key: "console.options-permalink",  label: "Permalinks",  path: "/console/settings/permalinks", capability: "manage_options" },
           { key: "console.options-privacy",    label: "Privacy",     path: "/console/settings/privacy",    capability: "manage_privacy_options" }
+        ] },
+      # ── The NETWORK menu (wp-admin/network/menu.php) ─────────────────────────────────
+      # In wp-admin this is SEPARATE chrome, reached from the admin bar's "My Sites →
+      # Network Admin". Here it is one top-level entry, and it needs no multisite flag:
+      # `manage_network` is held by NO role in Access::RoleCatalogue, so site_can? can only
+      # answer true through the super-admin bypass in Access::BasePolicy — which is itself
+      # false unless Tenancy.enabled?. The entry is invisible on a single site BY
+      # CONSTRUCTION. Plugins is absent under AD-01; Updates / Upgrade Network / Network
+      # Setup have no rebuild surface.
+      { key: "console.ms-admin", label: "Network", path: "/console/network", capability: "manage_network",
+        children: [
+          { key: "console.ms-admin",   label: "Dashboard", path: "/console/network",          capability: "manage_network" },
+          { key: "console.ms-sites",   label: "Sites",     path: "/console/network/sites",    capability: "manage_sites" },
+          { key: "console.ms-users",   label: "Users",     path: "/console/network/users",    capability: "manage_network_users" },
+          { key: "console.ms-themes",  label: "Themes",    path: "/console/network/themes",   capability: "manage_network_themes" },
+          { key: "console.ms-options", label: "Settings",  path: "/console/network/settings", capability: "manage_network_options" }
         ] }
     ].freeze
 
@@ -155,6 +184,11 @@ module Console
     end
 
     def permitted_entry?(entry)
+      # A multisite-only item (My Sites) must not appear on a single site, where its screen
+      # 404s. Entries gated on a network capability need no such flag — no role holds those,
+      # so they resolve only through the super-admin bypass, which is false single-site.
+      return false if entry[:multisite] && !Tenancy.enabled?
+
       entry[:capability].nil? || site_can?(entry[:capability])
     end
 

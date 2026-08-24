@@ -33,7 +33,7 @@ RSpec.describe "console.edit (Posts list)", type: :request do
     get "/console/posts"
     expect(response).to have_http_status(:ok)
     expect(doc.at_css("h1").text).to include("Posts")
-    headers = doc.css("thead th, thead td").map(&:text).map(&:strip)
+    headers = header_labels
     expect(headers).to include("Title", "Author", "Categories", "Tags", "Date")
     expect(body_text).to include("Hello Jazz").and include("Goodbye Swing")
   end
@@ -256,7 +256,7 @@ RSpec.describe "console.edit (Posts list)", type: :request do
     Publishing::Article.create!(author: actor("con_editor"), title: "A draft", status: :draft)
     login_as("con_editor")
     get "/console/posts?status=draft"
-    headers = doc.css("thead th, thead td").map { |th| th.text.strip }
+    headers = header_labels
     expect(headers).not_to include("Comments")
   end
 

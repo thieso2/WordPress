@@ -1,0 +1,37 @@
+<%# console.ms-site-edit (Users) — wp-admin/network/site-users.php. The members of THIS
+    site and the role each holds on it. Roles are ROWS scoped by site_id (BR-MS-04), so
+    membership is a query rather than the legacy's switch_to_blog() + usermeta read.
+    Column labels verbatim from WP_Users_List_Table::get_columns(). -%>
+<%= render "console/network/site_edit/chrome" %>
+
+<div class="table-scroll">
+  <table class="wp-list-table widefat fixed striped">
+    <thead>
+      <tr>
+        <th scope="col">Username</th>
+        <th scope="col">Name</th>
+        <th scope="col">Email</th>
+        <th scope="col">Role</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% if @members.any? %>
+        <% @members.each do |user, roles| %>
+          <tr>
+            <td class="column-username">
+              <strong><a href="/console/users/<%= user.id %>/edit"><%= user.login %></a></strong>
+            </td>
+            <td class="column-name"><%= user.display_name %></td>
+            <td class="column-email"><a href="mailto:<%= user.email %>"><%= user.email %></a></td>
+            <td class="column-role">
+              <%# site-users.php:152 — '&mdash; No role for this site &mdash;' -%>
+              <%= roles.any? ? roles.map(&:capitalize).join(", ") : "— No role for this site —" %>
+            </td>
+          </tr>
+        <% end %>
+      <% else %>
+        <tr class="no-items"><td colspan="4">No users found.</td></tr>
+      <% end %>
+    </tbody>
+  </table>
+</div>

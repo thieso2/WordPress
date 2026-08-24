@@ -22,7 +22,7 @@ RSpec.describe "console.edit (Pages list)", type: :request do
     get "/console/pages"
     expect(response).to have_http_status(:ok)
     expect(doc.at_css("h1").text).to include("Pages")
-    headers = doc.css("thead th, thead td").map(&:text).map(&:strip)
+    headers = header_labels
     expect(headers).to include("Title", "Author", "Date")
     expect(headers).not_to include("Categories")
     expect(headers).not_to include("Tags")

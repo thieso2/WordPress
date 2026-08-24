@@ -1,36 +1,61 @@
-<%# Pagination — WP_List_Table::pagination(). `page` is a Retrieval::Page; its total is
-    exact or estimated per the screen's P-LIST declaration (DEV-003). The count line and
-    the page nav use the legacy's own strings. `which` distinguishes the top/bottom pager
-    so their control ids stay unique. -%>
+<%# pagination( $which ) — class-wp-list-table.php:1004. The count line plus the FIVE
+    controls the legacy prints: first, previous, the "N of M" paging input, next, last —
+    each disabled control degrading to an inert <span class="tablenav-pages-navspan button
+    disabled">. The top copy renders the current page as an editable input bound to the
+    filter GET form (paging_input); the bottom copy renders it as text under a hidden
+    "Current Page" announcement, and carries the #table-paging id the top input describes.
+    `page` is a Retrieval::Page; its total is exact or estimated per the screen's P-LIST
+    declaration (DEV-003). LITERAL strings verbatim. -%>
 <% list = local_assigns.fetch(:list) %>
 <% page = list.page %>
 <% which = local_assigns.fetch(:which, "top") %>
-<div class="tablenav-pages">
-  <%# class-wp-list-table.php:1024 — _n( '%s item', '%s items', total ). On an estimated
-      screen the number is an estimate (DEV-003), flagged for the reader, out of parity scope. %>
-  <span class="displaying-num">
-    <%= number_with_delimiter(list.total) %> <%= list.total == 1 ? "item" : "items" %><%= " (estimated)" if list.strategy == :estimated %>
-  </span>
-  <% if page.total_pages > 1 %>
+<% total = list.total %>
+<% if total.to_i.zero? %>
+  <%# class-wp-list-table.php:1006 — '0 items' when the screen has nothing to page. %>
+  <div class="tablenav-pages no-pages"><span class="displaying-num">0 items</span></div>
+<% else %>
+  <% total_pages = page.total_pages %>
+  <% current = page.number %>
+  <% page_class = total_pages < 2 ? " one-page" : "" %>
+  <% if which == "top" && total_pages > 1 %>
+    <h2 class="screen-reader-text"><%= list_headings(list)[:pagination] %></h2>
+  <% end %>
+  <div class="tablenav-pages<%= page_class %>">
+    <%# class-wp-list-table.php:1024 — _n( '%s item', '%s items', total ). On an estimated
+        screen the number is an estimate (DEV-003), flagged for the reader, out of scope. %>
+    <span class="displaying-num">
+      <%= number_with_delimiter(total) %> <%= total == 1 ? "item" : "items" %><%= " (estimated)" if list.strategy == :estimated %>
+    </span>
     <span class="pagination-links">
-      <% if page.first? %>
+      <% if current == 1 %>
+        <span class="tablenav-pages-navspan button disabled" aria-hidden="true">&laquo;</span>
         <span class="tablenav-pages-navspan button disabled" aria-hidden="true">&lsaquo;</span>
       <% else %>
-        <%= link_to "‹".html_safe, list_url(list, list.query.merge("paged" => page.previous_number)),
-                    class: "prev-page button", "aria-label": "Previous page" %>
+        <%# 'First page' / 'Previous page' — hidden accessibility text. %>
+        <%= link_to list_url(list, list.query.merge("paged" => nil)), class: "first-page button" do %><span class="screen-reader-text">First page</span><span aria-hidden="true">&laquo;</span><% end %>
+        <%= link_to list_url(list, list.query.merge("paged" => [current - 1, 1].max)), class: "prev-page button" do %><span class="screen-reader-text">Previous page</span><span aria-hidden="true">&lsaquo;</span><% end %>
       <% end %>
-      <span class="paging-input">
-        <span class="tablenav-paging-text">
-          <%# class-wp-list-table.php:1096 — '%1$s of %2$s' %>
-          <%= page.number %> of <span class="total-pages"><%= page.total_pages %></span>
-        </span>
-      </span>
-      <% if page.last? %>
-        <span class="tablenav-pages-navspan button disabled" aria-hidden="true">&rsaquo;</span>
+
+      <% if which == "top" %>
+        <label for="current-page-selector" class="screen-reader-text">Current Page</label>
+        <span class="paging-input"><input class="current-page" id="current-page-selector" type="text" name="paged"
+               value="<%= current %>" size="<%= total_pages.to_s.length %>"
+               aria-describedby="table-paging" form="<%= list_filter_form_id(list) %>"><span class="tablenav-paging-text">
+          <%# class-wp-list-table.php:1112 — _x( '%1$s of %2$s', 'paging' ). %>
+          of <span class="total-pages"><%= number_with_delimiter(total_pages) %></span></span></span>
       <% else %>
-        <%= link_to "›".html_safe, list_url(list, list.query.merge("paged" => page.next_number)),
-                    class: "next-page button", "aria-label": "Next page" %>
+        <span class="screen-reader-text">Current Page</span><span id="table-paging" class="paging-input"><span class="tablenav-paging-text"><%= current %>
+          of <span class="total-pages"><%= number_with_delimiter(total_pages) %></span></span></span>
+      <% end %>
+
+      <% if current >= total_pages %>
+        <span class="tablenav-pages-navspan button disabled" aria-hidden="true">&rsaquo;</span>
+        <span class="tablenav-pages-navspan button disabled" aria-hidden="true">&raquo;</span>
+      <% else %>
+        <%# 'Next page' / 'Last page' — hidden accessibility text. %>
+        <%= link_to list_url(list, list.query.merge("paged" => [current + 1, total_pages].min)), class: "next-page button" do %><span class="screen-reader-text">Next page</span><span aria-hidden="true">&rsaquo;</span><% end %>
+        <%= link_to list_url(list, list.query.merge("paged" => total_pages)), class: "last-page button" do %><span class="screen-reader-text">Last page</span><span aria-hidden="true">&raquo;</span><% end %>
       <% end %>
     </span>
-  <% end %>
-</div>
+  </div>
+<% end %>

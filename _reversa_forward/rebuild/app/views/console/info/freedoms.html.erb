@@ -1,7 +1,64 @@
+<%# console.freedoms — freedoms.php. ⚠️ Read the source before assuming DEV-009 empties this
+    screen. It does not. The four freedom headings and the four freedom statements
+    (freedoms.php:62-83) are a statement of the GNU General Public License's freedoms, not
+    WordPress branding, so they are carried across VERBATIM, in order, exactly as the
+    legacy words them.
+
+    What IS dropped is the WordPress-specific framing wrapped around them:
+      · the header text "WordPress is free and open source software" (freedoms.php:34);
+      · "WordPress comes with some awesome, worldview-changing rights courtesy of its
+        license, the GPL." and its wordpress.org/about/license/ link (freedoms.php:52-58);
+      · the WordPress Foundation trademark paragraph (freedoms.php:88-100);
+      · the wordpress.org plugin/theme-directory paragraph (freedoms.php:102-116).
+    Those describe a project this system is not part of, and the directory links point at a
+    plugin ecosystem AD-01 removed. The freedom-N.svg illustrations go with them; the
+    columns keep the same 4-up shape without imagery. -%>
 <% @page_title = "Freedoms" %>
-<h1 class="wp-heading-inline">Freedoms</h1>
+<h1 class="wp-heading-inline">The Four Freedoms</h1>
 <hr class="wp-header-end">
+
 <%= render "console/info/nav" %>
-<p>The legacy WordPress software is free software under the GPL. This rebuild is a derived
-system; its licensing follows the terms under which it was commissioned. Consult the
-project owner for the terms that apply to this deployment.</p>
+
+<div class="about-section">
+  <p class="about-lede">Free software is defined by four freedoms, granted by the GNU
+  General Public License. The legacy software this build was reverse-engineered from is
+  distributed under that license, and the four freedoms are stated below as it states
+  them.</p>
+</div>
+
+<%# freedoms.php:62-83 — the four headings and the four statements, VERBATIM. -%>
+<div class="about-columns is-4">
+  <div class="panel">
+    <h3>The 1st Freedom</h3>
+    <p>To run the program for any purpose.</p>
+  </div>
+  <div class="panel">
+    <h3>The 2nd Freedom</h3>
+    <p>To study how the program works and change it to make it do what you wish.</p>
+  </div>
+  <div class="panel">
+    <h3>The 3rd Freedom</h3>
+    <p>To redistribute.</p>
+  </div>
+  <div class="panel">
+    <h3>The 4th Freedom</h3>
+    <p>To distribute copies of your modified versions to others.</p>
+  </div>
+</div>
+
+<div class="about-feature">
+  <h2>What this says about this build</h2>
+  <p>The four freedoms above are the license&#8217;s, and they are stated here because the
+  legacy screen stated them. They are not a licence grant for this rebuild: this build
+  ships no license file of its own, and the terms on which it may be used, studied,
+  modified or redistributed are the terms it was commissioned under. Ask the owner of this
+  installation which those are.</p>
+  <p>What this page will not do is guess. The legacy screen closed by pointing at the brand
+  guidelines and the extension directory of the project it came from; neither applies here,
+  so neither is reproduced.</p>
+</div>
+
+<%# about.php:406-412 — the return link, LITERAL. -%>
+<div class="about-return">
+  <a href="/console">Go to Dashboard &rarr; Home</a>
+</div>

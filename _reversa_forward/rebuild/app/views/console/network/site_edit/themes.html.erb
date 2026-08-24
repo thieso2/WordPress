@@ -1,0 +1,50 @@
+<%# console.ms-site-edit (Themes) — wp-admin/network/site-themes.php. Which themes THIS
+    site may choose from. 'Network enabled themes are not shown on this screen.' (:237) is
+    the legacy's own rule and is honoured: a network-enabled theme is listed as such and
+    carries no per-site control, because the network already granted it. Labels 'Enable' /
+    'Disable' are the site-scope variants of Network Enable/Disable
+    (class-wp-ms-themes-list-table.php:609, :635). -%>
+<%= render "console/network/site_edit/chrome" %>
+
+<p>Network enabled themes are not shown on this screen.</p>
+
+<% unless @site.provisioned? %>
+  <div class="notice notice-error" role="alert"><p>The requested site does not exist.</p></div>
+<% end %>
+
+<div class="table-scroll">
+  <table class="wp-list-table widefat fixed striped">
+    <thead>
+      <tr>
+        <th scope="col">Theme</th>
+        <th scope="col">Description</th>
+        <th scope="col">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% available = @themes.reject { |t| @network_enabled.include?(t.slug) } %>
+      <% if available.any? %>
+        <% available.each do |theme| %>
+          <% enabled = @site_enabled.include?(theme.slug) %>
+          <tr class="theme<%= " active" if enabled %>" data-slug="<%= theme.slug %>">
+            <td class="theme-name"><strong><%= theme.name %></strong></td>
+            <td class="theme-description"><%= theme.slug %> <%= theme.version %></td>
+            <td class="theme-actions row-actions">
+              <%= button_to(enabled ? "Disable" : "Enable",
+                            "/console/network/sites/#{@site.id}/themes",
+                            method: :post, form_class: "inline", class: "button",
+                            params: { theme: theme.slug, enable: enabled ? "0" : "1" },
+                            data: { turbo: false }) %>
+            </td>
+          </tr>
+        <% end %>
+      <% else %>
+        <%# class-wp-ms-themes-list-table.php:324-329 — 'No themes found.' when the list was
+            filtered, 'No themes are currently available.' when there are none at all. -%>
+        <tr class="no-items">
+          <td colspan="3"><%= @themes.any? ? "No themes found." : "No themes are currently available." %></td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</div>

@@ -1,0 +1,34 @@
+<%# console.ms-site-edit (Settings) — wp-admin/network/site-settings.php:118-190. One row
+    per option of THAT site, named `option[<name>]`, read and written INSIDE the site's own
+    PostgreSQL schema. Underscore-prefixed internals are excluded (:124-133); a structured
+    value is shown read-only, the jsonb equivalent of the legacy's 'SERIALIZED DATA'
+    disabled field (:141-151). -%>
+<%= render "console/network/site_edit/chrome" %>
+
+<% if @site_options.empty? %>
+  <div class="notice notice-error" role="alert">
+    <p>The requested site does not exist.</p>
+  </div>
+<% else %>
+  <%= form_with url: "/console/network/sites/#{@site.id}/settings", method: :post, data: { turbo: false } do %>
+    <table class="form-table" role="presentation">
+      <tbody>
+        <% @site_options.each do |name, value, editable| %>
+          <tr class="form-field">
+            <th scope="row"><label for="<%= name %>" class="code"><%= name %></label></th>
+            <td>
+              <% if !editable %>
+                <input class="all-options disabled" type="text" id="<%= name %>" value="<%= value %>" size="40" disabled>
+              <% elsif value.to_s.include?("\n") %>
+                <textarea class="all-options" rows="5" cols="40" name="option[<%= name %>]" id="<%= name %>"><%= value %></textarea>
+              <% else %>
+                <input class="all-options" name="option[<%= name %>]" type="text" id="<%= name %>" value="<%= value %>" size="40">
+              <% end %>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+    <p class="submit"><button type="submit" class="button button-primary">Save Changes</button></p>
+  <% end %>
+<% end %>

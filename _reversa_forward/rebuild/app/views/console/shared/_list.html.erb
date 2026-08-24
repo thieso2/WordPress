@@ -3,35 +3,57 @@
     built; this partial adds no data and asks Access nothing (the controller resolved every
     policy question already, BR-CAP-05). LITERAL strings — title, column headers, tab
     labels, bulk-action labels, empty-state — arrive verbatim and are printed as given.
-    Styles are scoped here so the list renders the same under any console layout revision. -%>
+
+    The INFORMATION ARCHITECTURE follows WP_List_Table (owner ruling, 2026-08-24): heading
+    + Add New action, the status tabs, the search box, then tablenav/table/tablenav with
+    the tablenav REPEATED below the table and the column headers repeated in <tfoot>. The
+    styling is the rebuild's own and is scoped here so the list renders the same under any
+    console layout revision. -%>
 <% list = local_assigns.fetch(:list) %>
+<% headings = list_headings(list) %>
+<% search = list.filters.find { |flt| flt.kind == :search } %>
+<% filter_form_id = list_filter_form_id(list) %>
+<% bulk_form_id = "#{list.screen.tr('.', '-')}-bulk" %>
 <style>
   .wp-list-table { width: 100%; border-collapse: collapse; background: var(--card, #fff); border: 1px solid var(--rule, #dcdcde); }
   .wp-list-table th, .wp-list-table td { text-align: left; padding: .5rem .6rem; border-bottom: 1px solid var(--rule, #dcdcde); vertical-align: top; }
-  .wp-list-table thead th { font-weight: 600; }
-  .wp-list-table th.sortable a { text-decoration: none; color: inherit; }
+  .wp-list-table thead th, .wp-list-table tfoot th { font-weight: 600; }
+  .wp-list-table tfoot th, .wp-list-table tfoot td { border-bottom: 0; border-top: 1px solid var(--rule, #dcdcde); }
+  .wp-list-table th.sortable a, .wp-list-table th.sorted a { text-decoration: none; color: inherit; display: inline-flex; align-items: center; gap: .25rem; }
+  .wp-list-table th.sorted { color: var(--ink, #1d2327); }
+  .sorting-indicators { display: inline-flex; flex-direction: column; line-height: .6; }
+  .sorting-indicator { border: 4px solid transparent; }
+  .sorting-indicator.asc { border-bottom-color: var(--rule, #a7aaad); }
+  .sorting-indicator.desc { border-top-color: var(--rule, #a7aaad); }
+  th.sorted.asc .sorting-indicator.asc { border-bottom-color: var(--accent, #2271b1); }
+  th.sorted.desc .sorting-indicator.desc { border-top-color: var(--accent, #2271b1); }
   .wp-list-table .check-column { width: 1.5rem; }
   .row-title { font-weight: 600; }
-  .row-actions { color: var(--muted, #50575e); font-size: .85rem; margin-top: .2rem; display: flex; gap: .5rem; flex-wrap: wrap; }
+  .row-actions { color: var(--muted, #50575e); font-size: .85rem; margin-top: .2rem; }
   .row-actions form { display: inline; margin: 0; }
   .row-actions a, .row-actions button.button-link { color: var(--accent, #2271b1); background: none; border: 0; padding: 0; cursor: pointer; font: inherit; }
   .row-actions .destructive a, .row-actions .destructive button { color: var(--error, #d63638); }
   .subsubsub { list-style: none; margin: .5rem 0; padding: 0; font-size: .85rem; color: var(--muted, #50575e); }
   .subsubsub li { display: inline; }
-  .subsubsub li::after { content: " |"; color: var(--rule, #dcdcde); }
-  .subsubsub li:last-child::after { content: ""; }
   .subsubsub a { text-decoration: none; }
   .subsubsub a.current { font-weight: 600; color: var(--ink, #1d2327); }
   .tablenav { display: flex; align-items: center; gap: .5rem; margin: .75rem 0; flex-wrap: wrap; }
   .tablenav .actions { display: flex; gap: .35rem; align-items: center; }
+  .tablenav .actions:empty, .tablenav .actions.hidden { display: none; }
   .tablenav-pages { margin-left: auto; color: var(--muted, #50575e); display: flex; align-items: center; gap: .4rem; }
+  .tablenav-pages .pagination-links { display: flex; align-items: center; gap: .2rem; }
+  .tablenav-pages .paging-input { display: inline-flex; align-items: center; gap: .25rem; }
+  .tablenav-pages .current-page { width: 3em; }
   .displaying-num { margin-right: .5rem; }
-  .search-box { display: flex; gap: .35rem; }
+  .list-filter-form { display: contents; }
+  .search-box { display: flex; gap: .35rem; justify-content: flex-end; margin: .5rem 0; }
   .table-scroll { overflow-x: auto; }
   .no-items td { padding: 1.25rem; text-align: center; color: var(--muted, #50575e); }
   .page-title-action { display: inline-block; margin-left: .5rem; padding: .2rem .7rem; border: 1px solid var(--accent, #2271b1); border-radius: 3px; color: var(--accent, #2271b1); text-decoration: none; font-size: .85rem; vertical-align: middle; }
 </style>
 
+<%# edit.php:414-436 — the <h1>, the "Add New" button as its SIBLING (page-title-action),
+    the search subtitle, then the <hr class="wp-header-end"> the notices anchor to. %>
 <h1 class="wp-heading-inline"><%= list.title %></h1>
 <% if list.primary_action %>
   <%= link_to list.primary_action[:label], list.primary_action[:path], class: "page-title-action" %>
@@ -41,102 +63,54 @@
 <% end %>
 <hr class="wp-header-end">
 
-<%# StatusTabs — WP_List_Table::get_views, "All | Published | Draft | Trash". The label
+<%# views() — WP_List_Table::get_views, "All | Published | Draft | Trash", preceded by its
+    screen-reader heading and sitting ABOVE the search box (edit.php:486-490). The label
     markup (e.g. 'All <span class="count">(3)</span>') is LITERAL and already escaped. %>
 <% if list.tabs? %>
+  <h2 class="screen-reader-text"><%= headings[:views] %></h2>
   <ul class="subsubsub">
-    <% list.tabs.each do |tab| %>
+    <% list.tabs.each_with_index do |tab, i| %>
       <li class="<%= tab.key %>">
         <%= link_to list_url(list, tab.query), class: (tab.current? ? "current" : nil),
-                    "aria-current": (tab.current? ? "page" : nil) do %><%= raw tab.label %><% end %>
+                    "aria-current": (tab.current? ? "page" : nil) do %><%= raw tab.label %><% end %><%= " |" unless i == list.tabs.length - 1 %>
       </li>
     <% end %>
   </ul>
 <% end %>
 
-<%= form_with url: list.bulk_path, method: :post, data: { turbo: false } do |f| %>
-  <div class="tablenav top">
-    <% if list.bulk_actions? %>
-      <div class="actions bulkactions">
-        <label for="bulk-action-selector-top" class="screen-reader-text">Select bulk action</label>
-        <select name="bulk_action" id="bulk-action-selector-top">
-          <%# class-wp-list-table.php:614 — "Bulk actions" %>
-          <option value="-1">Bulk actions</option>
-          <% list.bulk_actions.each do |action| %>
-            <option value="<%= action.value %>"><%= action.label %></option>
-          <% end %>
-        </select>
-        <%# class-wp-list-table.php:635 — submit_button( 'Apply' ) %>
-        <button type="submit" class="button action">Apply</button>
-      </div>
-    <% end %>
-    <%# extra_tablenav's Empty Trash (submit_button 'delete_all') — posts through this same
-        bulk form so it re-uses the DEV-004 confirmation the controller applies to deletes. %>
-    <% empty_trash = list.filters.find { |flt| flt.kind == :empty_trash } %>
-    <% if empty_trash %>
-      <div class="actions emptytrash">
-        <button type="submit" name="<%= empty_trash.name %>" value="1" class="button apply"><%= empty_trash.label %></button>
-      </div>
-    <% end %>
-    <%# months_dropdown + categories_dropdown + submit_button( 'Filter' ) — a GET form that
-        narrows the list by date/category (class-wp-posts-list-table.php:574-599). %>
-    <% select_filters = list.filters.select { |flt| flt.kind == :select } %>
-    <% if select_filters.any? %>
-      <div class="actions filter-actions">
-        <%= form_with url: list.base_path, method: :get, data: { turbo: false } do %>
-          <% list.query.except("m", "cat", "paged").each do |k, v| %>
-            <%= hidden_field_tag k, v %>
-          <% end %>
-          <% select_filters.each do |flt| %>
-            <label class="screen-reader-text" for="filter-<%= flt.name %>"><%= flt.label %></label>
-            <select name="<%= flt.name %>" id="filter-<%= flt.name %>">
-              <% Array(flt.options).each do |opt_label, opt_value| %>
-                <option value="<%= opt_value %>" <%= "selected" if flt.value.to_s == opt_value.to_s %>><%= opt_label %></option>
-              <% end %>
-            </select>
-          <% end %>
-          <button type="submit" class="button">Filter</button>
-        <% end %>
-      </div>
-    <% end %>
-    <% if list.filters.any? { |flt| flt.kind == :search } %>
-      <div class="search-box">
-        <% search = list.filters.find { |flt| flt.kind == :search } %>
-        <%= form_with url: list.base_path, method: :get, data: { turbo: false } do %>
-          <% list.query.except("s", "paged", :s, :paged).each do |k, v| %>
-            <%= hidden_field_tag k, v %>
-          <% end %>
-          <label class="screen-reader-text" for="post-search-input"><%= search.label %></label>
-          <input type="search" id="post-search-input" name="s" value="<%= search.value %>">
-          <button type="submit" class="button"><%= search.label %></button>
-        <% end %>
-      </div>
-    <% end %>
-    <%= render "console/shared/pagination", list: list, which: "top" %>
-  </div>
+<%# The screen's GET form. It carries every list control that is a QUERY (search, the
+    months/category selects, the pager's Current Page input); those controls live inside
+    the tablenav below and bind here through their `form` attribute, because the bulk form
+    that wraps the table POSTs and a nested <form> is dropped by the HTML parser. %>
+<form id="<%= filter_form_id %>" class="list-filter-form" method="get" action="<%= list.base_path %>" data-turbo="false">
+  <% list_filter_carry(list).each do |key, value| %>
+    <input type="hidden" name="<%= key %>" value="<%= value %>">
+  <% end %>
+</form>
 
+<%# search_box( $text, $input_id ) — class-wp-list-table.php:1417. Hidden <label>, the
+    screen's OWN search text on the submit button ("Search Posts", "Search Users"…), and a
+    per-screen input id. Suppressed on an empty, unsearched list, as the legacy does. %>
+<% if search && (search.value.present? || list.any_rows?) %>
+  <p class="search-box">
+    <label class="screen-reader-text" for="<%= list_search_input_id(list) %>"><%= search.label %>:</label>
+    <input type="search" id="<%= list_search_input_id(list) %>" name="s" value="<%= search.value %>" form="<%= filter_form_id %>">
+    <button type="submit" id="search-submit" class="button" form="<%= filter_form_id %>"><%= search.label %></button>
+  </p>
+<% end %>
+
+<%= form_with url: list.bulk_path, method: :post, id: bulk_form_id, class: "list-bulk-form", data: { turbo: false } do |f| %>
+  <%= render "console/shared/tablenav", list: list, which: "top" %>
+
+  <%# display() renders the screen-reader heading for the table between the top tablenav
+      and the table itself (class-wp-list-table.php:1521). %>
+  <h2 class="screen-reader-text"><%= headings[:list] %></h2>
   <div class="table-scroll">
     <table class="wp-list-table widefat fixed striped">
       <thead>
-        <tr>
-          <% if list.bulk_actions? %>
-            <td class="manage-column column-cb check-column">
-              <label class="screen-reader-text" for="cb-select-all-1">Select All</label>
-              <input id="cb-select-all-1" type="checkbox" onclick="this.closest('table').querySelectorAll('input[name=\'ids[]\']').forEach(c=>c.checked=this.checked)">
-            </td>
-          <% end %>
-          <% list.columns.each do |col| %>
-            <th scope="col" class="manage-column column-<%= col.key %> <%= 'sortable' if col.sortable? %>">
-              <% if col.sortable? %>
-                <%= link_to list_url(list, sort_query(list, col.sort_key)) do %><span><%= raw col.label %></span><% end %>
-              <% else %>
-                <span><%= raw col.label %></span>
-              <% end %>
-            </th>
-          <% end %>
-        </tr>
+        <tr><%= render "console/shared/list_headers", list: list, with_id: true, cb_id: "cb-select-all-1" %></tr>
       </thead>
-      <tbody>
+      <tbody id="the-list">
         <% if list.any_rows? %>
           <% list.rows.each do |row| %>
             <tr id="<%= list.screen %>-<%= row.id %>">
@@ -148,20 +122,18 @@
                 </th>
               <% end %>
               <% list.columns.each_with_index do |col, i| %>
-                <td class="column-<%= col.key %>">
+                <% primary = i.zero? %>
+                <td class="column-<%= col.key %><%= " column-primary" if primary %><%= " has-row-actions" if primary && row.actions.present? %>">
                   <%= raw row.cell(col.key) %>
-                  <% if i.zero? && row.actions.present? %>
+                  <%# row_actions() — class-wp-list-table.php:582: one .row-actions
+                      container inside the PRIMARY column, each action in its own span,
+                      separated by " | " except after the last. %>
+                  <% if primary && row.actions.present? %>
                     <div class="row-actions">
-                      <% row.actions.each do |ra| %>
-                        <span class="<%= 'destructive' if ra.destructive? %> <%= ra.key %>">
-                          <% if ra.get? %>
-                            <%= link_to ra.label, ra.path %>
-                          <% else %>
-                            <%= button_to ra.label, ra.path, method: ra.http_method,
-                                          params: ra.parameters, form_class: "button-link-form",
-                                          class: "button-link", data: { turbo: false } %>
-                          <% end %>
-                        </span>
+                      <% row.actions.each_with_index do |ra, j| %>
+                        <span class="<%= 'destructive' if ra.destructive? %> <%= ra.key %>"><% if ra.get? %><%= link_to ra.label, ra.path %><% else %><%= button_to ra.label, ra.path, method: ra.http_method,
+                                        params: ra.parameters, form_class: "button-link-form",
+                                        class: "button-link", data: { turbo: false } %><% end %><%= " | " unless j == row.actions.length - 1 %></span>
                       <% end %>
                     </div>
                   <% end %>
@@ -175,10 +147,44 @@
           </tr>
         <% end %>
       </tbody>
+      <%# display() repeats the column headers in the footer with print_column_headers(
+          false ) — same labels and sort links, no ids, its own Select All checkbox. %>
+      <tfoot>
+        <tr><%= render "console/shared/list_headers", list: list, with_id: false, cb_id: "cb-select-all-2" %></tr>
+      </tfoot>
     </table>
   </div>
 
-  <div class="tablenav bottom">
-    <%= render "console/shared/pagination", list: list, which: "bottom" %>
-  </div>
+  <%# display_tablenav( 'bottom' ) returns early when the list has no rows. %>
+  <% if list.any_rows? %>
+    <%= render "console/shared/tablenav", list: list, which: "bottom" %>
+  <% end %>
 <% end %>
+
+<script>
+  (function () {
+    var form = document.getElementById(<%= bulk_form_id.to_json.html_safe %>);
+    if (!form) return;
+
+    // Both Select All checkboxes (thead and tfoot) drive the row checkboxes and each other.
+    var all = form.querySelectorAll("input.cb-select-all");
+    all.forEach(function (master) {
+      master.addEventListener("click", function () {
+        form.querySelectorAll('input[name="ids[]"]').forEach(function (cb) { cb.checked = master.checked; });
+        all.forEach(function (other) { other.checked = master.checked; });
+      });
+    });
+
+    // current_action() (class-wp-list-table.php:1084): the TOP select wins when it names an
+    // action, otherwise the bottom one does. Both carry the same name, so the loser is
+    // disabled on submit and never reaches the server.
+    form.addEventListener("submit", function () {
+      var top = form.querySelector("#bulk-action-selector-top");
+      var bottom = form.querySelector("#bulk-action-selector-bottom");
+      if (!top || !bottom) return;
+      top.disabled = false;
+      bottom.disabled = false;
+      if (top.value !== "-1") { bottom.disabled = true; } else { top.disabled = true; }
+    });
+  })();
+</script>

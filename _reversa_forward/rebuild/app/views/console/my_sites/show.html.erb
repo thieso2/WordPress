@@ -1,0 +1,54 @@
+<%# console.my-sites — wp-admin/my-sites.php:76-180, modernized. Every FUNCTIONAL string is
+    VERBATIM. The controller resolved every capability; this view asks Access nothing. -%>
+<h1 class="wp-heading-inline">My Sites</h1>
+<% if @can_add_site %>
+  <a href="/signup" class="page-title-action">Add New Site</a>
+<% end %>
+
+<% if @sites.empty? %>
+  <%# :90-97 — the error notice shown when the actor belongs to no site. -%>
+  <div class="notice notice-error" role="alert">
+    <p><strong>You must be a member of at least one site to use this page.</strong></p>
+  </div>
+<% else %>
+  <hr class="wp-header-end">
+
+  <%= form_with url: "/console/my-sites", method: :post, id: "myblogs", data: { turbo: false } do %>
+    <%# choose_primary_blog(), wp-admin/includes/ms.php:762-806. A select when the actor
+        belongs to more than one site, the bare address when they belong to exactly one. -%>
+    <table class="form-table" role="presentation">
+      <tbody>
+        <tr>
+          <th scope="row"><label for="primary_blog">Primary Site</label></th>
+          <td>
+            <% if @sites.length > 1 %>
+              <select name="primary_blog" id="primary_blog">
+                <% @sites.each do |site| %>
+                  <option value="<%= site.id %>" <%= "selected" if site.id == @primary_site_id %>><%= @site_urls[site.id] %></option>
+                <% end %>
+              </select>
+            <% else %>
+              <%= @site_urls[@sites.first.id] %>
+              <input type="hidden" name="primary_blog" value="<%= @sites.first.id %>">
+            <% end %>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    <br clear="all">
+
+    <ul class="my-sites striped">
+      <% @sites.each do |site| %>
+        <li>
+          <h3><%= site.name.presence || site.domain %></h3>
+          <p class="my-sites-actions">
+            <a href="<%= @site_urls[site.id] %>">Visit</a> |
+            <a href="<%= @site_admin_urls[site.id] %>">Dashboard</a>
+          </p>
+        </li>
+      <% end %>
+    </ul>
+
+    <p class="submit"><button type="submit" class="button button-primary">Save Changes</button></p>
+  <% end %>
+<% end %>

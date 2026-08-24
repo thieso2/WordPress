@@ -5,10 +5,13 @@
 
 <table class="widefat">
   <tbody>
+    <%# tools.php's submenu order is Available Tools (5), Import (10), Export (15), Site
+        Health (20), Export Personal Data (25), Erase Personal Data (30) — menu.php:391-397.
+        This index follows it. -%>
+    <tr><td><%= link_to "Import", "/console/tools/import" %></td><td>Import posts, pages, comments, custom fields, categories, and tags from a WordPress export file.</td></tr>
     <tr><td><%= link_to "Export", "/console/tools/export" %></td><td>Export your content to a WXR file you can import into another site.</td></tr>
     <tr><td><%= link_to "Site Health", "/console/tools/site-health" %></td><td>A status report on this installation.</td></tr>
     <tr><td><%= link_to "Export Personal Data", "/console/tools/export-personal-data" %></td><td>Send a personal-data export request (GDPR).</td></tr>
     <tr><td><%= link_to "Erase Personal Data", "/console/tools/erase-personal-data" %></td><td>Send a personal-data erasure request (GDPR).</td></tr>
-    <tr><td>Import</td><td class="no-items">Importers were plugins in the legacy; with no hook system there is nothing for one to attach to (DEV-011). Not built this pass.</td></tr>
   </tbody>
 </table>

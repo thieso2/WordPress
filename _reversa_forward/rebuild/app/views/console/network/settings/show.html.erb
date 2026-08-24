@@ -1,0 +1,175 @@
+<%# console.ms-options — wp-admin/network/settings.php:153-450, modernized. Section
+    headings, labels, radio copy and descriptions are VERBATIM (DEV-009). Menu Settings and
+    Language Settings are deliberately absent — see the controller's note. -%>
+<h1>Network Settings</h1>
+<hr class="wp-header-end">
+<%= render "console/network/nav" %>
+
+<%= form_with url: "/console/network/settings", method: :post, data: { turbo: false } do %>
+  <%# ── Operational Settings (settings.php:156) ──────────────────────────────────── -%>
+  <h2 id="wp-settings-section-operational-settings">Operational Settings</h2>
+  <table class="form-table" role="presentation">
+    <tbody>
+      <tr>
+        <th scope="row"><label for="site_name">Network Title</label></th>
+        <td><input name="site_name" type="text" id="site_name" class="regular-text" value="<%= @values["site_name"] %>"></td>
+      </tr>
+      <tr>
+        <th scope="row"><label for="admin_email">Network Admin Email</label></th>
+        <td>
+          <input name="admin_email" type="email" id="admin_email" aria-describedby="admin-email-desc"
+                 class="regular-text" value="<%= @values["admin_email"] %>">
+          <p class="description" id="admin-email-desc">This address is used for admin purposes. If you change this, an email will be sent to your new address to confirm it. <strong>The new address will not become active until confirmed.</strong></p>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+  <%# ── Registration Settings (settings.php:200) ─────────────────────────────────── -%>
+  <h2 id="wp-settings-section-registration-settings">Registration Settings</h2>
+  <table class="form-table" role="presentation">
+    <tbody>
+      <tr>
+        <th scope="row">Allow new registrations</th>
+        <td>
+          <fieldset>
+            <legend class="screen-reader-text">Allow new registrations</legend>
+            <label><input name="registration" type="radio" id="registration1" value="none" <%= "checked" if @registration == "none" %>> Registration is disabled</label><br>
+            <label><input name="registration" type="radio" id="registration2" value="user" <%= "checked" if @registration == "user" %>> User accounts may be registered</label><br>
+            <label><input name="registration" type="radio" id="registration3" value="blog" <%= "checked" if @registration == "blog" %>> Logged in users may register new sites</label><br>
+            <label><input name="registration" type="radio" id="registration4" value="all" <%= "checked" if @registration == "all" %>> Both sites and user accounts can be registered</label>
+          </fieldset>
+        </td>
+      </tr>
+      <tr>
+        <th scope="row">Registration notification</th>
+        <td>
+          <label><input name="registrationnotification" type="checkbox" id="registrationnotification" value="yes" <%= "checked" if @values["registrationnotification"] %>> Send the network admin an email notification every time someone registers a site or user account</label>
+        </td>
+      </tr>
+      <tr>
+        <th scope="row">Add Users</th>
+        <td>
+          <label><input name="add_new_users" type="checkbox" id="add_new_users" value="1" <%= "checked" if @values["add_new_users"] %>> Allow site administrators to add new users to their site via the "Users &rarr; Add User" page</label>
+        </td>
+      </tr>
+      <tr>
+        <th scope="row"><label for="illegal_names">Banned Names</label></th>
+        <td>
+          <input name="illegal_names" type="text" id="illegal_names" aria-describedby="illegal-names-desc"
+                 class="large-text" value="<%= @values["illegal_names"] %>" size="45">
+          <p class="description" id="illegal-names-desc">Users are not allowed to register these sites. Separate names by spaces.</p>
+        </td>
+      </tr>
+      <tr>
+        <th scope="row"><label for="limited_email_domains">Limited Email Registrations</label></th>
+        <td>
+          <textarea name="limited_email_domains" id="limited_email_domains" aria-describedby="limited-email-domains-desc" cols="45" rows="5"><%= @values["limited_email_domains"] %></textarea>
+          <p class="description" id="limited-email-domains-desc">If you want to limit site registrations to certain domains. One domain per line.</p>
+        </td>
+      </tr>
+      <tr>
+        <th scope="row"><label for="banned_email_domains">Banned Email Domains</label></th>
+        <td>
+          <textarea name="banned_email_domains" id="banned_email_domains" aria-describedby="banned-email-domains-desc" cols="45" rows="5"><%= @values["banned_email_domains"] %></textarea>
+          <p class="description" id="banned-email-domains-desc">If you want to ban domains from site registrations. One domain per line.</p>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+  <%# ── New Site Settings (settings.php:318) ─────────────────────────────────────── -%>
+  <h2 id="wp-settings-section-new-site-settings">New Site Settings</h2>
+  <table class="form-table" role="presentation">
+    <tbody>
+      <tr>
+        <th scope="row"><label for="welcome_email">Welcome Email</label></th>
+        <td>
+          <textarea name="welcome_email" id="welcome_email" aria-describedby="welcome-email-desc" rows="5" cols="45" class="large-text"><%= @values["welcome_email"] %></textarea>
+          <p class="description" id="welcome-email-desc">The welcome email sent to new site owners.</p>
+        </td>
+      </tr>
+      <tr>
+        <th scope="row"><label for="welcome_user_email">Welcome User Email</label></th>
+        <td>
+          <textarea name="welcome_user_email" id="welcome_user_email" aria-describedby="welcome-user-email-desc" rows="5" cols="45" class="large-text"><%= @values["welcome_user_email"] %></textarea>
+          <p class="description" id="welcome-user-email-desc">The welcome email sent to new users.</p>
+        </td>
+      </tr>
+      <tr>
+        <th scope="row"><label for="first_post">First Post</label></th>
+        <td>
+          <textarea name="first_post" id="first_post" aria-describedby="first-post-desc" rows="5" cols="45" class="large-text"><%= @values["first_post"] %></textarea>
+          <p class="description" id="first-post-desc">The first post on a new site.</p>
+        </td>
+      </tr>
+      <tr>
+        <th scope="row"><label for="first_page">First Page</label></th>
+        <td>
+          <textarea name="first_page" id="first_page" aria-describedby="first-page-desc" rows="5" cols="45" class="large-text"><%= @values["first_page"] %></textarea>
+          <p class="description" id="first-page-desc">The first page on a new site.</p>
+        </td>
+      </tr>
+      <tr>
+        <th scope="row"><label for="first_comment">First Comment</label></th>
+        <td>
+          <textarea name="first_comment" id="first_comment" aria-describedby="first-comment-desc" rows="5" cols="45" class="large-text"><%= @values["first_comment"] %></textarea>
+          <p class="description" id="first-comment-desc">The first comment on a new site.</p>
+        </td>
+      </tr>
+      <tr>
+        <th scope="row"><label for="first_comment_author">First Comment Author</label></th>
+        <td>
+          <input type="text" size="40" name="first_comment_author" id="first_comment_author" aria-describedby="first-comment-author-desc" value="<%= @values["first_comment_author"] %>">
+          <p class="description" id="first-comment-author-desc">The author of the first comment on a new site.</p>
+        </td>
+      </tr>
+      <tr>
+        <th scope="row"><label for="first_comment_email">First Comment Email</label></th>
+        <td>
+          <input type="text" size="40" name="first_comment_email" id="first_comment_email" aria-describedby="first-comment-email-desc" value="<%= @values["first_comment_email"] %>">
+          <p class="description" id="first-comment-email-desc">The email address of the first comment author on a new site.</p>
+        </td>
+      </tr>
+      <tr>
+        <th scope="row"><label for="first_comment_url">First Comment URL</label></th>
+        <td>
+          <input type="text" size="40" name="first_comment_url" id="first_comment_url" aria-describedby="first-comment-url-desc" value="<%= @values["first_comment_url"] %>">
+          <p class="description" id="first-comment-url-desc">The URL for the first comment on a new site.</p>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+  <%# ── Upload Settings (settings.php:399) ───────────────────────────────────────── -%>
+  <h2 id="wp-settings-section-upload-settings">Upload Settings</h2>
+  <table class="form-table" role="presentation">
+    <tbody>
+      <tr>
+        <th scope="row">Site upload space</th>
+        <td>
+          <label><input type="checkbox" id="upload_space_check_disabled" name="upload_space_check_disabled" value="1" <%= "checked" unless @values["upload_space_check_disabled"] %>>
+          Limit total size of files uploaded to</label>
+          <input name="blog_upload_space" type="number" min="0" style="width: 100px" id="blog_upload_space" aria-describedby="blog-upload-space-desc" value="<%= @values["blog_upload_space"] %>"> MB
+          <p class="description" id="blog-upload-space-desc">Size in megabytes</p>
+        </td>
+      </tr>
+      <tr>
+        <th scope="row"><label for="upload_filetypes">Upload file types</label></th>
+        <td>
+          <input name="upload_filetypes" type="text" id="upload_filetypes" aria-describedby="upload-filetypes-desc" class="large-text" value="<%= @values["upload_filetypes"] %>" size="45">
+          <p class="description" id="upload-filetypes-desc">Allowed file types. Separate types by spaces.</p>
+        </td>
+      </tr>
+      <tr>
+        <th scope="row"><label for="fileupload_maxk">Max upload file size</label></th>
+        <td>
+          <input name="fileupload_maxk" type="number" min="0" style="width: 100px" id="fileupload_maxk" aria-describedby="fileupload-maxk-desc" value="<%= @values["fileupload_maxk"] %>"> KB
+          <p class="description" id="fileupload-maxk-desc">Size in kilobytes</p>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p class="submit"><button type="submit" class="button button-primary">Save Changes</button></p>
+<% end %>

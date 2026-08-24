@@ -1,0 +1,31 @@
+<%# console.ms-user-new — wp-admin/network/user-new.php:107-161, modernized. Labels and
+    the description line are VERBATIM. -%>
+<h1 id="add-new-user">Add User</h1>
+<hr class="wp-header-end">
+<%= render "console/network/nav" %>
+
+<% if @errors.any? %>
+  <div class="notice notice-error" role="alert">
+    <% @errors.each do |message| %><p><%= message %></p><% end %>
+  </div>
+<% end %>
+
+<%= form_with url: "/console/network/users", method: :post, data: { turbo: false } do %>
+  <table class="form-table" role="presentation">
+    <tbody>
+      <tr class="form-field form-required">
+        <th scope="row"><label for="username">Username</label></th>
+        <td><input type="text" class="regular-text" name="user[username]" id="username"
+                   autocapitalize="none" autocorrect="off" maxlength="60" value="<%= @form["username"] %>" required></td>
+      </tr>
+      <tr class="form-field form-required">
+        <th scope="row"><label for="email">Email</label></th>
+        <td><input type="email" class="regular-text" name="user[email]" id="email" value="<%= @form["email"] %>" required></td>
+      </tr>
+      <tr class="form-field">
+        <td colspan="2" class="td-full">A password reset link will be sent to the user via email.</td>
+      </tr>
+    </tbody>
+  </table>
+  <p class="submit"><button type="submit" class="button button-primary" id="add-user">Add User</button></p>
+<% end %>

@@ -1,0 +1,50 @@
+<%# console.ms-admin — wp-admin/network/index.php + the `network_dashboard_right_now`
+    widget (wp-admin/includes/dashboard.php:454-525), modernized. Declared widget grid
+    (DEV-002); every FUNCTIONAL string is VERBATIM from the PHP (DEV-009). The view asks
+    Access nothing — the controller resolved both capabilities (BR-CAP-05). -%>
+<h1 class="wp-heading-inline">Dashboard</h1>
+<hr class="wp-header-end">
+
+<%= render "console/network/nav" %>
+
+<div class="dashboard-widgets" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1rem">
+  <%# ── Right Now (wp_network_dashboard_right_now, dashboard.php:454) ────────────── -%>
+  <section class="widget panel" id="network_dashboard_right_now">
+    <h2>Right Now</h2>
+    <div class="main">
+      <%# :457-462 — the quick links, each behind its own capability. -%>
+      <% if @can_create_sites || @can_create_users %>
+        <ul class="subsubsub">
+          <% if @can_create_sites %>
+            <li class="create-site"><a href="/console/network/sites/new">Create a New Site</a></li>
+          <% end %>
+          <% if @can_create_users %>
+            <li class="create-user"><a href="/console/network/users/new">Create a New User</a></li>
+          <% end %>
+        </ul>
+      <% end %>
+      <br class="clear">
+
+      <%# :473 — 'You have %1$s and %2$s.' -%>
+      <p class="youhave"><%= @right_now_sentence %></p>
+
+      <%# :499-511 — the user search form, posting at the network Users screen. -%>
+      <form action="/console/network/users" method="get">
+        <p>
+          <label class="screen-reader-text" for="search-users">Search Users</label>
+          <input type="search" name="s" value="" size="30" autocomplete="off" id="search-users">
+          <button type="submit" class="button" id="submit_users">Search Users</button>
+        </p>
+      </form>
+
+      <%# :513-525 — the site search form, posting at the network Sites screen. -%>
+      <form action="/console/network/sites" method="get">
+        <p>
+          <label class="screen-reader-text" for="search-sites">Search Sites</label>
+          <input type="search" name="s" value="" size="30" autocomplete="off" id="search-sites">
+          <button type="submit" class="button" id="submit_sites">Search Sites</button>
+        </p>
+      </form>
+    </div>
+  </section>
+</div>

@@ -1,10 +1,67 @@
+<%# console.credits — credits.php. The legacy screen is a rendering of an API response:
+    wp_credits() (wp-admin/includes/credits.php) fetches
+    api.wordpress.org/core/credits/1.1/ over the network and prints the groups it returns —
+    project leaders, core contributors, props, translation validators, external libraries.
+
+    Two things make that untranslatable here rather than merely rebrandable:
+      · this build makes no external requests, so there is no response to render; and
+      · DEV-009 drops project identity — the people named in that response contributed to
+        WordPress, not to this rebuild, and printing them here would claim otherwise.
+    So the IA is kept (title, tabs, a lede block, then sections) and refilled with what can
+    actually be stated: where this code came from, and which libraries it runs on. NO
+    contributor, sponsor or team is named, because this build has no roster to name. -%>
 <% @page_title = "Credits" %>
 <h1 class="wp-heading-inline">Credits</h1>
 <hr class="wp-header-end">
+
 <%= render "console/info/nav" %>
-<p>This system was reverse-engineered and rebuilt by the Reversa migration pipeline from a
-WordPress 7.2-alpha corpus. The legacy WordPress software is the work of the WordPress
-project and its contributors; this rebuild reproduces its observable behaviour, not its
-authorship.</p>
-<p>The rebuild&#8217;s specifications, business rules and deviation log live under
-<code>_reversa_sdd/</code>.</p>
+
+<div class="about-section">
+  <p class="about-lede">This build has no contributor roster. The legacy screen filled this
+  page from a directory hosted by the project it belonged to; this build makes no external
+  requests, and inventing names to fill the space would be a lie. What can be stated is
+  where the code came from.</p>
+</div>
+
+<div class="about-section">
+  <h2>Provenance</h2>
+  <p>The behaviour reproduced here was reverse-engineered from a WordPress 7.2-alpha source
+  corpus under the Reversa framework, screen by screen and rule by rule. The legacy
+  software is the work of the WordPress project and its contributors. This build reproduces
+  its observable behaviour, not its authorship, and carries none of its project
+  identity.</p>
+  <p>The specifications, business rules, data model and deviation log the rebuild was
+  written against live in the repository under <code>_reversa_sdd/</code>. Every departure
+  from legacy behaviour is recorded there with the reason it was approved, which is the
+  nearest thing this build has to a changelog with names on it.</p>
+</div>
+
+<%# credits.php's `External Libraries` group heading — LITERAL (credits.php:135, one of the
+    strings the file keeps translatable for the API response). The rows are not an API
+    response: they are the gems actually loaded into this process, read at render time. -%>
+<div class="about-section">
+  <h2>External Libraries</h2>
+  <% if @libraries.any? %>
+    <table class="about-facts">
+      <tbody>
+        <% @libraries.each do |name, version| %>
+          <tr>
+            <th scope="row"><%= name %></th>
+            <td><%= version %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+    <p class="description">The direct runtime dependencies this application declares, with
+    the version actually loaded when this page was rendered. The block editor island
+    additionally bundles React and React DOM; see <code>package.json</code>.</p>
+  <% else %>
+    <p class="no-items">No runtime dependency information is available in this
+    environment.</p>
+  <% end %>
+</div>
+
+<%# about.php:406-412 — the return link, LITERAL. -%>
+<div class="about-return">
+  <a href="/console">Go to Dashboard &rarr; Home</a>
+</div>

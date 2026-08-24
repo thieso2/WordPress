@@ -1,0 +1,17 @@
+<%# The network menu (wp-admin/network/menu.php), rendered in-page.
+    In wp-admin the Network Admin is SEPARATE CHROME — its own sidebar, reached from the
+    admin bar's "My Sites → Network Admin". The rebuild's sidebar is a DECLARED constant in
+    a file this track does not own, so the same information architecture is delivered here
+    as an in-page nav; the proposed top-level sidebar entry ships with the handoff.
+    Plugins is absent and its absence is a ruling: AD-01 removed the extension system.
+    Capabilities were resolved in the controller; this asks Access nothing (BR-CAP-05). -%>
+<nav class="network-nav" aria-label="Network admin">
+  <ul class="subsubsub">
+    <% network_nav.each do |entry| %>
+      <li class="<%= entry[:key] %>">
+        <a href="<%= entry[:path] %>" class="<%= "current" if entry[:current] %>"
+           <%= "aria-current=page".html_safe if entry[:current] %>><%= entry[:label] %></a>
+      </li>
+    <% end %>
+  </ul>
+</nav>

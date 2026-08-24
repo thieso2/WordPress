@@ -1,0 +1,60 @@
+<%# display_tablenav( $which ) — class-wp-list-table.php:1130. The legacy renders this
+    block BOTH above and below the table: bulk actions, the screen's extra controls, and
+    the pager, repeated so a long list is operable from either end. The bottom copy is
+    skipped entirely when the list has no rows, and the bulk-actions block is `hidden` at
+    the top in that case. Control ids are suffixed with $which so they stay unique.
+
+    The GET controls (the months/category selects and the pager's Current Page input) are
+    bound to the sibling filter form through the HTML `form` attribute: the legacy can nest
+    them because its whole screen is one GET form, whereas here bulk actions POST and a
+    nested <form> would be dropped by the HTML parser. -%>
+<% list = local_assigns.fetch(:list) %>
+<% which = local_assigns.fetch(:which) %>
+<% filter_form_id = list_filter_form_id(list) %>
+<% select_filters = list.filters.select { |flt| flt.kind == :select } %>
+<% empty_trash = list.filters.find { |flt| flt.kind == :empty_trash } %>
+<div class="tablenav <%= which %>">
+  <% if list.bulk_actions? %>
+    <div class="alignleft actions bulkactions<%= " hidden" unless list.any_rows? %>">
+      <%# class-wp-list-table.php:1044 — 'Select bulk action' (hidden accessibility text). %>
+      <label for="bulk-action-selector-<%= which %>" class="screen-reader-text">Select bulk action</label>
+      <select name="bulk_action" id="bulk-action-selector-<%= which %>">
+        <%# class-wp-list-table.php:1048 — 'Bulk actions' %>
+        <option value="-1">Bulk actions</option>
+        <% list.bulk_actions.each do |action| %>
+          <option value="<%= action.value %>"><%= action.label %></option>
+        <% end %>
+      </select>
+      <%# class-wp-list-table.php:1071 — submit_button( 'Apply' ), id doaction / doaction2. %>
+      <button type="submit" class="button action" id="<%= which == 'top' ? 'doaction' : 'doaction2' %>">Apply</button>
+    </div>
+  <% end %>
+
+  <%# extra_tablenav( $which ) — class-wp-posts-list-table.php:557. The months/category
+      selects and their Filter button are top-only; Empty Trash renders at BOTH ends. %>
+  <% extras = (which == "top" && select_filters.any?) || empty_trash %>
+  <% if extras %>
+  <div class="alignleft actions">
+    <% if which == "top" && select_filters.any? %>
+      <% select_filters.each do |flt| %>
+        <label class="screen-reader-text" for="filter-<%= flt.name %>"><%= flt.label %></label>
+        <select name="<%= flt.name %>" id="filter-<%= flt.name %>" form="<%= filter_form_id %>">
+          <% Array(flt.options).each do |opt_label, opt_value| %>
+            <option value="<%= opt_value %>" <%= "selected" if flt.value.to_s == opt_value.to_s %>><%= opt_label %></option>
+          <% end %>
+        </select>
+      <% end %>
+      <%# submit_button( 'Filter', …, 'filter_action', …, id 'post-query-submit' ). %>
+      <button type="submit" name="filter_action" id="post-query-submit" class="button" form="<%= filter_form_id %>">Filter</button>
+    <% end %>
+    <%# submit_button( 'Empty Trash', 'apply', 'delete_all' ) — posts through the bulk form
+        so it re-uses the DEV-004 confirmation the controller applies to deletes. %>
+    <% if empty_trash %>
+      <button type="submit" name="<%= empty_trash.name %>" value="1"
+              id="<%= which == 'top' ? 'delete_all' : 'delete_all2' %>" class="button apply"><%= empty_trash.label %></button>
+    <% end %>
+  </div>
+  <% end %>
+
+  <%= render "console/shared/pagination", list: list, which: which %>
+</div>

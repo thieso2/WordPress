@@ -132,6 +132,63 @@ Rails.application.routes.draw do
 
   # Informational pages (console.about/.credits/.freedoms/.contribute/.privacy) — DEV-009:
   # the rebuild's own content. Constrained so the glob below never reads a page slug here.
+  # console.contribute is titled "Get Involved"; only the legacy FILE name says "contribute".
+  # Place ABOVE the existing `get "/console/:page"` info glob (its constraint does not match
+  # this slug) and well above the `get "/*path"` page permalink glob. Needs NO new AD-04
+  # declaration: it dispatches to console/info#show, already declared :authenticated.
+  # The existing /console/contribute route stays as-is; Console::InfoController#info_tab_path
+  # switches the tab to this path automatically as soon as the named helper exists.
+  get  "/console/get-involved", to: "console/info#show", as: :console_get_involved, defaults: { page: "contribute" }
+  # ── Wave 5: the NETWORK ADMIN (wp-admin/ms-*.php → wp-admin/network/*.php) ──────────
+  # target_screens.md Part 6's neighbour: 7 screens + 2 Add screens, MODERNIZED mode.
+  # ⚠️ STRICTLY ADDITIVE — every one of these 404s while `Tenancy.enabled?` is false
+  # (Console::Network::BaseController prepends the gate ahead of auth_redirect and AD-04),
+  # so a single site behaves exactly as it did in Waves 0–4. Declared BEFORE the /*path
+  # page glob, which would otherwise swallow `console/network/...` as a page slug. Every
+  # route carries an AD-04 declaration.
+  get  "/console/network",                    to: "console/network/dashboard#index", as: :console_network
+
+  # console.ms-sites. `new` BEFORE `:id`, so it is not read as a site id.
+  get  "/console/network/sites",              to: "console/network/sites#index",     as: :console_network_sites
+  post "/console/network/sites/bulk",         to: "console/network/sites#bulk",      as: :console_network_sites_bulk
+  get  "/console/network/sites/new",          to: "console/network/sites#new",       as: :new_console_network_site
+  post "/console/network/sites",              to: "console/network/sites#create",    as: :create_console_network_site
+
+  # console.ms-site-edit — the four network_edit_site_nav tabs (Info/Users/Themes/Settings).
+  get  "/console/network/sites/:id",          to: "console/network/site_edit#info",            as: :console_network_site
+  post "/console/network/sites/:id",          to: "console/network/site_edit#update_info"
+  get  "/console/network/sites/:id/users",    to: "console/network/site_edit#users",           as: :console_network_site_users
+  get  "/console/network/sites/:id/themes",   to: "console/network/site_edit#themes",          as: :console_network_site_themes
+  post "/console/network/sites/:id/themes",   to: "console/network/site_edit#update_themes"
+  get  "/console/network/sites/:id/settings", to: "console/network/site_edit#settings",        as: :console_network_site_settings
+  post "/console/network/sites/:id/settings", to: "console/network/site_edit#update_settings"
+
+  # console.ms-users
+  get  "/console/network/users",              to: "console/network/users#index",     as: :console_network_users
+  post "/console/network/users/bulk",         to: "console/network/users#bulk",      as: :console_network_users_bulk
+  get  "/console/network/users/new",          to: "console/network/users#new",       as: :new_console_network_user
+  post "/console/network/users",              to: "console/network/users#create",    as: :create_console_network_user
+
+  # console.ms-themes
+  get  "/console/network/themes",             to: "console/network/themes#index",    as: :console_network_themes
+  post "/console/network/themes/bulk",        to: "console/network/themes#bulk",     as: :console_network_themes_bulk
+
+  # console.ms-options
+  get  "/console/network/settings",           to: "console/network/settings#show",   as: :console_network_settings
+  post "/console/network/settings",           to: "console/network/settings#update"
+
+  # console.my-sites — NOT network admin: my-sites.php:19 gates on `read`, so an ordinary
+  # member reaches it. It carries its own multisite gate all the same.
+  get  "/console/my-sites",                   to: "console/my_sites#show",           as: :console_my_sites
+  post "/console/my-sites",                   to: "console/my_sites#update"
+  # console.import — wp-admin/import.php. Place with the other Tools routes (BEFORE the
+  # `get "/*path"` page glob, which would otherwise swallow `console/...` as a page slug),
+  # and ABOVE the export routes so the file reads in menu.php's own submenu order
+  # (Available Tools 5, Import 10, Export 15 — menu.php:391-393).
+  get  "/console/tools/import",     to: "console/imports#show",    as: :console_import
+  post "/console/tools/import",     to: "console/imports#prepare"
+  post "/console/tools/import/run", to: "console/imports#create",  as: :console_import_run
+
   # ── Admin parity pass (2026-08-24): actions the audited screens were missing ────────
   # Each has a matching AD-04 declaration in config/initializers/authorization_declarations.rb.
   get   "/console/media/new",                        to: "console/media#new",           as: :new_console_medium

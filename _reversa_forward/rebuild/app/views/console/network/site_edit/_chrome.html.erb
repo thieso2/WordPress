@@ -1,0 +1,29 @@
+<%# The Edit Site heading, actions line and tab bar — shared by all four tabs, exactly as
+    wp-admin shares them across site-info.php / site-users.php / site-themes.php /
+    site-settings.php. Strings verbatim: 'Edit Site: %s' (site-info.php:134),
+    'Visit' | 'Dashboard' (:147), and network_edit_site_nav's four labels
+    (wp-admin/includes/ms.php:1112-1129). -%>
+<h1 id="edit-site"><%= @page_title %></h1>
+<p class="edit-site-actions">
+  <a href="<%= @site_visit_url %>">Visit</a> |
+  <a href="<%= @site_dashboard_url %>">Dashboard</a>
+</p>
+<hr class="wp-header-end">
+<%= render "console/network/nav" %>
+
+<nav class="nav-tab-wrapper wp-clearfix" aria-label="Secondary menu">
+  <ul class="subsubsub">
+    <% site_tabs.each do |tab| %>
+      <li class="<%= tab[:key] %>">
+        <a href="<%= tab[:path] %>" class="nav-tab <%= "current nav-tab-active" if tab[:current] %>"
+           <%= "aria-current=page".html_safe if tab[:current] %>><%= tab[:label] %></a>
+      </li>
+    <% end %>
+  </ul>
+</nav>
+
+<% if @errors.present? %>
+  <div class="notice notice-error" role="alert">
+    <% @errors.each do |message| %><p><%= message %></p><% end %>
+  </div>
+<% end %>

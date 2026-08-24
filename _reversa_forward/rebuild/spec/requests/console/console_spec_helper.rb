@@ -62,6 +62,18 @@ module ConsoleSpecHelper
     Classification::Term.create!({ taxonomy: category_taxonomy, name: name, slug: slug }.merge(attrs))
   end
 
+  # print_column_headers (class-wp-list-table.php:1188) renders the sort direction as
+  # hidden "Sort ascending." text inside the header link, and the check column's caption as
+  # a screen-reader span. What these specs assert is the VISIBLE column label, so both are
+  # stripped before the comparison, and the (label-less) check column drops out.
+  def header_labels(section = "thead")
+    doc.css("#{section} th, #{section} td").map do |cell|
+      copy = cell.dup
+      copy.css(".screen-reader-text, .sorting-indicators").each(&:remove)
+      copy.text.strip
+    end.reject(&:empty?)
+  end
+
   def create_asset!(**attrs)
     Library::Asset.create!({ slug: "an-image", title: "An image", mime_type: "image/png",
                              byte_size: 1234, alt_text: "old alt", caption: "old caption" }.merge(attrs))

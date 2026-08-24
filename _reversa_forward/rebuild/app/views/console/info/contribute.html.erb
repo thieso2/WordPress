@@ -1,7 +1,82 @@
+<%# console.contribute — contribute.php, reached at /console/get-involved (the screen is
+    titled "Get Involved"; only the legacy file name says "contribute").
+
+    The legacy screen is an invitation to the WordPress project: its support forums,
+    WordPress.tv, the Photo Directory, Meetups and WordCamps, the Make teams, the mobile
+    app, and make.wordpress.org as the single call to action. Every one of those is a
+    property of a project this system is not part of, so under DEV-009 none of it is
+    migrated. The IA is: title, tabs, an intro block with a short list of reasons, then a
+    no-code lane, a code lane (closing with the languages the project uses), and a
+    feature-styled closing call to action. That shape is kept exactly; the contents
+    describe how someone actually works on THIS build. The three contribute-*.svg
+    illustrations are dropped with the rest of the project imagery. -%>
 <% @page_title = "Get Involved" %>
 <h1 class="wp-heading-inline">Get Involved</h1>
 <hr class="wp-header-end">
+
 <%= render "console/info/nav" %>
-<p>Contributions to this rebuild are coordinated through its own repository and issue
-tracker, not through the WordPress project. Bugs found in a migrated screen should be
-recorded against the screen&#8217;s specification in <code>_reversa_sdd/</code>.</p>
+
+<div class="about-section">
+  <p class="about-lede">This build is a reverse-engineered rebuild, and it is only as good
+  as the record it is checked against. If you work on it — writing a screen, chasing a
+  difference against the legacy, or arguing that a deviation should not stand — the
+  specifications under <code>_reversa_sdd/</code> are the shared reference, and they are
+  where a disagreement gets settled.</p>
+  <ul>
+    <li>Work from the specification, not from memory of how the legacy behaved.</li>
+    <li>Check a change against the legacy corpus before calling it finished.</li>
+    <li>Record what you deviated from, and why, where the next person will find it.</li>
+  </ul>
+</div>
+
+<%# contribute.php:56-71 — the no-code lane. Heading LITERAL; the items are ours. -%>
+<div class="about-section">
+  <h2>No-code contribution</h2>
+  <p>Most of the risk in a migration like this one is in the record, not the code. There is
+  a great deal to do here without writing a line of Ruby:</p>
+  <ul>
+    <li><strong>Report</strong> a screen that behaves differently from the legacy, with the
+    steps that show the difference.</li>
+    <li><strong>Correct</strong> a specification under <code>_reversa_sdd/</code> when the
+    document and the running code disagree.</li>
+    <li><strong>Challenge</strong> an entry in the deviation log that should not have been
+    approved.</li>
+    <li><strong>Check</strong> the console for accessibility problems — keyboard order,
+    labelling, contrast — and write down what you find.</li>
+    <li><strong>Read</strong> the literal strings on a rebuilt screen against the legacy
+    source and flag any that drifted.</li>
+  </ul>
+</div>
+
+<%# contribute.php:76-95 — the code lane, closing with the languages/libraries list. -%>
+<div class="about-section">
+  <h2>Code-based contribution</h2>
+  <p>If you do write code, the work is mostly finishing and hardening what is specified:</p>
+  <ul>
+    <li><strong>Build</strong> a screen that is specified but not yet implemented.</li>
+    <li><strong>Add</strong> request specs for behaviour that is currently only checked by
+    hand.</li>
+    <li><strong>Fix</strong> a defect, and add the spec that would have caught it.</li>
+    <li><strong>Tighten</strong> a query or an index where a list screen is doing more work
+    than the legacy did.</li>
+  </ul>
+  <p>This build uses the following languages and libraries:</p>
+  <ul>
+    <li>Server: Ruby, Ruby on Rails, PostgreSQL, ERB templates.</li>
+    <li>Browser: Hotwire — Turbo and Stimulus, delivered by import maps — with one React
+    island for the block editor.</li>
+  </ul>
+</div>
+
+<div class="about-feature">
+  <h2>Where to start</h2>
+  <p>Start from the screen you are looking at. Every console screen names the legacy file
+  it was rebuilt from and the rules it implements; open that pairing, and the first
+  difference you find is a contribution.</p>
+  <p><%= link_to "Read about this build", "/console/about" %></p>
+</div>
+
+<%# about.php:406-412 — the return link, LITERAL. -%>
+<div class="about-return">
+  <a href="/console">Go to Dashboard &rarr; Home</a>
+</div>

@@ -1,13 +1,125 @@
-<%# console.about — DEV-009: the rebuild's own content, NOT WordPress the project. -%>
+<%# console.about — about.php. DEV-009: about.php is a release announcement for WordPress
+    the PROJECT ("Welcome to WordPress 7.1", the feature showcase, the release notes and
+    field-guide links, the s.w.org imagery). None of that is true of this system, so none
+    of it is migrated. What IS carried across is the screen's INFORMATION ARCHITECTURE —
+    title, secondary tabs, a lede, a run of feature blocks, a "learn more" pair and the
+    return-to-dashboard link — refilled with statements about THIS build.
+
+    ⚠️ Every claim below is checkable: the runtime row is read from the running process and
+    the live connection (InfoController#runtime_facts), and each deviation is cited by its
+    id in _reversa_sdd/migration/screen_deviation_log.md. Nothing here is decorative. -%>
 <% @page_title = "About" %>
 <h1 class="wp-heading-inline">About</h1>
 <hr class="wp-header-end">
+
 <%= render "console/info/nav" %>
-<p>This administration console is a Rails 8.1 / PostgreSQL rebuild of a WordPress
-7.2-alpha site, produced by the Reversa migration. The public site renders byte-for-byte
-from PostgreSQL; the console is modernized (rails-hotwire) — a semantic reproduction of
-the legacy screens, with every functional string carried over verbatim and the panel
-markup rebuilt.</p>
-<p>What the rebuild deliberately does NOT carry: the hook/filter system (AD-01), the plugin
-architecture (DEV-011), admin colour schemes (DEV-005) and WordPress&#8217;s own
-project-authored marketing copy (DEV-009).</p>
+
+<div class="about-section">
+  <h2>About this build</h2>
+  <p class="about-lede">This administration console belongs to a Rails rebuild of a
+  WordPress 7.2-alpha site, reverse-engineered screen by screen under the Reversa
+  framework. The public site is held to byte-for-byte parity against captured golden
+  files. The console is not: it is rebuilt rather than copied, so its structure is this
+  build&#8217;s own, while every functional label, prompt, validation message and error
+  string is carried across verbatim from the legacy source.</p>
+</div>
+
+<%# about.php's run of feature blocks. Ours describe what actually CHANGED against the
+    legacy — the four architectural decisions a person using this console will notice. -%>
+<div class="about-columns">
+  <div class="panel">
+    <h3>No plugins, no hooks</h3>
+    <p><strong>The extension mechanism is gone, on purpose.</strong></p>
+    <p>The legacy&#8217;s hook and filter system is what the entire plugin ecosystem
+    attached to. This build does not have one, and with nothing for a plugin to attach to
+    the plugin-management screens are not built. Themes stay: a theme is data and template
+    files, not code hooking into the core.</p>
+    <p class="description">AD-01; DEV-011.</p>
+  </div>
+
+  <div class="panel">
+    <h3>Authorization is declared at the route</h3>
+    <p><strong>Every route states who may reach it, or the application does not
+    boot.</strong></p>
+    <p>In the legacy, a capability check is a line inside a page script; omit it and the
+    page is simply open. Here each route carries an explicit authorization declaration and
+    a missing one is a startup failure, not a silent hole. A refusal still answers with
+    the legacy&#8217;s own wording.</p>
+    <p class="description">AD-04.</p>
+  </div>
+
+  <div class="panel">
+    <h3>The menu is declared, not registered</h3>
+    <p><strong>The list of screens is data this build owns.</strong></p>
+    <p>wp-admin assembles its menu by letting code register into it while the request
+    runs. Without a hook system the navigation is a declared structure instead: one entry
+    per screen that exists, each naming the capability that reveals it, resolved before
+    the page is drawn.</p>
+    <p class="description">DEV-002.</p>
+  </div>
+
+  <div class="panel">
+    <h3>Destructive bulk actions confirm first</h3>
+    <p><strong>One extra step before anything is deleted in bulk.</strong></p>
+    <p>A bulk action that destroys rows shows what it is about to do and waits for a
+    second submit. The outcome is the legacy&#8217;s; the extra step is not.</p>
+    <p class="description">DEV-004.</p>
+  </div>
+</div>
+
+<div class="about-feature">
+  <h2>Why this page does not look like the legacy one</h2>
+  <p>In the legacy, About, Credits and Freedoms described WordPress the project: its
+  release, its contributors, its trademark policy. Reproducing that text here would be a
+  false claim about what this system is, so it is not migrated. Project-identity strings
+  are the single category of text this rebuild is allowed to drop — every functional
+  string on every other screen is still verbatim.</p>
+  <p class="description">DEV-009.</p>
+</div>
+
+<%# about.php prints "WordPress %s" from a constant. The honest equivalent is not a
+    constant at all: it is what this process and this connection actually report. -%>
+<div class="about-section">
+  <h2>What is running</h2>
+  <table class="about-facts">
+    <tbody>
+      <% @runtime.each do |label, value| %>
+        <tr>
+          <th scope="row"><%= label %></th>
+          <td><%= value %></td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+  <p class="description">Read from the running process and the live database connection
+  when this page was rendered, not from a version written into the page.</p>
+</div>
+
+<%# about.php's closing pair of cards (Release Notes / Field Guide) pointed at
+    wordpress.org. The equivalent here is internal: where this build's own record lives. -%>
+<div class="about-columns">
+  <div class="panel">
+    <h3>Specifications and business rules</h3>
+    <p>The screens, rules and data model this build was written against are kept in the
+    repository under <code>_reversa_sdd/</code>. A screen&#8217;s behaviour is settled
+    there before it is settled here.</p>
+  </div>
+  <div class="panel">
+    <h3>Deviation log</h3>
+    <p>Every departure from legacy behaviour — including the ones named on this page — is
+    recorded with its reason and its approval in
+    <code>_reversa_sdd/migration/screen_deviation_log.md</code>.</p>
+  </div>
+</div>
+
+<% if @can_view_site_health %>
+  <div class="about-section">
+    <p><%= link_to "See the full status report", "/console/tools/site-health/info" %> for the
+    environment detail behind the table above.</p>
+  </div>
+<% end %>
+
+<%# about.php:406-412 — the return link, LITERAL. -%>
+<div class="about-return">
+  <a href="/console">Go to Dashboard &rarr; Home</a>
+</div>

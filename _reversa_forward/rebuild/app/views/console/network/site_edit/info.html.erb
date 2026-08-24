@@ -1,0 +1,49 @@
+<%# console.ms-site-edit (Info) — wp-admin/network/site-info.php:160-215, modernized.
+    Every label is VERBATIM. The main site's address is print-only (:170-176) and its
+    Archived / Spam / Flagged for Deletion attributes are not offered (:198-204). -%>
+<%= render "console/network/site_edit/chrome" %>
+
+<%= form_with url: "/console/network/sites/#{@site.id}", method: :post, data: { turbo: false } do %>
+  <table class="form-table" role="presentation">
+    <tbody>
+      <% if @is_main_site %>
+        <tr class="form-field">
+          <th scope="row">Site Address (URL)</th>
+          <td><code><%= @site_visit_url %></code></td>
+        </tr>
+      <% else %>
+        <tr class="form-field form-required">
+          <th scope="row"><label for="url">Site Address (URL)</label></th>
+          <td><input name="blog[url]" type="url" id="url" value="<%= @site_visit_url %>"></td>
+        </tr>
+      <% end %>
+
+      <tr class="form-field">
+        <th scope="row"><label for="blog_registered">Registered</label></th>
+        <td><input name="blog[registered]" type="text" id="blog_registered" readonly
+                   value="<%= (@site.registered_at || @site.created_at)&.strftime("%Y-%m-%d %H:%M:%S") %>"></td>
+      </tr>
+      <tr class="form-field">
+        <th scope="row"><label for="blog_last_updated">Last Updated</label></th>
+        <td><input name="blog[last_updated]" type="text" id="blog_last_updated" readonly
+                   value="<%= @site.updated_at&.strftime("%Y-%m-%d %H:%M:%S") %>"></td>
+      </tr>
+
+      <tr>
+        <th scope="row">Attributes</th>
+        <td>
+          <fieldset>
+            <legend class="screen-reader-text">Attributes</legend>
+            <label><input type="checkbox" name="blog[public]" value="1" <%= "checked" if @site.public? %>> Public</label><br>
+            <% unless @is_main_site %>
+              <label><input type="checkbox" name="blog[archived]" value="1" <%= "checked" if @site.archived? %>> Archived</label><br>
+              <label><input type="checkbox" name="blog[spam]" value="1" <%= "checked" if @site.spam? %>> Spam</label><br>
+              <label><input type="checkbox" name="blog[deleted]" value="1" <%= "checked" if @site.deleted? %>> Flagged for Deletion</label><br>
+            <% end %>
+          </fieldset>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+  <p class="submit"><button type="submit" class="button button-primary">Save Changes</button></p>
+<% end %>

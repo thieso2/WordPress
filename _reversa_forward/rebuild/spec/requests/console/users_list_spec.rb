@@ -25,7 +25,7 @@ RSpec.describe "console.users (Users list)", type: :request do
     get "/console/users"
     expect(response).to have_http_status(:ok)
     expect(doc.at_css("h1").text).to include("Users")
-    headers = doc.css("thead th, thead td").map(&:text).map(&:strip)
+    headers = header_labels
     expect(headers).to include("Username", "Name", "Email", "Role", "Posts")
     expect(body_text).to include("con_admin").and include("con_editor").and include("con_subscriber")
   end

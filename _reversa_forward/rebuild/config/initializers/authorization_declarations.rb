@@ -277,6 +277,48 @@ end
 
 # The build check. Walks the real routing table and refuses to boot on an omission.
 Rails.application.config.after_initialize do
+  # ── Wave 5: the NETWORK ADMIN (console.ms-*, console.my-sites) ──────────────────────
+  # Declared `:authenticated`, then gated IN THE CONTROLLER on the network capability,
+  # for exactly the reason Console::SettingsController records above: a `:policy` denial
+  # is a bare 403 with no body, and DEV-009 requires the wp_die() refusal string VERBATIM.
+  # The capability is still enforced — Console::Chrome#require_capability! renders
+  # console/shared/forbidden with the legacy's own sentence at 403 — just inside the
+  # surface where the right message is reachable. Per screen, wp-admin's own capability:
+  #   manage_network         network/index.php:16
+  #   manage_sites           network/sites.php:13, site-info.php:13
+  #   manage_network_users   network/users.php:14
+  #   manage_network_themes  network/themes.php:14 (its own more specific wp_die string)
+  #   manage_network_options network/settings.php:17
+  # NONE of those appears in Access::RoleCatalogue, so Access::SitePolicy's `default:` arm
+  # (capabilities.php:864) requires each of itself and no role holds it. They are satisfied
+  # ONLY by the super-admin bypass in Access::BasePolicy (BR-MS-05), which reads the
+  # `site_admins` NETWORK option and is false whenever Tenancy.enabled? is false. That is
+  # the whole gate — super admin AND multisite — with no second flag to keep in sync.
+  # `console/my_sites` is the exception: my-sites.php:19 gates on `read`, so it declares no
+  # network capability and relies on its own prepended multisite gate (404 when disabled).
+  %w[
+    GET\ console/network/dashboard#index
+    GET\ console/network/sites#index POST\ console/network/sites#bulk
+    GET\ console/network/sites#new POST\ console/network/sites#create
+    GET\ console/network/site_edit#info POST\ console/network/site_edit#update_info
+    GET\ console/network/site_edit#users
+    GET\ console/network/site_edit#themes POST\ console/network/site_edit#update_themes
+    GET\ console/network/site_edit#settings POST\ console/network/site_edit#update_settings
+    GET\ console/network/users#index POST\ console/network/users#bulk
+    GET\ console/network/users#new POST\ console/network/users#create
+    GET\ console/network/themes#index POST\ console/network/themes#bulk
+    GET\ console/network/settings#show POST\ console/network/settings#update
+    GET\ console/my_sites#show POST\ console/my_sites#update
+  ].each { |identifier| Access::Declarations.declare(identifier, mode: :authenticated, source: __FILE__) }
+  # console.import. `:authenticated`, not `:policy`, for the reason the block above already
+  # gives for every tools screen: import.php:14-16 refuses with a LITERAL wp_die() string
+  # ("Sorry, you are not allowed to import content into this site."), and a `:policy` denial
+  # is a bare 403 with no body. The `import` capability is enforced inside the controller
+  # through Console::Chrome#require_capability! / Access::SitePolicy, where that string lives.
+  Access::Declarations.declare("GET console/imports#show", mode: :authenticated, source: __FILE__)
+  Access::Declarations.declare("POST console/imports#prepare", mode: :authenticated, source: __FILE__)
+  Access::Declarations.declare("POST console/imports#create", mode: :authenticated, source: __FILE__)
+
   # ── Admin parity pass (2026-08-24): declarations for the newly built actions ────────
   # Every route added in the same pass; AD-04 fails boot if any is left undeclared.
   Access::Declarations.declare("GET console/media#new", mode: :authenticated, source: __FILE__)

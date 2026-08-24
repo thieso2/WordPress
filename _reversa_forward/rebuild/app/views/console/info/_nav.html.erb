@@ -1,7 +1,52 @@
-<nav class="about-tabs" aria-label="About">
-  <% [["About", "about"], ["Credits", "credits"], ["Freedoms", "freedoms"],
-      ["Contribute", "contribute"], ["Privacy", "privacy"]].each do |label, key| %>
-    <%= link_to label, "/console/#{key}", class: ("current" if @page == key) %>
+<%# The secondary nav-tab bar that about.php, credits.php, freedoms.php and contribute.php
+    all share (about.php:52-58, credits.php:38-44, freedoms.php:39-45, contribute.php:33-39).
+    wp-admin's INFORMATION ARCHITECTURE is matched: same tabs, same order, the current one
+    marked with aria-current. Labels and the nav's aria-label are LITERAL; the targets are
+    this build's own routes (there is no wordpress.org here). The styling is the rebuild's.
+
+    Also carries the shared style block for the four informational screens — the same
+    inline-<style> shape console/shared/_list.html.erb uses. Modernized mode: the
+    STRUCTURE is free, so this is a clean re-implementation, not wp-admin's about.css. -%>
+<style>
+  .about-tabs { display: flex; flex-wrap: wrap; gap: .15rem; margin: 0 0 1.75rem;
+    border-bottom: 1px solid var(--rule, #c3c4c7); }
+  .about-tabs a { padding: .5rem .9rem; text-decoration: none; color: var(--muted, #50575e);
+    border: 1px solid transparent; border-bottom: 0; border-radius: 3px 3px 0 0;
+    margin-bottom: -1px; font-size: .95rem; }
+  .about-tabs a:hover, .about-tabs a:focus-visible { color: var(--accent, #2271b1); }
+  .about-tabs a[aria-current="page"] { background: var(--card, #fff); color: var(--ink, #1d2327);
+    border-color: var(--rule, #c3c4c7); font-weight: 600; }
+
+  .about-lede { font-size: 1.1rem; line-height: 1.6; color: var(--ink, #1d2327);
+    margin: 0 0 1.75rem; }
+  .about-section { margin: 0 0 2rem; }
+  .about-section > h2 { font-size: 1.2rem; margin: 0 0 .6rem; }
+  .about-section > h3 { font-size: 1.05rem; margin: 0 0 .4rem; }
+  .about-columns { display: grid; gap: 1.25rem; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .about-columns.is-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  @media (max-width: 782px) { .about-columns, .about-columns.is-4 { grid-template-columns: 1fr; } }
+  .about-columns .panel { margin: 0; height: 100%; }
+  .about-columns .panel h3 { font-size: 1rem; margin: 0 0 .4rem; }
+  .about-columns .panel p:last-child { margin-bottom: 0; }
+  .about-feature { background: var(--card, #fff); border: 1px solid var(--rule, #c3c4c7);
+    padding: 1.25rem 1.4rem; margin: 0 0 2rem; }
+  .about-feature h2 { margin-top: 0; }
+  .about-feature p:last-child { margin-bottom: 0; }
+  .about-facts { width: 100%; border-collapse: collapse; background: var(--card, #fff);
+    border: 1px solid var(--rule, #c3c4c7); }
+  .about-facts th, .about-facts td { text-align: left; padding: .5rem .75rem;
+    border-bottom: 1px solid var(--rule, #c3c4c7); }
+  .about-facts tr:last-child th, .about-facts tr:last-child td { border-bottom: 0; }
+  .about-facts th { width: 12rem; font-weight: 600; }
+  .about-facts td { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .9rem; }
+  .about-return { margin: 2.5rem 0 0; padding-top: 1.25rem;
+    border-top: 1px solid var(--rule, #c3c4c7); }
+</style>
+
+<nav class="about-tabs nav-tab-wrapper" aria-label="Secondary menu">
+  <% [["What&#8217;s New", "about"], ["Credits", "credits"], ["Freedoms", "freedoms"],
+      ["Privacy", "privacy"], ["Get Involved", "contribute"]].each do |label, key| %>
+    <a href="<%= info_tab_path(key) %>"
+       <%= 'aria-current="page"'.html_safe if @page == key %>><%= raw label %></a>
   <% end %>
 </nav>
-<hr class="wp-header-end">

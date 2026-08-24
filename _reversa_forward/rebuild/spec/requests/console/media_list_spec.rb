@@ -20,7 +20,7 @@ RSpec.describe "console.upload (Media list)", type: :request do
     get "/console/media"
     expect(response).to have_http_status(:ok)
     expect(doc.at_css("h1").text).to include("Media Library")
-    headers = doc.css("thead th, thead td").map(&:text).map(&:strip)
+    headers = header_labels
     expect(headers).to include("File", "Author", "Uploaded to", "Date")
     expect(body_text).to include("Beach photo")
   end
