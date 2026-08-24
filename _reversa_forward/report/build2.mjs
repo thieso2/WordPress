@@ -41,8 +41,8 @@ const FRONT_GROUPS = [
 const ADMIN_GROUPS = [
   { id: 'core', title: 'Content and people', wave: 'Wave 4',
     blurb: 'The screens an editor lives in. Each is a P-LIST or P-EDIT instantiation over the same models the front end reads — one list contract rather than forty near-identical views.' },
-  { id: 'editor', title: 'The editors', wave: 'DEV-012 · D-3',
-    blurb: 'The block editor and the Site Editor. WordPress ships these as compiled JavaScript, so no rule in the extraction describes them; DEV-012 ruled they be specified by observing the running oracle instead. The rebuild answers with a React island — the one carved-out client surface in an otherwise server-rendered console — talking to a server that owns the block grammar.' },
+  { id: 'editor', title: 'The editors', wave: 'DEV-012 · DEV-015',
+    blurb: 'These two panes now run the SAME software. WordPress ships its editors as compiled JavaScript, so no rule in the extraction describes them, and a hand-built React island — however careful — was never going to be Gutenberg: it had no Post sidebar, no undo/redo, no list view, no per-block toolbars. DEV-015 replaced it with the upstream @wordpress packages, running against this rebuild\'s own wp/v2 API. What was built was therefore not an editor but the write half of the REST surface: cookie + nonce auth, context=edit, post/media/term/comment writes, autosaves, settings, themes, templates, global styles, and OPTIONS. Verified in a browser: every one of the editor\'s 24 preload calls answers 200, and an edit saves through POST /wp-json/wp/v2/posts/1 into our own database.' },
   { id: 'settings', title: 'Settings', wave: 'Wave 4',
     blurb: 'Configuration is settings only (AD-06). Compare the fields and their values, never the panel registry: hook-registered sections became declared structures when AD-01 removed the hook system (DEV-002).' },
   { id: 'tools', title: 'Tools, privacy and health', wave: 'Wave 4',
@@ -59,7 +59,7 @@ const GATE = [
   { n: 'Boot', cmd: 'bin/rails runner', verdict: 'pass',
     line: 'boots — every route carries an AD-04 authorization declaration, or it would not' },
   { n: 'Specs', cmd: 'bin/rspec_worker', verdict: 'pass',
-    line: '1666 examples, 0 failures, 6 pending' },
+    line: '1822 examples, 0 failures, 6 pending' },
   { n: 'Seeding pipeline', cmd: 'bin/rails oracle:seed', verdict: 'pass',
     line: 'T-01…T-12 round-tripped; dead-letter queue empty' },
   { n: 'Determinism', cmd: 'bin/parity determinism', verdict: 'pass',
@@ -68,8 +68,8 @@ const GATE = [
     line: '172 scenarios — 168 passed, 0 failed, 4 pending' },
   { n: 'Response diff', cmd: 'bin/parity compare', verdict: 'pass',
     line: '25 of 25 byte-identical through the harness, five consecutive runs' },
-  { n: 'Editor islands', cmd: 'editor_e2e/run.sh', verdict: 'pass',
-    line: 'both islands driven in a real browser: edit, insert, publish, save — then the corpus restored' },
+  { n: 'Editors', cmd: 'editor_e2e/run.sh', verdict: 'pass',
+    line: 'the real Gutenberg driven in a browser against our API: boots, edits, saves — then restores the corpus' },
   { n: 'Rule coverage', cmd: 'bin/rule_coverage', verdict: 'info',
     line: '262 of 363 rules carry a citation in the rebuild' },
 ];
@@ -162,7 +162,7 @@ const html = `<title>Oracle vs Rebuild</title>
     </div>
     <div class="scoreboard">
       <div class="score ok"><p class="k">Byte match</p><p class="v">25 / 25</p><p class="s">front-end screens, through the harness</p></div>
-      <div class="score ok"><p class="k">Specs</p><p class="v">1666</p><p class="s">examples, 0 failures</p></div>
+      <div class="score ok"><p class="k">Specs</p><p class="v">1822</p><p class="s">examples, 0 failures</p></div>
       <div class="score ok"><p class="k">Console screens</p><p class="v">${adminMatched} / ${admin.length}</p><p class="s">answer with the same status as wp-admin</p></div>
       <div class="score warn"><p class="k">Rule coverage</p><p class="v">262 / 363</p><p class="s">rules citing an implementation</p></div>
     </div>

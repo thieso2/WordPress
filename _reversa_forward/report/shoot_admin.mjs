@@ -115,7 +115,13 @@ for (const [screen, opath, rpath, group, note] of SCREENS) {
       const resp = await page.goto(base + path, { waitUntil: 'domcontentloaded', timeout: 20000 });
       const status = resp ? resp.status() : 0;
       // Editor screens mount a JS app; give them a moment to render.
-      await page.waitForTimeout(screen.includes('editor') || screen === 'console.post' ? 3500 : 700);
+      await page.waitForTimeout(screen.includes('editor') || screen === 'console.post' ? 15000 : 700);
+      // Gutenberg opens a welcome-guide modal over the canvas on first run; dismiss it so the
+      // capture shows the editor rather than the modal.
+      if (screen.includes('editor') || screen === 'console.post') {
+        await page.click('.components-modal__header button[aria-label="Close"]', { timeout: 3000 }).catch(() => {});
+        await page.waitForTimeout(1500);
+      }
       await page.addStyleTag({ content: '*,*::before,*::after{animation:none!important;transition:none!important;caret-color:transparent!important}' });
       await page.screenshot({ path: `${OUT}/${file}`, fullPage: false, type: 'jpeg', quality: 62 });
       row.shots[side] = { file, status, title: await page.title() };
