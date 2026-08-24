@@ -81,6 +81,7 @@ module Console
       case params[:status].to_s
       when "", "all" then scope.where.not(status: %w[trashed auto_draft])
       when "trash"   then scope.in_trashed
+      when "sticky"  then sticky_scope(scope)
       else scope.where(status: params[:status])
       end
     end
@@ -133,6 +134,21 @@ module Console
     end
 
     def trash_view? = params[:status].to_s == "trash"
+
+    # `show_sticky=1` (class-wp-posts-list-table.php:399): the ids in the `sticky_posts`
+    # setting, minus the two statuses the view excludes.
+    def sticky_scope(scope)
+      scope.where(id: sticky_ids).where.not(status: %w[trashed auto_draft])
+    end
+
+    # `get_option('sticky_posts')` is an array of ids but FALSE when unset, and Array(false)
+    # is [false] rather than [] — the same trap PublicApi::PostSerializer#sticky? guards.
+    def sticky_ids
+      list = Configuration::Setting["sticky_posts"]
+      return [] unless list.is_a?(Array)
+
+      list.map(&:to_i).reject(&:zero?)
+    end
 
     SORTABLE = %w[title date].freeze
 
@@ -291,7 +307,29 @@ module Console
           query: { "status" => key }, current: current == key
         )
       end
+      splice_sticky_tab(tabs, current)
       tabs
+    end
+
+    # class-wp-posts-list-table.php:112-125 + :398-415 — a `Sticky (n)` view, POSTS ONLY,
+    # shown only when the `sticky_posts` setting is non-empty, counting rows that are
+    # neither trashed nor auto-draft. It sits immediately after Published in get_views().
+    def splice_sticky_tab(tabs, current)
+      return unless taxonomy_columns? # posts only; pages have no sticky view
+
+      ids = sticky_ids
+      return if ids.empty?
+
+      count = base_scope.where(id: ids).where.not(status: %w[trashed auto_draft]).count
+      return if count.zero?
+
+      tab = ListModel::Tab.new(
+        key: "sticky", count: count,
+        label: %(Sticky <span class="count">(#{delimited(count)})</span>).html_safe,
+        query: { "status" => "sticky" }, current: current == "sticky"
+      )
+      at = tabs.index { |t| t.key == "published" }
+      at ? tabs.insert(at + 1, tab) : tabs << tab
     end
 
     # get_views 'mine' (:322): shown only when the current user has authored posts AND

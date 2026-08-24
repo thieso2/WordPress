@@ -203,18 +203,22 @@ ${FRONT_GROUPS.map((grp) => {
   <div class="sec-head narrow">
     <span class="wave">The second contract</span>
     <h2>The console is not held to byte parity</h2>
-    <p>Everything above is compared byte-for-byte. Everything below is not, and that is a
-    ruling rather than an omission. <code>screen_modernization_decision.md</code> puts the
-    admin surface in <strong>modernized</strong> mode: every literal string stays verbatim,
-    the data and the behaviour must match, and the structure is free. So the pairs below will
-    not look alike, and looking alike was never the test — the test is that the same actions
-    are available to the same roles and produce the same result, in the same words.</p>
+    <p>Everything above is compared byte-for-byte. Everything below is not — but as of
+    <strong>DEV-014</strong> it is meant to <em>look</em> alike. The owner reversed the styling
+    half of <code>screen_modernization_decision.md</code>, so the console now renders in
+    wp-admin's own visual system: palette, typography, metrics and Dashicons, all read from the
+    live oracle's computed styles rather than guessed. (WordPress 7.2-alpha ships a refreshed
+    palette — accent <code>#3858E9</code>, chrome <code>#1E1E1E</code> — so the values differ
+    from the familiar older ones.) The <em>semantic</em> contract is unchanged: literal strings
+    verbatim, behaviour matching, and still no golden files.</p>
     <p>Two consequences worth stating plainly. There are <strong>no golden files</strong> for
     these screens, so nothing here is machine-verified the way the front end is; the evidence
-    is request specs and, for the editors, a browser driving the real thing. And a
-    handful of wp-admin screens are <strong>deliberately absent</strong> — plugins, the plugin
-    and theme code editors, and the Customizer were discarded by AD-01 and DEV-002. They are
-    not missing work.</p>
+    is request specs and, for the editors, a browser driving the real thing. And several
+    things are <strong>deliberately absent from the skin too</strong>: the WordPress logo and
+    the About menu (DEV-009 drops project identity), the Plugins item (AD-01 removed the
+    extension system it manages), Screen Options and Help (DEV-002 — nothing registers into
+    them), and the eight per-user colour schemes (DEV-005). Those gaps are rulings, not
+    unfinished work.</p>
   </div>
 </div></section>
 

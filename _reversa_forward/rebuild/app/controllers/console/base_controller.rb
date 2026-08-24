@@ -77,7 +77,7 @@ module Console
     #   · Menus appears under Appearance here though the oracle's block theme hides it;
     #     the rebuild builds the screen, so the navigation admits it.
     MENU = [
-      { key: "console.index", label: "Dashboard", path: "/console", capability: nil,
+      { key: "console.index", label: "Dashboard", path: "/console", capability: nil, icon: "dashicons-dashboard",
         children: [
           { key: "console.index", label: "Home", path: "/console", capability: nil },
           # wp-admin registers My Sites under Dashboard ONLY when is_multisite(). `read` is
@@ -86,40 +86,40 @@ module Console
           { key: "console.my-sites", label: "My Sites", path: "/console/my-sites", capability: nil, multisite: true }
         ] },
       { separator: true },
-      { key: "console.edit", label: "Posts", path: "/console/posts", capability: "edit_posts",
+      { key: "console.edit", label: "Posts", path: "/console/posts", capability: "edit_posts", icon: "dashicons-admin-post",
         children: [
           { key: "console.edit",      label: "All Posts",  path: "/console/posts",          capability: "edit_posts" },
           { key: "console.post-new",  label: "Add Post",   path: "/console/posts/new",      capability: "edit_posts" },
           { key: "console.edit-tags", label: "Categories", path: "/console/terms/category", capability: "manage_categories" },
           { key: "console.edit-tags-post_tag", label: "Tags", path: "/console/terms/post_tag", capability: "manage_post_tags" }
         ] },
-      { key: "console.upload", label: "Media", path: "/console/media", capability: "upload_files",
+      { key: "console.upload", label: "Media", path: "/console/media", capability: "upload_files", icon: "dashicons-admin-media",
         children: [
           { key: "console.upload",    label: "Library",        path: "/console/media",     capability: "upload_files" },
           { key: "console.media-new", label: "Add Media File", path: "/console/media/new", capability: "upload_files" }
         ] },
-      { key: "console.edit-pages", label: "Pages", path: "/console/pages", capability: "edit_pages",
+      { key: "console.edit-pages", label: "Pages", path: "/console/pages", capability: "edit_pages", icon: "dashicons-admin-page",
         children: [
           { key: "console.edit-pages", label: "All Pages", path: "/console/pages", capability: "edit_pages" },
           { key: "console.page-new",   label: "Add Page",  path: "/console/posts/new?post_type=page", capability: "edit_pages" }
         ] },
-      { key: "console.edit-comments", label: "Comments", path: "/console/comments", capability: "edit_posts",
+      { key: "console.edit-comments", label: "Comments", path: "/console/comments", capability: "edit_posts", icon: "dashicons-admin-comments",
         count: :moderation },
       { separator: true },
-      { key: "console.themes", label: "Appearance", path: "/console/themes", capability: "switch_themes",
+      { key: "console.themes", label: "Appearance", path: "/console/themes", capability: "switch_themes", icon: "dashicons-admin-appearance",
         children: [
           { key: "console.themes",        label: "Themes",     path: "/console/themes",     capability: "switch_themes" },
           { key: "console.theme-install", label: "Add Theme",  path: "/console/themes/new", capability: "install_themes" },
           { key: "console.site-editor",   label: "Editor",     path: "/console/site-editor", capability: "edit_theme_options" },
           { key: "console.nav-menus",     label: "Menus",      path: "/console/menus",      capability: "edit_theme_options" }
         ] },
-      { key: "console.users", label: "Users", path: "/console/users", capability: "list_users",
+      { key: "console.users", label: "Users", path: "/console/users", capability: "list_users", icon: "dashicons-admin-users",
         children: [
           { key: "console.users",    label: "All Users", path: "/console/users",     capability: "list_users" },
           { key: "console.user-new", label: "Add User",  path: "/console/users/new", capability: "create_users" },
           { key: "console.profile",  label: "Profile",   path: "/console/profile",   capability: nil }
         ] },
-      { key: "console.tools", label: "Tools", path: "/console/tools", capability: "edit_posts",
+      { key: "console.tools", label: "Tools", path: "/console/tools", capability: "edit_posts", icon: "dashicons-admin-tools",
         children: [
           { key: "console.tools",                 label: "Available Tools",      path: "/console/tools",                        capability: "edit_posts" },
           { key: "console.import",                label: "Import",               path: "/console/tools/import",                 capability: "import" },
@@ -134,7 +134,7 @@ module Console
           { key: "console.export-personal-data",  label: "Export Personal Data", path: "/console/tools/export-personal-data",   capability: "export_others_personal_data" },
           { key: "console.erase-personal-data",   label: "Erase Personal Data",  path: "/console/tools/erase-personal-data",    capability: "erase_others_personal_data" }
         ] },
-      { key: "console.options-general", label: "Settings", path: "/console/settings/general", capability: "manage_options",
+      { key: "console.options-general", label: "Settings", path: "/console/settings/general", capability: "manage_options", icon: "dashicons-admin-settings",
         children: [
           { key: "console.options-general",    label: "General",     path: "/console/settings/general",    capability: "manage_options" },
           { key: "console.options-writing",    label: "Writing",     path: "/console/settings/writing",    capability: "manage_options" },
@@ -152,7 +152,7 @@ module Console
       # false unless Tenancy.enabled?. The entry is invisible on a single site BY
       # CONSTRUCTION. Plugins is absent under AD-01; Updates / Upgrade Network / Network
       # Setup have no rebuild surface.
-      { key: "console.ms-admin", label: "Network", path: "/console/network", capability: "manage_network",
+      { key: "console.ms-admin", label: "Network", path: "/console/network", capability: "manage_network", icon: "dashicons-admin-multisite",
         children: [
           { key: "console.ms-admin",   label: "Dashboard", path: "/console/network",          capability: "manage_network" },
           { key: "console.ms-sites",   label: "Sites",     path: "/console/network/sites",    capability: "manage_sites" },

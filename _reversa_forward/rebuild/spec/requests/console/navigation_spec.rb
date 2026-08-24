@@ -10,7 +10,9 @@ require_relative "console_spec_helper"
 RSpec.describe "the console navigation", type: :request do
   before { seed_console_accounts!; host! "127.0.0.1" }
 
-  def menu_labels = doc.css(".adminmenu > ul > li > a span:first-child").map { |n| n.text.strip }
+  # .menu-label wraps the dashicon span plus the text; the icon span is empty, so the
+  # wrapper's own text is the label.
+  def menu_labels = doc.css(".adminmenu > ul > li > a .menu-label").map { |n| n.text.strip }
   def submenu_labels = doc.css(".adminmenu .sub a").map { |n| n.text.strip }
 
   describe "an administrator" do
@@ -25,7 +27,7 @@ RSpec.describe "the console navigation", type: :request do
     it "opens the section for the current screen and lists its children" do
       login_as("con_admin")
       get "/console/settings/general"
-      expect(doc.at_css(".adminmenu li.current > a span:first-child").text.strip).to eq("Settings")
+      expect(doc.at_css(".adminmenu li.current > a .menu-label").text.strip).to eq("Settings")
       expect(submenu_labels).to eq(%w[General Writing Reading Discussion Media Permalinks Privacy])
     end
 
@@ -34,7 +36,7 @@ RSpec.describe "the console navigation", type: :request do
       article = Publishing::Article.create!(author: actor("con_admin"), status: :draft,
                                            title: "Nested", content: "", excerpt: "")
       get "/console/posts/#{article.id}/revisions"
-      expect(doc.at_css(".adminmenu li.current > a span:first-child").text.strip).to eq("Posts")
+      expect(doc.at_css(".adminmenu li.current > a .menu-label").text.strip).to eq("Posts")
     end
   end
 

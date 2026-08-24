@@ -382,3 +382,46 @@ editor — `console.post` and `console.post-new`.
 and Global Styles surface is a distinct, larger island over `Composition::Template` and the
 theme.json cascade; it remains the read-only shell. D-3 is resolved for the post/page editor;
 the Site Editor island is the remaining forward item.
+
+---
+
+### DEV-014 — the console adopts wp-admin's skin (REVERSES part of the modernization ruling)
+
+| Field | Value |
+|---|---|
+| Affected screen | all `console.*` |
+| Type | `platform` — reverses a prior approval |
+| Approved by | thies (owner) |
+| Approved at | 2026-08-24 |
+
+**What changed.** `screen_modernization_decision.md` (approved 2026-08-21) put the console in
+**modernized** mode, and its design-system row said plainly: *"Modernized `console.*` screens
+must **not** inherit the eight admin colour schemes."* The owner has since instructed
+"make the admin work identical to the original", then set "pixel perfect" as a standing goal.
+This deviation records the reversal rather than letting the code drift from the decision log.
+
+**Scope of the reversal — the SKIN only.** The semantic contract is unchanged: literal strings
+stay verbatim, and no golden files are introduced for the console. What changes is that the
+console now renders in wp-admin's visual design system instead of its own.
+
+**How the values were obtained.** Not copied from wp-admin's SCSS and not guessed:
+`editor_e2e/measure_wpadmin.mjs` reads the **computed styles** off the live oracle and prints
+them, and the skin is written from that output. WordPress 7.2-alpha ships a refreshed palette,
+so the values differ from the well-known older ones: accent `#3858E9` (not `#0073AA`), chrome
+`#1E1E1E` (not `#23282D`), submenu `#0C0C0C`. Dashicons are the oracle's own font file
+(`wp-includes/fonts/dashicons.woff2`), trimmed to the twelve glyphs the menu uses.
+
+**What is deliberately NOT reproduced, and why it is not a gap:**
+
+| Absent | Ruling |
+|---|---|
+| The WordPress logo, the "About WordPress" menu, the W favicon | DEV-009 — project identity is dropped |
+| The Plugins menu item | AD-01 — there is no extension system to manage |
+| Screen Options / Help tabs | DEV-002 — hook-registered UI; nothing registers into them |
+| The eight per-user admin colour schemes (`admin_color`) | DEV-005 stands — this is the default *fresh* scheme only, which is what the oracle serves |
+| Collapse Menu, the avatar, the admin-bar search | Chrome with no rebuild surface behind it |
+
+**Found while doing this** — a genuine functional gap, not styling: the Posts list was missing
+wp-admin's **Sticky** view (`class-wp-posts-list-table.php:112-125`, `:398-415`). It is now
+built, including the `show_sticky=1` filter arm, and the status tabs match the oracle
+label-for-label and count-for-count.
