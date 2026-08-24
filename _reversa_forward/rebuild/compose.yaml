@@ -1,0 +1,36 @@
+services:
+  db:
+    image: postgres:18-alpine
+    environment:
+      POSTGRES_USER: rebuild
+      POSTGRES_PASSWORD: rebuild
+    volumes:
+      - db-data:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U rebuild"]
+      interval: 2s
+      timeout: 3s
+      retries: 15
+
+  web:
+    build: .
+    command: bash -c "bin/rails db:prepare && exec bin/rails server -b 0.0.0.0"
+    environment:
+      DATABASE_URL: postgres://rebuild:rebuild@db:5432/rebuild_development
+      # The oracle's MySQL (one-way, SELECT-only) via its host-published port 3306 —
+      # NOT via a shared docker network: both stacks name their DB service "db", and
+      # joining the oracle network makes that alias ambiguous.
+      ORACLE_DB_HOST: host.docker.internal
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    ports:
+      - "3000:3000"
+    volumes:
+      # Live-edit the source; gems live in the image under /usr/local/bundle.
+      - .:/rails
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  db-data:

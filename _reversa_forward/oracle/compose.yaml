@@ -1,0 +1,40 @@
+# The reference WordPress 7.2-alpha oracle: http://127.0.0.1:8099
+#
+# wp-config.php hardcodes DB_HOST 127.0.0.1 and WP_HOME/WP_SITEURL on port 8099, and
+# tools/*.php hardcode /workspace/WordPress — so the web container shares the db
+# container's network namespace (127.0.0.1:3306 = MySQL) and the repo root is mounted
+# at /workspace/WordPress. Ports are therefore published on the db service.
+services:
+  db:
+    image: mysql:8.4
+    # The corpus stores '0000-00-00 00:00:00' drafts (T-01 in the rebuild's seeding
+    # pipeline maps them to NULL); the default strict sql_mode would refuse to read them.
+    command: ["mysqld", "--sql-mode=NO_ENGINE_SUBSTITUTION"]
+    environment:
+      MYSQL_DATABASE: wp_oracle
+      MYSQL_USER: wporacle
+      MYSQL_PASSWORD: oracle
+      MYSQL_ROOT_PASSWORD: oracle-root
+    volumes:
+      - db-data:/var/lib/mysql
+      - ./mysql-init:/docker-entrypoint-initdb.d:ro
+    ports:
+      - "8099:8099"   # the web service's HTTP port (shared netns)
+      - "3306:3306"   # so the rebuild's `bin/rails oracle:seed` can reach the corpus
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -uwporacle -poracle"]
+      interval: 2s
+      timeout: 5s
+      retries: 30
+
+  web:
+    build: .
+    network_mode: "service:db"
+    volumes:
+      - ../..:/workspace/WordPress
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  db-data:
