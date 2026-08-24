@@ -1,0 +1,13 @@
+import { chromium } from "playwright";
+const b = await chromium.launch();
+const p = await (await b.newContext({viewport:{width:1200,height:800}})).newPage();
+p.on('console', m => console.log("[console."+m.type()+"]", m.text().slice(0,220)));
+p.on('pageerror', e => console.log("[pageerror]", String(e).slice(0,300)));
+p.on('requestfailed', r => console.log("[reqfail]", r.url().slice(0,120), r.failure()?.errorText));
+await p.goto("file:///tmp/gbtest/out/index.html", {waitUntil:'load'});
+await p.waitForTimeout(7000);
+console.log("root exists:", await p.evaluate(()=>!!document.getElementById('root')));
+console.log("root children:", await p.evaluate(()=>document.getElementById('root')?.children.length));
+console.log("data-content len:", await p.evaluate(()=>document.getElementById('root')?.dataset.content?.length));
+console.log("__serialize present:", await p.evaluate(()=>typeof window.__serialize));
+await b.close();

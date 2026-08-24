@@ -17,12 +17,38 @@ module PublicApi
   # password-protected body in `edit` context) then run INSIDE the action and answer with
   # the legacy's WP_Error envelope, exactly as wp-admin/async-upload.php's caps do.
   class BaseController < ApplicationController
-    # REST callers carry a bearer token or an application password, never a cookie, so
-    # there is no forgery surface to protect (the legacy's nonce is a cookie-session
-    # concern; class-wp-rest-server.php:409 accepts application passwords without one).
+    # ⚠️ REVISED (Wave 4, the write surface). The header above used to end "REST callers
+    # carry a bearer token or an application password, NEVER a cookie, so there is no
+    # forgery surface to protect". That stopped being true the moment @wordpress/editor
+    # was pointed at this backend: api-fetch sends the browser's logged-in cookie plus an
+    # `X-WP-Nonce` header, which is precisely the case class-wp-rest-server.php:409
+    # carves out — an application password is accepted with NO nonce, a cookie is not.
+    #
+    # So Rails' own forgery protection stays off (its token is form-shaped and its failure
+    # is not a WP_Error) and rest_cookie_check_errors() is reproduced instead, verbatim,
+    # in `rest_cookie_check_errors` below. Three outcomes, all observed on the oracle:
+    #   · no nonce at all      -> `wp_set_current_user( 0 )`: the cookie identity is
+    #                             DISCARDED and the request proceeds anonymously (so a
+    #                             GET still reads public content and a write answers
+    #                             rest_cannot_create/401 — NOT a nonce error);
+    #   · nonce present, bad   -> rest_cookie_invalid_nonce / "Cookie check failed" / 403,
+    #                             on EVERY verb including GET, and whether or not a cookie
+    #                             was sent;
+    #   · nonce present, good  -> the cookie identity stands.
+    # A bearer token or an application password short-circuits the whole check, because a
+    # client that had to attach a credential deliberately cannot be forged into it.
+    include Auth::SessionCookie
+
     skip_forgery_protection
 
     rescue_from PublicApi::RestError, with: :render_rest_error
+
+    # ⚠️ PREPEND. ApplicationController registers `enforce_authorization_declaration`
+    # (AD-04) and `resolve_request_locale`, and BOTH read `current_actor` — so the cookie
+    # identity must already have been accepted or discarded before either runs, exactly as
+    # `rest_authentication_errors` runs before the REST server dispatches. Prepending is
+    # what puts it there.
+    prepend_before_action :rest_cookie_check_errors
 
     # ── The permission callback registry (register_rest_route's permission_callback) ──
     #
@@ -38,8 +64,21 @@ module PublicApi
     end
 
     before_action :enforce_rest_permission
+    before_action :send_cors_headers
 
     private
+
+    # rest_send_cors_headers(), wp-includes/rest-api.php:1210. Without
+    # `Access-Control-Expose-Headers` a cross-origin fetch cannot READ `X-WP-Total`,
+    # `X-WP-TotalPages` or `Link`, and @wordpress/core-data paginates off exactly those
+    # three; `Access-Control-Allow-Headers` is the list the legacy names, verbatim.
+    # (`Access-Control-Allow-Origin` is NOT sent: the legacy only emits one for an origin
+    # `is_allowed_http_origin()` accepts, which on a single-site install is its own.)
+    def send_cors_headers
+      response.set_header("Access-Control-Expose-Headers", "X-WP-Total, X-WP-TotalPages, Link")
+      response.set_header("Access-Control-Allow-Headers",
+                          "Authorization, X-WP-Nonce, Content-Disposition, Content-MD5, Content-Type")
+    end
 
     # `?_locale=user` on a JSON request resolves to the caller's locale rather than the
     # site locale (BR-I18N-04 / BR-MIGRATE-286, determine_locale()'s
@@ -77,6 +116,38 @@ module PublicApi
       deny!
     end
 
+    # ── rest_cookie_check_errors(), wp-includes/rest-api.php ──────────────────────
+    #
+    #   if ( true !== $wp_rest_auth_cookie && is_user_logged_in() ) return $result;  // another
+    #                                                    // authentication method won; no nonce
+    #   $nonce = $_REQUEST['_wpnonce'] ?? $_SERVER['HTTP_X_WP_NONCE'] ?? null;
+    #   if ( null === $nonce ) { wp_set_current_user( 0 ); return true; }
+    #   if ( ! wp_verify_nonce( $nonce, 'wp_rest' ) )
+    #       return new WP_Error( 'rest_cookie_invalid_nonce', __( 'Cookie check failed' ),
+    #                            array( 'status' => 403 ) );
+    #
+    # The 403 is FLAT — not rest_authorization_required_code(), so it is 403 even for a
+    # caller with no identity at all. Verified against the oracle for every combination of
+    # {cookie, no cookie} x {GET, POST}.
+    def rest_cookie_check_errors
+      # An identity that did NOT come from the cookie needs no nonce.
+      return if credentialed_actor
+
+      nonce = params[PublicApi::RestNonce::PARAM].presence ||
+              request.headers[PublicApi::RestNonce::HEADER].presence
+
+      # No nonce: the cookie is not trusted to speak for its user, so the request is
+      # anonymous. It is NOT refused — this is `wp_set_current_user( 0 )`.
+      if nonce.nil?
+        @cookie_identity_suppressed = true
+        return
+      end
+
+      return if PublicApi::RestNonce.verify(nonce, session_token)
+
+      raise PublicApi::RestError.new("rest_cookie_invalid_nonce", "Cookie check failed", 403)
+    end
+
     # rest_authorization_required_code(): 401 before an identity exists, 403 after.
     def deny!(code: "rest_forbidden", message: "Sorry, you are not allowed to do that.")
       raise PublicApi::RestError.new(code, message, current_actor ? 403 : 401)
@@ -87,8 +158,13 @@ module PublicApi
                                      current_actor ? 403 : 401)
     end
 
+    # An error envelope is never `_fields`-filtered: `{code, message, data}` is the whole
+    # contract and a client asking for `_fields=id` still has to be able to read the
+    # failure. (rest_filter_response_fields() runs on `rest_post_dispatch` in the legacy
+    # and would filter it; the legacy's own clients never hit that case, and answering a
+    # 403 with `{}` would be strictly worse.)
     def render_rest_error(error)
-      render_json(error.as_json, status: error.status)
+      render_json(error.as_json, status: error.status, fields: nil)
     end
 
     # wp_send_json / rest_send_response: `application/json; charset=UTF-8`, and the body
@@ -96,9 +172,20 @@ module PublicApi
     # JSON.generate matches both (raw '/', raw UTF-8, and no HTML-entity escaping of
     # '<'/'>'/'&', which Rails' `render json:` would apply and which would corrupt every
     # content.rendered). So the body is generated here, not through the AS::JSON encoder.
-    def render_json(payload, status: :ok)
+    # `_fields` is applied HERE rather than in each action, so every endpoint on this
+    # surface honours it without having to remember to — which is the point: two of
+    # Gutenberg's 24 preloads carry `_fields` and they are on two DIFFERENT controllers
+    # (the root document and users#show). Pass `fields: nil` to opt a payload out.
+    def render_json(payload, status: :ok, fields: requested_fields)
+      body = fields.nil? ? payload : filter_fields(payload, fields)
       response.set_header("Content-Type", "application/json; charset=UTF-8")
-      render body: JSON.generate(payload), status: status
+      render body: JSON.generate(body), status: status
+    end
+
+    def filter_fields(payload, fields)
+      return payload.map { |item| PublicApi::FieldFilter.apply(item, fields) } if payload.is_a?(Array)
+
+      PublicApi::FieldFilter.apply(payload, fields)
     end
 
     # ── Who is asking ────────────────────────────────────────────────────────────
@@ -109,7 +196,23 @@ module PublicApi
     def current_actor
       return @current_actor if defined?(@current_actor)
 
-      @current_actor = super || actor_from_bearer || actor_from_basic
+      @current_actor = credentialed_actor || cookie_actor
+    end
+
+    # The two credentials a REST client sends on purpose. Memoised separately from
+    # `current_actor` because `rest_cookie_check_errors` asks for them BEFORE the cookie
+    # arm has been decided, and asking must not freeze the answer.
+    def credentialed_actor
+      return @credentialed_actor if defined?(@credentialed_actor)
+
+      @credentialed_actor = actor_from_bearer || actor_from_basic
+    end
+
+    # Auth::SessionCookie#current_session, gated on the nonce verdict above.
+    def cookie_actor
+      return nil if @cookie_identity_suppressed
+
+      current_session&.user
     end
 
     def actor_from_bearer
@@ -144,6 +247,53 @@ module PublicApi
 
     # `context` query arg (view|embed|edit). `edit` needs a capability the read routes
     # gate per-record; anonymous callers only ever get `view`.
-    def context = params[:context].presence_in(%w[view embed edit]) || "view"
+    #
+    # An UNRECOGNISED value is not silently coerced: rest_validate_request_arg() rejects it
+    # against the schema enum before the callback runs, with the composite envelope the
+    # oracle emits (`data.params` and `data.details` alongside `data.status`).
+    CONTEXTS = %w[view embed edit].freeze
+
+    def context
+      return @context if defined?(@context)
+
+      raw = params[:context].presence
+      @context = raw.nil? ? "view" : (CONTEXTS.include?(raw) ? raw : invalid_enum!("context", CONTEXTS))
+    end
+
+    # rest_validate_value_from_schema()'s `rest_not_in_enum` arm, wrapped by
+    # WP_REST_Request::has_valid_params() into one `rest_invalid_param` (:1029-1064). The
+    # list is joined the way wp_sprintf_l() joins it: "a, b, and c".
+    def invalid_enum!(name, allowed)
+      detail = "#{name} is not one of #{wp_sprintf_l(allowed)}."
+      raise PublicApi::RestError.new(
+        "rest_invalid_param", "Invalid parameter(s): #{name}", 400,
+        params: { name => detail },
+        details: { name => { code: "rest_not_in_enum", message: detail, data: nil } }
+      )
+    end
+
+    # wp_sprintf_l() with the English list separators: "a", "a and b", "a, b, and c".
+    def wp_sprintf_l(items)
+      items = items.map(&:to_s)
+      case items.length
+      when 0 then ""
+      when 1 then items.first
+      when 2 then items.join(" and ")
+      else "#{items[0..-2].join(", ")}, and #{items.last}"
+      end
+    end
+
+    # `_fields`, parsed once. nil when absent (PublicApi::FieldFilter reads that as "no
+    # filtering").
+    def requested_fields
+      return @requested_fields if defined?(@requested_fields)
+
+      @requested_fields = PublicApi::FieldFilter.parse(params[:_fields])
+    end
+
+    # Named aliases for the two shapes an endpoint returns. They add nothing over
+    # `render_json` (which already filters) and exist so an action reads as what it is.
+    def render_item(payload, status: :ok) = render_json(payload, status: status)
+    def render_collection(payloads, status: :ok) = render_json(payloads, status: status)
   end
 end

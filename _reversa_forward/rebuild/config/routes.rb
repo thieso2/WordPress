@@ -333,6 +333,82 @@ Rails.application.routes.draw do
     # rest_no_route (class-wp-rest-server.php:1096): anything under /wp-json that no route
     # matched is a REST 404 with the WP_Error envelope, NOT the HTML 404 the page glob
     # below would render. via :all so a POST to an unknown route answers the same.
+    # ── The REST WRITE surface (Track 1). Inside the existing `scope "/wp-json"` block,
+    # ABOVE the `match "/*path" ... via: :all` rest_no_route catch-all. Placing them next
+    # to the existing GET /wp/v2/posts lines keeps the file readable; nothing here shadows
+    # anything, because every path is either a new verb on an existing path or a new
+    # `/autosaves` segment.
+    post   "/wp/v2/posts",      to: "public_api/posts#create"
+    match  "/wp/v2/posts/:id",  to: "public_api/posts#update",  via: %i[post put patch], constraints: { id: /\d+/ }
+    delete "/wp/v2/posts/:id",  to: "public_api/posts#destroy", constraints: { id: /\d+/ }
+    get    "/wp/v2/posts/:id/autosaves", to: "public_api/autosaves#index",  constraints: { id: /\d+/ }, defaults: { parent_type: "posts" }, as: :rest_post_autosaves
+    post   "/wp/v2/posts/:id/autosaves", to: "public_api/autosaves#create", constraints: { id: /\d+/ }, defaults: { parent_type: "posts" }
+
+    post   "/wp/v2/pages",      to: "public_api/pages#create"
+    match  "/wp/v2/pages/:id",  to: "public_api/pages#update",  via: %i[post put patch], constraints: { id: /\d+/ }
+    delete "/wp/v2/pages/:id",  to: "public_api/pages#destroy", constraints: { id: /\d+/ }
+    get    "/wp/v2/pages/:id/autosaves", to: "public_api/autosaves#index",  constraints: { id: /\d+/ }, defaults: { parent_type: "pages" }, as: :rest_page_autosaves
+    post   "/wp/v2/pages/:id/autosaves", to: "public_api/autosaves#create", constraints: { id: /\d+/ }, defaults: { parent_type: "pages" }
+    # ── Track 3: the media / taxonomy / comment WRITE surface ──────────────────────
+    # `match … via: %i[post put patch]` because the legacy registers EDITABLE for an item
+    # route, which is all three verbs (class-wp-rest-server.php:1035).
+    post   "/wp/v2/media",     to: "public_api/media#create"
+    match  "/wp/v2/media/:id", to: "public_api/media#update",  via: %i[post put patch], constraints: { id: /\d+/ }
+    delete "/wp/v2/media/:id", to: "public_api/media#destroy", constraints: { id: /\d+/ }
+
+    post   "/wp/v2/categories",     to: "public_api/categories#create"
+    match  "/wp/v2/categories/:id", to: "public_api/categories#update",  via: %i[post put patch], constraints: { id: /\d+/ }
+    delete "/wp/v2/categories/:id", to: "public_api/categories#destroy", constraints: { id: /\d+/ }
+
+    post   "/wp/v2/tags",     to: "public_api/tags#create"
+    match  "/wp/v2/tags/:id", to: "public_api/tags#update",  via: %i[post put patch], constraints: { id: /\d+/ }
+    delete "/wp/v2/tags/:id", to: "public_api/tags#destroy", constraints: { id: /\d+/ }
+
+    post   "/wp/v2/comments",     to: "public_api/comments#create"
+    match  "/wp/v2/comments/:id", to: "public_api/comments#update",  via: %i[post put patch], constraints: { id: /\d+/ }
+    delete "/wp/v2/comments/:id", to: "public_api/comments#destroy", constraints: { id: /\d+/ }
+
+    # ↑ ALL of the above go inside the existing `scope "/wp-json"` block and BEFORE the
+    #   `match "/*path", to: "public_api/root#no_route", via: :all` catch-all.
+    # ── TRACK 2: SITE DATA (settings, themes, global styles, templates, patterns, blocks)
+    # The block editor's boot preload. Declared BEFORE the `match "/*path"` rest_no_route
+    # catch-all at the end of this scope, and each `lookup`/`themes` literal BEFORE the
+    # glob or `:id` route that would otherwise swallow it.
+    get   "/wp/v2/settings", to: "public_api/settings#show", as: :rest_settings
+    match "/wp/v2/settings", to: "public_api/settings#update", via: %i[post put patch]
+
+    get "/wp/v2/themes", to: "public_api/themes#index", as: :rest_themes
+
+    # `themes/…` before `:id`, and `/variations` before the bare stylesheet, so neither is
+    # read as the other. `format: false` because a stylesheet slug may contain a dot.
+    get   "/wp/v2/global-styles/themes/:stylesheet/variations", to: "public_api/global_styles#variations",
+          as: :rest_global_styles_theme_variations, format: false
+    get   "/wp/v2/global-styles/themes/:stylesheet", to: "public_api/global_styles#theme",
+          as: :rest_global_styles_theme, format: false
+    get   "/wp/v2/global-styles/:id", to: "public_api/global_styles#show", as: :rest_global_styles,
+          constraints: { id: /\d+/ }
+    match "/wp/v2/global-styles/:id", to: "public_api/global_styles#update", via: %i[post put patch],
+          constraints: { id: /\d+/ }
+
+    # A template id is `<theme>//<slug>` — two slashes, so `show` takes a glob. `lookup`
+    # and the collection are literals declared ahead of it.
+    get "/wp/v2/templates/lookup", to: "public_api/templates#lookup", as: :rest_templates_lookup
+    get "/wp/v2/templates",        to: "public_api/templates#index",  as: :rest_templates
+    get "/wp/v2/templates/*id",    to: "public_api/templates#show",   format: false
+    get "/wp/v2/template-parts",     to: "public_api/template_parts#index", as: :rest_template_parts
+    get "/wp/v2/template-parts/*id", to: "public_api/template_parts#show",  format: false
+
+    get "/wp/v2/block-patterns/categories", to: "public_api/block_pattern_categories#index",
+        as: :rest_block_pattern_categories
+
+    get "/wp/v2/blocks",     to: "public_api/blocks#index", as: :rest_blocks
+    get "/wp/v2/blocks/:id", to: "public_api/blocks#show",  constraints: { id: /\d+/ }
+
+    # OPTIONS on any REST path — the route descriptor + `Allow` header core-data reads to
+    # decide which controls the editor may offer. Declared before the catch-all so it is not
+    # swallowed by it, and matched as a glob because every REST path answers OPTIONS.
+    match "/*rest_path", to: "public_api/options#show", via: :options, format: false
+
     match "/*path", to: "public_api/root#no_route", via: :all, format: false
   end
 

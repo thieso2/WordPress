@@ -1,0 +1,25 @@
+import { chromium } from "playwright";
+const b = await chromium.launch();
+const c = await b.newContext({ baseURL:"http://127.0.0.1:3100", viewport:{width:1440,height:1000} });
+const p = await c.newPage();
+const api = [];
+p.on('response', r => { const u=r.url(); if (u.includes('/wp-json/')) api.push(`${r.status()} ${r.request().method()} ${decodeURIComponent(u.replace(/^https?:\/\/[^/]+/,'').split('?')[0])}`); });
+const errs = [];
+p.on('pageerror', e => errs.push(String(e).split('\n')[0].slice(0,150)));
+await p.goto("/login"); await p.fill('input[name="log"]','oracle_admin'); await p.fill('input[name="pwd"]','oracle-admin-pw');
+await p.check('input[name="testcookie"]').catch(()=>{});
+await Promise.all([p.waitForLoadState('networkidle'), p.click('button[type=submit],input[type=submit]')]);
+await p.goto("/console/posts", {waitUntil:'domcontentloaded'});
+const href = await p.locator('a[href*="/console/posts/"][href$="/edit"]').first().getAttribute('href');
+const id = href.match(/posts\/(\d+)\/edit/)[1];
+console.log("opening editor for post", id);
+await p.goto(`/console/posts/${id}/edit`, {waitUntil:'domcontentloaded'});
+await p.waitForTimeout(14000);
+const mounted = await p.locator('.block-editor-block-list__block').count();
+const skeleton = await p.locator('.interface-interface-skeleton, .editor-editor-interface').count();
+console.log("interface skeleton:", skeleton, " blocks rendered:", mounted);
+console.log("title field:", await p.locator('.editor-post-title__input, [contenteditable][aria-label*="title" i]').count());
+console.log("\nAPI calls:"); [...new Set(api)].slice(0,25).forEach(a=>console.log("  "+a));
+if (errs.length) { console.log("\npage errors:"); [...new Set(errs)].slice(0,6).forEach(e=>console.log("  "+e)); }
+await p.screenshot({path:"/tmp/gb_boot.png", fullPage:false});
+await b.close();

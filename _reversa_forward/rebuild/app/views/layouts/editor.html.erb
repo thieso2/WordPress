@@ -14,6 +14,21 @@
     <meta name="robots" content="noindex, noarchive">
     <meta name="referrer" content="strict-origin-when-cross-origin">
     <%= csrf_meta_tags %>
+    <%# The REST handoff. wp-includes/rest-api.php prints exactly this object into every
+        admin page (`wpApiSettings`), and @wordpress/api-fetch's nonce middleware reads
+        `nonce` from it and sends it as `X-WP-Nonce` on every request — which is the ONLY
+        thing that lets the browser's logged-in cookie speak for its user on /wp-json
+        (PublicApi::BaseController#rest_cookie_check_errors). Without it every write from
+        the editor would be answered as anonymous. `rest-nonce` is the same token as a
+        meta tag, for any client that would rather read the DOM than a global. %>
+    <meta name="rest-nonce" content="<%= rest_nonce %>">
+    <%# ⚠️ A RELATIVE root, deliberately. wp-admin prints esc_url_raw( rest_url() ), which is
+        absolute but always same-origin in a real install. Here it is not: the corpus is seeded
+        FROM the oracle, so the `siteurl` setting holds the oracle's host — printing it would
+        aim the editor's every request at WordPress on :8099 instead of at this application,
+        which is exactly what happened the first time. A root-relative path always resolves to
+        whoever served the page. %>
+    <script>window.wpApiSettings = <%= raw ActiveSupport::JSON.encode(root: "/wp-json/", nonce: rest_nonce, versionString: "wp/v2/") %>;</script>
     <%= javascript_include_tag "turbo.min", type: "module" %>
     <%# The block editor React island (DEV-012, D-3), built to app/assets/builds by
         bin/build_editor.mjs and served by propshaft. Loaded only on the editor screens

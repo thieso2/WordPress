@@ -425,3 +425,64 @@ so the values differ from the well-known older ones: accent `#3858E9` (not `#007
 wp-admin's **Sticky** view (`class-wp-posts-list-table.php:112-125`, `:398-415`). It is now
 built, including the `show_sticky=1` filter arm, and the status tabs match the oracle
 label-for-label and count-for-count.
+
+---
+
+### DEV-015 — the editor is the REAL Gutenberg, running on this backend
+
+| Field | Value |
+|---|---|
+| Affected screen | `console.post`, `console.post-new` |
+| Type | `platform` |
+| Approved by | thies (owner) |
+| Approved at | 2026-08-24 |
+
+**Why.** DEV-012 ruled the editing experience must reach parity and recorded that its
+specification *does not exist inside this checkout* — WordPress ships the block editor as
+compiled JavaScript. D-3 answered that with a hand-built React island. Side by side against
+the oracle the island was plainly not Gutenberg: no Post sidebar (featured image, slug,
+author, template, discussion, format, categories, tags, trash), no undo/redo, no list view,
+no preview, no per-block toolbars. The owner asked whether the upstream editor could run on
+this backend instead. It can, and it now does.
+
+**What was built.** Not an editor — an API. The boot contract was obtained by *observing the
+oracle*: the 24 REST paths wp-admin preloads into the editor page. Against that list the
+rebuild had 10 reads and **zero writes**. Now:
+
+- **Auth** — cookie + `X-WP-Nonce`, reproducing `rest_cookie_check_errors()` including its
+  three observed outcomes (no nonce ⇒ the cookie identity is *discarded* and the request
+  proceeds anonymously; bad nonce ⇒ a flat `rest_cookie_invalid_nonce` 403 on every verb;
+  good nonce ⇒ the cookie stands).
+- **`context=edit`** — `{raw, rendered}` pairs and the edit-only fields, matched key-for-key
+  and *in the oracle's field order*, plus `_fields` and `_locale`.
+- **Writes** — posts/pages (create, update, trash, `?force=true` delete with its different
+  response shape), autosaves, media upload, term and comment writes — all through the
+  existing aggregate commands, never raw SQL.
+- **Site data** — settings, themes, global styles (three shapes over the theme.json cascade),
+  templates + `templates/lookup`, block-pattern categories, reusable blocks.
+- **`OPTIONS`** — the route descriptor and `Allow` header core-data reads to decide which
+  controls to offer. Verbs are derived from this application's own route table, so the answer
+  cannot drift from what the router accepts.
+
+**Verified end to end**, in a real browser: Gutenberg boots against the rebuild with every one
+of its preload calls answering 200, renders the post, and a text edit saves through
+`POST /wp-json/wp/v2/posts/1` and is read back from our own database.
+
+**Two bugs this surfaced in existing code**, neither related to the editor:
+`PublicApi::PostSerializer` leaked internal status spellings (`scheduled`/`trashed` where the
+REST contract says `future`/`trash`), and `link` was `""` rather than the `?p=<id>` plain
+permalink for records without a pretty URL.
+
+**Costs, stated plainly:**
+
+| Cost | Detail |
+|---|---|
+| **Licence** | The `@wordpress/*` packages are GPL-2.0-or-later. The editor bundle is now GPL-encumbered, and the rebuild still carries no LICENSE file of its own. **This needs an owner decision.** |
+| **AD-01** | Gutenberg ships `@wordpress/hooks`, a *client-side* filter system. It does not resurrect the PHP hook system AD-01 removed, and nothing server-side registers into it — but an extension mechanism now exists in the front end, and that is recorded here rather than left implicit. |
+| **Bundle** | 21 MB raw / ~5 MB gzipped JS plus 630 KB CSS, and 365 MB of `node_modules` (gitignored). The built bundle is committed so the app runs without an npm install. |
+| **Canonical save** | Gutenberg rewrites markup to its canonical save form (adds `class="wp-block-heading"`, drops default attributes). Real WordPress does the same on save, so this is faithful — but a re-saved post's bytes will differ from the seeded ones, which matters to anyone reading the parity gate. |
+
+**What was retired.** `app/frontend/editor/{index,Editor,api}.jsx` — the island's entry, shell
+and API client. Its block COMPONENTS survive: the Site Editor island still renders templates
+with them. Converting the Site Editor to Gutenberg's own template editor is the natural next
+step and is not done here.

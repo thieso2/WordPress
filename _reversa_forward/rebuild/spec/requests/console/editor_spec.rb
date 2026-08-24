@@ -67,8 +67,8 @@ RSpec.describe "the editor shell", type: :request do
       expect(edoc.at_css("title").text).to include("Edit Post")
       expect(response.body).to include("Add title")               # edit-form-blocks.php:281
       expect(response.body).to include("Type / to choose a block") # :275
-      expect(response.body).to include(%(id="editor-root"))    # the React island mount (DEV-012, D-3)
-      expect(response.body).to match(%r{/assets/editor-[0-9a-f]+\.js})
+      expect(response.body).to include(%(id="gutenberg-root"))  # the real Gutenberg mount (DEV-015)
+      expect(response.body).to match(%r{/assets/gutenberg-[0-9a-f]+\.js})
       expect(post.reload.edit_lock_by_id).to eq(editor_user("editor").id)
       expect(post.edit_lock_at).to be_present
     end

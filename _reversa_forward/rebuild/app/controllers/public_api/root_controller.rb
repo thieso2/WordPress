@@ -17,13 +17,13 @@ module PublicApi
   # named in the handoff report, not silently advertised.
   class RootController < BaseController
     def index
-      render_json(index_document)
+      render_json(project(index_document))
     end
 
     # `/wp/v2` — the same document filtered to a single namespace (get_namespace_index,
     # :493). Same header, `routes` limited to that namespace.
     def namespace
-      render_json(index_document(only_namespace: "wp/v2"))
+      render_json(project(index_document(only_namespace: "wp/v2")))
     end
 
     # Anything under /wp-json that matched no route, any method. class-wp-rest-server.php
@@ -35,6 +35,28 @@ module PublicApi
 
     private
 
+    # `_fields` — the REST server's response filtering (rest_filter_response_fields(),
+    # wp-includes/rest-api.php:1600). The block editor boots by preloading THIS document
+    # with a sixteen-name projection, most of which the header does not carry, and the
+    # legacy simply omits a name it has no field for rather than emitting null. So the
+    # projection is an INTERSECTION, in the document's own key order — not the caller's.
+    #
+    # ⚠️ It applies to `/` and `/wp/v2` only, deliberately. Filtering is a server-wide
+    # behaviour in the legacy; reproducing it for the whole surface would change the
+    # answer of every collection route this pass does not own, so it lands here, where
+    # the preload contract needs it, and is named in the handoff report as the one place
+    # it exists. A caller that passes no `_fields` sees the document unchanged.
+    def project(document)
+      requested = params[:_fields]
+      requested = requested.join(",") if requested.is_a?(Array)
+      names = requested.to_s.split(",").map(&:strip).reject(&:empty?)
+      return document if names.empty?
+
+      # `id` is always retained by the legacy (:1618); this document has none, so the
+      # intersection is the whole rule.
+      document.select { |key, _| names.include?(key.to_s) }
+    end
+
     def index_document(only_namespace: nil)
       routes = route_table
       routes = routes.select { |_, v| v[:namespace] == only_namespace || v[:namespace].to_s.empty? } if only_namespace
@@ -45,6 +67,15 @@ module PublicApi
         home: Entity.site.home_url,
         gmt_offset: gmt_offset,
         timezone_string: Configuration::Setting["timezone_string"].to_s,
+        # ⚠️ The three the block editor's boot preload asks for by name. They are part of
+        # the site header in the legacy too (rest_api_default_filters -> `rest_index`
+        # additions in wp-includes/rest-api.php), NOT an editor-only extension — the
+        # oracle emits them on an anonymous `/wp-json/` with no `_fields` at all, in this
+        # position, between `timezone_string` and `namespaces`. Position is observable
+        # because `_fields` preserves the document's own key order.
+        page_for_posts: setting_int("page_for_posts"),
+        page_on_front: setting_int("page_on_front"),
+        show_on_front: Configuration::Setting["show_on_front"].to_s,
         namespaces: namespaces_for(routes),
         authentication: [],
         site_logo: 0,
@@ -53,6 +84,17 @@ module PublicApi
         routes: routes,
         _links: { help: [{ href: "https://developer.wordpress.org/rest-api/" }] }
       }
+    end
+
+    # ⚠️ `Configuration::Setting[name]` answers `false` for an absent option, because
+    # `get_option()` does (BR-OPT-*), and `false.to_i` is a NoMethodError, not 0. Every
+    # one of these three names is absent on a fresh install — `page_on_front` and
+    # `page_for_posts` are only written once someone picks a static front page — so
+    # reading them without this guard 500s the discovery index that every golden page's
+    # `<link rel="https://api.w.org/">` points at.
+    def setting_int(name)
+      value = Configuration::Setting[name]
+      value.is_a?(Numeric) ? value.to_i : value.to_s.to_i
     end
 
     # get_option('gmt_offset'): the current UTC offset (DST-aware) of the site timezone,

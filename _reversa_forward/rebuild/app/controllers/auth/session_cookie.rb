@@ -42,7 +42,7 @@ module Auth
     RESET_COOKIE = "wp-resetpass"
 
     included do
-      helper_method :current_actor, :current_session
+      helper_method :current_actor, :current_session, :rest_nonce
     end
 
     # The identity every Access declaration is evaluated against. Nil when the cookie
@@ -64,6 +64,15 @@ module Auth
     def session_token
       cookies.encrypted[COOKIE].presence
     end
+
+    # `wp_create_nonce( 'wp_rest' )`, for the console layout to hand to the client
+    # (`wpApiSettings.nonce`). @wordpress/api-fetch attaches it as `X-WP-Nonce` on every
+    # request, and PublicApi::BaseController#rest_cookie_check_errors is what verifies it.
+    #
+    # It belongs HERE, next to `session_token`, because that is what it is bound to: the
+    # nonce proves the request came from a page this site rendered FOR THIS SESSION, so
+    # destroying the session invalidates it (BR-AUTH-15) with no extra bookkeeping.
+    def rest_nonce = PublicApi::RestNonce.issue(session_token)
 
     # wp_set_auth_cookie(), pluggable.php:1071-1176.
     def issue_session_cookie!(user, remember:)

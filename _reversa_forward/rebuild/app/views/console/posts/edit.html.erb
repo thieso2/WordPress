@@ -1,150 +1,49 @@
 <%# console.post / console.post-new — the block editor (target_screens.md § The editor).
-    The React island (DEV-012, D-3) is BUILT: app/frontend/editor/* → app/assets/builds/
-    editor.js, mounting into #editor-root below. It loads the post's block tree from the
-    blocks API, edits it as live blocks (canvas + inserter + inspector), and saves a
-    serialized tree through Console::PostsController#update — the same Publishing::Post
-    commands the fallback uses. The <form> below is the NOSCRIPT fallback: without JS it
-    still edits the raw block markup and saves through the identical command path. -%>
-
-<%# The block editor React island (DEV-012, D-3). The island mounts here and hides the
-    #editor-fallback form below; without JavaScript that form still edits the raw block
-    markup and saves through the identical command path (progressive enhancement). %>
+    DEV-015: this mounts the REAL WordPress editor (@wordpress/edit-post's own
+    initializeEditor, called as wp-admin calls it), not a reimplementation. The server names
+    the record and hands over the nonce; everything visible is upstream Gutenberg talking to
+    this rebuild's own wp/v2 API. The <noscript> block keeps the raw-markup form, which saves
+    through the identical Publishing::Post commands when JavaScript is off. -%>
 <% @editor_island = true %>
-<% @island_asset = "editor" %>
-<div id="editor-root"
-     data-post-id="<%= @post.id %>"
-     data-post-new="<%= @post.auto_draft? %>"
-     data-screen="<%= @screen %>"></div>
+<% @island_asset = "gutenberg" %>
 
-<div id="editor-fallback">
-
-<%= form_with url: console_post_path(@post), method: :patch, data: { editor: "form" } do |f| %>
-  <div class="edit-bar">
-    <span class="title"><%= @title %></span>
-    <span class="status" data-editor="autosave-status" aria-live="polite"></span>
-
-    <%# The control strip. Each button is a distinct `command` the controller maps to a
-        Publishing::Post command; the model decides the resulting status (publish vs
-        schedule by the 60-second threshold, BR-MIGRATE-029/030). Labels are the classic
-        editor's readable `$messages`/submit copy where extractable. %>
-    <%= f.submit "Save Draft", name: "command", value: "draft", class: "button" %>
-    <% unless @post.published? %>
-      <%= f.submit "Publish", name: "command", value: "publish", class: "button button-primary" %>
-    <% end %>
-    <% if @post.published? %>
-      <%= f.submit "Update", name: "command", value: "draft", class: "button button-primary" %>
-      <a class="button button-link" href="<%= @post.slug.present? ? "/#{@post.published_at&.strftime("%Y/%m")}/#{@post.slug}" : "#" %>">View Post</a>
-    <% end %>
+<%# Server-side notices (a revision restore, a failed save from the noscript form) still have
+    to reach the reader: Gutenberg owns the canvas, not the page, and it knows nothing about
+    Rails' flash. Rendered above the mount so it is visible with or without JavaScript. -%>
+<% if flash[:notice].present? || flash[:success].present? || flash[:error].present? %>
+  <div class="notice <%= flash[:error].present? ? "notice-error" : "notice-success" %>">
+    <p><%= flash[:error].presence || flash[:success].presence || flash[:notice] %></p>
   </div>
+<% end %>
 
-  <% if @errors.present? %>
-    <div class="notice notice-error">
-      <ul>
-        <% @errors.each do |message| %><li><%= message %></li><% end %>
-      </ul>
-    </div>
-  <% elsif flash[:notice].present? %>
-    <div class="notice notice-success"><p><%= flash[:notice] %></p></div>
-  <% end %>
+<div id="gutenberg-root"
+     data-post-id="<%= @post.id %>"
+     data-post-type="<%= @post.is_a?(Publishing::Page) ? "page" : "post" %>"
+     data-settings="<%= editor_settings_json %>"></div>
 
-  <main class="canvas">
-    <p class="placeholder-note">
-      Block editor canvas — <strong>deferred: react-island (DEV-012, D-3)</strong>. This pass
-      ships the server-side shell only: the field below edits the post's raw block markup
-      directly and saves through the real command path. It is not the Gutenberg canvas.
-    </p>
-
-    <div class="doc">
-      <%# edit-form-blocks.php:281 `titlePlaceholder` = "Add title" (LITERAL). %>
-      <%= f.text_field :title, value: @post.title, class: "title-input",
-                       placeholder: "Add title", "aria-label": "Add title" %>
-
-      <%# edit-form-blocks.php:275 `bodyPlaceholder` = "Type / to choose a block" (LITERAL).
-          Over raw post_content (block markup) — the honest placeholder canvas. %>
-      <%= f.text_area :content, value: @post.content, class: "block-canvas",
-                      placeholder: "Type / to choose a block", spellcheck: false,
-                      data: { editor: "content" } %>
-
-      <div class="field">
-        <label for="post_excerpt">Excerpt</label>
-        <%= f.text_area :excerpt, value: @post.excerpt, rows: 2, class: "block-canvas", style: "min-height:auto" %>
-      </div>
-
-      <%# Schedule: a publish with a future instant becomes `scheduled` when it is ≥ 60 s
-          ahead (the model decides; this only supplies the instant). %>
-      <div class="field">
-        <label for="post_published_at">Publish on (leave blank to publish immediately)</label>
-        <input type="datetime-local" name="published_at" id="post_published_at">
-        <%= f.submit "Schedule", name: "command", value: "schedule", class: "button" %>
+<noscript>
+  <div id="editor-fallback">
+    <%= form_with url: console_post_path(@post), method: :patch do |f| %>
+      <div class="edit-bar">
+        <span class="title"><%= @title %></span>
+        <%= f.submit "Save Draft", name: "command", value: "draft", class: "button" %>
         <% unless @post.published? %>
-          <%= f.submit "Pending Review", name: "command", value: "pending", class: "button" %>
+          <%= f.submit "Publish", name: "command", value: "publish", class: "button button-primary" %>
+        <% end %>
+        <% if @post.published? %>
+          <%= f.submit "Update", name: "command", value: "draft", class: "button button-primary" %>
         <% end %>
       </div>
-
-      <p class="status">
-        Status: <strong><%= @post.status %></strong><% if @post.published_at %> ·
-        <%= @post.published_at.strftime("%b %-d, %Y @ %H:%M") %><% end %>
-      </p>
-    </div>
-  </main>
-<% end %>
-</div><%# /#editor-fallback %>
-
-<%# Autosave (edit-form-blocks.php heartbeat, wp_create_post_autosave) and the post-lock
-    heartbeat (wp_refresh_post_lock). Vanilla, no external library. Autosave every 15 s
-    when the document is dirty; lock tick every 15 s. A lock_error means another editor has
-    taken over — surface the legacy's string and stop saving. %>
-<script>
-  (function () {
-    // The legacy heartbeat drives the noscript fallback only. When the React island
-    // (DEV-012, D-3) takes over, it hides #editor-fallback and runs its own autosave/lock
-    // ticks — so this script must stand down to avoid double heartbeats.
-    var fallback = document.getElementById('editor-fallback');
-    if (fallback && fallback.hidden) return;
-    var form = document.querySelector('[data-editor="form"]');
-    if (!form) return;
-    var status = document.querySelector('[data-editor="autosave-status"]');
-    var content = document.querySelector('[data-editor="content"]');
-    var token = document.querySelector('meta[name="csrf-token"]');
-    token = token ? token.getAttribute('content') : '';
-    var base = <%= raw @post.id.to_json %>;
-    var dirty = false;
-    form.addEventListener('input', function () { dirty = true; });
-
-    function post(url, body) {
-      return fetch(url, {
-        method: 'POST',
-        headers: { 'X-CSRF-Token': token, 'Content-Type': 'application/x-www-form-urlencoded', 'Accept': 'application/json' },
-        body: body || ''
-      });
-    }
-
-    function autosave() {
-      if (!dirty) return;
-      dirty = false;
-      var params = new URLSearchParams();
-      params.set('title', form.querySelector('[name="title"]').value);
-      params.set('content', content ? content.value : '');
-      var ex = form.querySelector('[name="excerpt"]'); if (ex) params.set('excerpt', ex.value);
-      post('/console/posts/' + base + '/autosave', params.toString())
-        .then(function (r) { return r.json(); })
-        .then(function (d) { if (status && d && d.message) status.textContent = d.message; })
-        .catch(function () {});
-    }
-
-    function lockTick() {
-      post('/console/posts/' + base + '/lock')
-        .then(function (r) { return r.json(); })
-        .then(function (d) {
-          if (d && d.lock_error && status) { status.textContent = d.lock_error.text; }
-        })
-        .catch(function () {});
-    }
-
-    setInterval(autosave, 15000);
-    setInterval(lockTick, 15000);
-    window.addEventListener('pagehide', function () {
-      navigator.sendBeacon && navigator.sendBeacon('/console/posts/' + base + '/lock');
-    });
-  })();
-</script>
+      <main class="canvas">
+        <p class="placeholder-note">The block editor needs JavaScript. The post's raw block
+        markup is editable below and saves through the identical command path.</p>
+        <div class="doc">
+          <%= f.text_field :title, value: @post.title, class: "title-input",
+                           placeholder: "Add title", "aria-label": "Add title" %>
+          <%= f.text_area :content, value: @post.content, class: "block-canvas",
+                          placeholder: "Type / to choose a block", spellcheck: false %>
+        </div>
+      </main>
+    <% end %>
+  </div>
+</noscript>

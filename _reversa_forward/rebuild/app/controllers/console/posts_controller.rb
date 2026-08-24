@@ -157,6 +157,41 @@ module Console
     end
 
     private
+    # The settings blob wp-admin hands initializeEditor (block_editor_settings_all()). Only a
+    # truthful subset: whatever is NOT declared here the editor simply does without, which is
+    # the honest failure mode — a fabricated capability would show a control that then breaks.
+    # Everything data-shaped (post types, taxonomies, the user, global styles) is fetched by
+    # core-data from our own wp/v2 API rather than inlined here.
+    def editor_settings_json
+      theme = Presentation::Theme.active.first
+      {
+        richEditingEnabled: true,
+        codeEditingEnabled: true,
+        # No custom-field UI: AD-03 promoted the core keys to columns and AD-01 removed the
+        # registered-meta system the legacy's metabox wrote through.
+        enableCustomFields: false,
+        supportsLayout: true,
+        # The theme's own theme.json settings, through the four-origin cascade the front end
+        # already renders from — so the editor's palette IS the site's palette.
+        __experimentalFeatures: theme_editor_features(theme),
+        allowedMimeTypes: Library::Asset.try(:allowed_mime_types) || {},
+        maxUploadFileSize: Platform::Storage.try(:max_upload_bytes) || 64.megabytes,
+        imageSizes: [],
+        # DEV-009: no WordPress-branded welcome guide or help links.
+        canLockBlocks: true
+      }.to_json
+    end
+    helper_method :editor_settings_json
+
+    def theme_editor_features(theme)
+      return {} if theme.nil?
+
+      raw = (theme.resolver.merged_data.raw_data rescue nil)
+      raw.is_a?(Hash) ? (raw["settings"] || {}) : {}
+    rescue StandardError
+      {}
+    end
+
 
     def load_post
       @post = Publishing::Post.find(params[:id])

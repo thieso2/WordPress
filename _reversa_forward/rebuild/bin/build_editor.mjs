@@ -11,13 +11,14 @@ const watch = process.argv.includes("--watch");
 
 const options = {
   entryPoints: [
-    { in: resolve(root, "app/frontend/editor/index.jsx"), out: "editor" },
-    { in: resolve(root, "app/frontend/site_editor/index.jsx"), out: "site_editor" }
+    { in: resolve(root, "app/frontend/site_editor/index.jsx"), out: "site_editor" },
+    { in: resolve(root, "app/frontend/gutenberg/index.jsx"), out: "gutenberg" }
   ],
   bundle: true,
   format: "esm",
   target: ["es2020"],
   jsx: "automatic",
+  loader: { ".css": "css", ".svg": "dataurl", ".png": "dataurl", ".gif": "dataurl" },
   minify: !watch,
   sourcemap: true,
   outdir: resolve(root, "app/assets/builds"),

@@ -1,0 +1,17 @@
+import { chromium } from "playwright";
+const b = await chromium.launch();
+const p = await (await b.newContext({viewport:{width:1200,height:800}})).newPage();
+const errs=[]; p.on('pageerror', e=>errs.push(String(e).slice(0,160)));
+await p.goto("http://127.0.0.1:8123/index.html", {waitUntil:'load'});
+await p.waitForTimeout(6000);
+const blocks = await p.locator('.block-editor-block-list__block').count();
+console.log("Gutenberg blocks rendered:", blocks);
+const names = await p.evaluate(()=>[...document.querySelectorAll('[data-type]')].map(e=>e.dataset.type));
+console.log("block types mounted:", JSON.stringify(names));
+const round = await p.evaluate(()=> window.__serialize ? window.__serialize() : null);
+console.log("\nround-tripped markup:\n", (round||'').slice(0,300));
+const original = await p.evaluate(()=>document.getElementById('root')?.dataset.content || '');
+console.log("\nBYTE-IDENTICAL round trip:", round === original);
+if (errs.length) console.log("page errors:", errs.slice(0,3));
+await p.screenshot({path:"/tmp/gb_spike.png"});
+await b.close();

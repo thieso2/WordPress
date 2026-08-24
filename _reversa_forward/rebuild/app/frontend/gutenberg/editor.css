@@ -1,0 +1,5 @@
+/* Host styling for the Gutenberg mount. The editor ships its own stylesheets (imported in
+   index.jsx); this only gives the mount point a full-bleed box inside our editor layout. */
+html, body.editor { height: 100%; }
+#gutenberg-root { height: 100vh; }
+#gutenberg-root .interface-interface-skeleton { top: 0; }

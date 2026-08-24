@@ -12,12 +12,20 @@ module PublicApi
     # the query var the wp:post_type link filters posts by.
     POST_FILTER = { "category" => "categories", "post_tag" => "tags" }.freeze
 
-    def initialize(term)
+    # The `Allow`/targetHints value for a caller with no write rights.
+    READ_ONLY = %w[GET].freeze
+
+    # `allow` is the method list the CONTROLLER computed for this actor+record —
+    # rest_send_allow_header()'s value, mirrored into `_links.self[0].targetHints.allow`.
+    # Access is deliberately NOT reached from here (BR-CAP-05: the controller is the
+    # only layer that touches Access), so the answer arrives already decided.
+    def initialize(term, allow: READ_ONLY)
       @term = term
       @taxonomy = term.taxonomy&.name.to_s
+      @allow = Array(allow)
     end
 
-    def self.collection(terms) = terms.map { |t| new(t).as_json }
+    def self.collection(terms, allow: READ_ONLY) = terms.map { |t| new(t, allow: allow).as_json }
 
     def as_json
       json = {
@@ -45,7 +53,7 @@ module PublicApi
     def links_for
       base_href = Url.rest("/wp/v2/#{rest_base}")
       out = {
-        self: [{ href: "#{base_href}/#{term.id}", targetHints: { allow: %w[GET] } }],
+        self: [{ href: "#{base_href}/#{term.id}", targetHints: { allow: @allow } }],
         collection: [{ href: base_href }],
         about: [{ href: Url.rest("/wp/v2/taxonomies/#{@taxonomy}") }]
       }

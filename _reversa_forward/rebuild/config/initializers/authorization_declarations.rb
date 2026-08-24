@@ -334,6 +334,87 @@ Rails.application.config.after_initialize do
                                policy: Access::SitePolicy, action: :update_themes, source: __FILE__)
   Access::Declarations.declare("POST console/themes#disable_auto_update", mode: :policy,
                                policy: Access::SitePolicy, action: :update_themes, source: __FILE__)
+  # ── The REST WRITE surface (Track 1) ──────────────────────────────────────────
+  # `mode: :public` on a WRITE route, deliberately, and for exactly the reason the file
+  # already gives for `users#me`: the route gate answers a denial with an EMPTY-BODIED 403
+  # before any callback runs, which is neither the right status (401 for an anonymous
+  # caller, BR-REST-06) nor the right body (the WP_Error envelope). So the gate admits the
+  # request and the controller owns the refusal — rest_cannot_create / rest_cannot_edit /
+  # rest_cannot_delete / rest_cannot_publish, each with the legacy's verbatim message,
+  # evaluated through Access::PostPolicy on the loaded record. That is class-wp-rest-server
+  # .php:1252's own shape: the route admits, the permission callback refuses.
+  %w[
+    POST\ public_api/posts#create
+    POST\ public_api/posts#update PUT\ public_api/posts#update PATCH\ public_api/posts#update
+    DELETE\ public_api/posts#destroy
+    POST\ public_api/pages#create
+    POST\ public_api/pages#update PUT\ public_api/pages#update PATCH\ public_api/pages#update
+    DELETE\ public_api/pages#destroy
+    GET\ public_api/autosaves#index HEAD\ public_api/autosaves#index
+    POST\ public_api/autosaves#create
+  ].each { |identifier| Access::Declarations.declare(identifier, mode: :public, source: __FILE__) }
+  # ── Track 3: the media / taxonomy / comment WRITE surface ────────────────────────
+  #
+  # `mode: :public` here means "the REST permission callback decides", and it is the
+  # DELIBERATE choice AD-04 asks for — the same one `GET public_api/users#me` already
+  # makes. A `:authenticated` declaration would refuse an anonymous caller in
+  # ApplicationController with a bodiless `head :forbidden`, and the contract these
+  # endpoints have to honour is the WP_Error envelope with the legacy's own code and the
+  # 401/403 split (BR-REST-06): `rest_cannot_create` for media and terms,
+  # `rest_comment_login_required` for comments. Only a callback INSIDE the controller can
+  # produce that, so the declaration hands the decision there rather than pre-empting it.
+  # Every one of these actions registers a `permission` callback (BaseController), so none
+  # of them is reachable without a capability check.
+  [
+    "POST public_api/media#create", "POST public_api/media#update",
+    "PUT public_api/media#update", "PATCH public_api/media#update",
+    "DELETE public_api/media#destroy",
+    "POST public_api/categories#create", "POST public_api/categories#update",
+    "PUT public_api/categories#update", "PATCH public_api/categories#update",
+    "DELETE public_api/categories#destroy",
+    "POST public_api/tags#create", "POST public_api/tags#update",
+    "PUT public_api/tags#update", "PATCH public_api/tags#update",
+    "DELETE public_api/tags#destroy",
+    "POST public_api/comments#create", "POST public_api/comments#update",
+    "PUT public_api/comments#update", "PATCH public_api/comments#update",
+    "DELETE public_api/comments#destroy"
+  ].each { |identifier| Access::Declarations.declare(identifier, mode: :public, source: __FILE__) }
+  # ── TRACK 2: SITE DATA (settings, themes, global styles, templates, patterns, blocks) ──
+  #
+  # ⚠️ Place these INSIDE the first `Rails.application.config.to_prepare do` block (the one
+  # that starts with `Access::Declarations.reset!`), NOT in the trailing after_initialize
+  # block — `reset!` runs on every code reload and would wipe anything declared later.
+  #
+  # `mode: :public` at the ROUTE GATE for every one, for the reason spelled out above the
+  # Wave 4 REST block and for no other: the gate can only answer with an empty-bodied 403,
+  # and every refusal on this surface has to be the legacy's WP_Error envelope with its own
+  # code (`rest_cannot_manage_templates`, `rest_cannot_view_active_theme`,
+  # `rest_cannot_read_global_styles`, `rest_forbidden`…) and the 401/403 split of
+  # rest_authorization_required_code(). So the controllers' permission callbacks
+  # (PublicApi::BaseController) own the denial, exactly as class-wp-rest-server.php:1252
+  # does — including the WRITE routes, whose `manage_options` / `edit_theme_options` checks
+  # are the endpoint's, not the router's.
+  %w[
+    public_api/settings#show public_api/settings#update
+    public_api/themes#index
+    public_api/global_styles#show public_api/global_styles#update
+    public_api/global_styles#theme public_api/global_styles#variations
+    public_api/templates#index public_api/templates#show public_api/templates#lookup
+    public_api/template_parts#index public_api/template_parts#show
+    public_api/block_pattern_categories#index
+    public_api/blocks#index public_api/blocks#show
+  ].each do |action|
+    %w[GET HEAD].each { |verb| Access::Declarations.declare("#{verb} #{action}", mode: :public, source: __FILE__) }
+  end
+  %w[POST PUT PATCH].each do |verb|
+    Access::Declarations.declare("#{verb} public_api/settings#update", mode: :public, source: __FILE__)
+    Access::Declarations.declare("#{verb} public_api/global_styles#update", mode: :public, source: __FILE__)
+  end
+  # OPTIONS is a description of the surface, not access to a record: the oracle answers it
+  # for anonymous callers and narrows only the `Allow` header by capability.
+  Access::Declarations.declare("OPTIONS public_api/options#show", mode: :public, source: __FILE__)
+
+
 
   next if Rails.env.test?
 

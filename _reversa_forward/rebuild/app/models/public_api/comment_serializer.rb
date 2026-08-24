@@ -13,35 +13,63 @@ module PublicApi
     STATUS = { "approved" => "approved", "pending" => "hold", "spam" => "spam",
                "trashed" => "trash" }.freeze
 
-    def initialize(comment)
+    # The `Allow`/targetHints value for a caller with no write rights.
+    READ_ONLY = %w[GET].freeze
+
+    # `context` is the request's own (view|embed|edit). `edit` adds the three author
+    # forensics fields and `content.raw` — the context the REST server forces on a
+    # create/update response (`$request->set_param('context','edit')`, :460).
+    #
+    # `allow` is the method list the CONTROLLER computed for this actor+record.
+    # Access is deliberately NOT reached from here (BR-CAP-05).
+    def initialize(comment, context: "view", allow: READ_ONLY)
       @comment = comment
+      @context = context.to_s
+      @allow = Array(allow)
     end
 
-    def self.collection(comments) = comments.map { |c| new(c).as_json }
+    def self.collection(comments, context: "view", allow: READ_ONLY)
+      comments.map { |c| new(c, context: context, allow: allow).as_json }
+    end
+
+    def edit? = @context == "edit"
 
     def as_json
-      {
+      json = {
         id: comment.id,
         post: comment.post_id.to_i,
         parent: comment.parent_id.to_i,
         author: comment.user_id.to_i,
-        author_name: comment.author_name.to_s,
-        author_url: comment.author_url.to_s,
-        date: iso(comment.submitted_at),
-        date_gmt: iso(comment.submitted_at),
-        content: { rendered: Composition::Renderers::CommentBlocks::CommentText.call(comment.content) },
-        link: comment_link,
-        status: STATUS.fetch(comment.status.to_s, comment.status.to_s),
-        type: "comment",
-        author_avatar_urls: Avatar.urls(avatar_email),
-        meta: { "_wp_note_status": nil },
-        _links: links_for
+        author_name: comment.author_name.to_s
       }
+      # :790-804 — `author_email`, `author_ip` and `author_user_agent` are edit-only.
+      json[:author_email] = comment.author_email.to_s if edit?
+      json[:author_url] = comment.author_url.to_s
+      if edit?
+        json[:author_ip] = comment.author_ip.to_s
+        json[:author_user_agent] = comment.user_agent.to_s
+      end
+      json[:date] = iso(comment.submitted_at)
+      json[:date_gmt] = iso(comment.submitted_at)
+      json[:content] = content_field
+      json[:link] = comment_link
+      json[:status] = STATUS.fetch(comment.status.to_s, comment.status.to_s)
+      json[:type] = "comment"
+      json[:author_avatar_urls] = Avatar.urls(avatar_email)
+      json[:meta] = { "_wp_note_status": nil }
+      json[:_links] = links_for
+      json
     end
 
     private
 
     attr_reader :comment
+
+    def content_field
+      json = { rendered: Composition::Renderers::CommentBlocks::CommentText.call(comment.content) }
+      json[:raw] = comment.content.to_s if edit?
+      json
+    end
 
     def post = comment.post
     def page? = post.is_a?(Publishing::Page)
@@ -60,7 +88,7 @@ module PublicApi
     # only), children (a comment that has replies only).
     def links_for
       out = {
-        self: [{ href: Url.rest("/wp/v2/comments/#{comment.id}"), targetHints: { allow: %w[GET] } }],
+        self: [{ href: Url.rest("/wp/v2/comments/#{comment.id}"), targetHints: { allow: @allow } }],
         collection: [{ href: Url.rest("/wp/v2/comments") }]
       }
       if comment.user_id.to_i.positive?
