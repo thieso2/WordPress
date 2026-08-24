@@ -128,7 +128,7 @@ coverage found more defects per hour than any other activity in the project.
 
 | # | Item | Note |
 |---|---|---|
-| **LICENCE** | ⚠️ **Needs an owner decision.** The `@wordpress/*` packages are GPL-2.0-or-later and are now bundled into the build output. The rebuild carries **no LICENSE file of its own**. This is the only open item with legal rather than engineering exposure. |
+| ~~LICENCE~~ | ✅ **Decided 2026-08-24: GPL v2 or later**, the same terms as WordPress, which is also what the bundled `@wordpress/*` packages require. `_reversa_forward/rebuild/LICENSE` carries the verbatim GPLv2 text (copied from the oracle's own `license.txt`) behind a header naming this project and the work it derives from. |
 | CI | There is `bin/ci` but no pipeline. Every result in this document was produced by hand on a quiet machine. Snapshots decay. |
 | Rule coverage | 262/363 rules carry a citation; 101 do not. And a citation only means an id was written next to an implementation — it is a coverage floor, not proof of behaviour. |
 | D-2 | Theme-fatal recovery — still undecided |

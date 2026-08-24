@@ -532,7 +532,7 @@ RISK-012) are organizational and have no technical mitigation — they are manag
 
 | # | Risk | Severity |
 |---|---|---|
-| **RISK-019** | ⚠️ **Licence.** The bundled `@wordpress/*` packages are GPL-2.0-or-later; the rebuild declares **no licence of its own**. This is legal exposure, not engineering debt, and it is the one open item that cannot be resolved by writing code. | **HIGH** |
+| **RISK-019** | ✅ **RESOLVED 2026-08-24.** The rebuild now ships `_reversa_forward/rebuild/LICENSE` — GPL v2 **or later**, matching WordPress itself and compatible with the bundled `@wordpress/*` packages that forced the question. The GPL body is copied verbatim from the oracle's own `license.txt` rather than retyped, and `package.json` declares `GPL-2.0-or-later`. | ~~HIGH~~ closed |
 | **RISK-020** | **No CI.** Every gate result on record was produced by hand on a quiet machine. Nothing prevents a commit from silently breaking parity, and the project's own history shows how easily a green gate hides defects. | **HIGH** |
 | **RISK-021** | **Coverage floor mistaken for coverage.** 262/363 rules carry a citation, but a citation means only that an id was written beside an implementation. 101 rules have neither. Reading 72% as "72% verified" would overstate the position materially. | **MEDIUM** |
 | **RISK-022** | **Performance is 1.99× the oracle**, concentrated in Ruby CPU inside the block renderers rather than in SQL (~7% of wall time). Correct and slower is still a migration risk; there is no target and no budget. | **MEDIUM** |

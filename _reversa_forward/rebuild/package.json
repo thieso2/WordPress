@@ -1,7 +1,7 @@
 {
   "name": "reversa-editor-island",
   "private": true,
-  "description": "The block editor React island (DEV-012, D-3). Built to app/assets/builds/editor.js; served by propshaft. The rest of the app is importmap/no-build — this is the one carved-out React surface.",
+  "description": "The block editor React island (DEV-012, D-3). Built to app/assets/builds/editor.js; served by propshaft. The rest of the app is importmap/no-build \u2014 this is the one carved-out React surface.",
   "type": "module",
   "scripts": {
     "build": "node ./bin/build_editor.mjs",
@@ -32,5 +32,6 @@
   },
   "devDependencies": {
     "esbuild": "0.24.2"
-  }
+  },
+  "license": "GPL-2.0-or-later"
 }
