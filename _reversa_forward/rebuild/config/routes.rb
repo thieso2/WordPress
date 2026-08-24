@@ -27,6 +27,7 @@ Rails.application.routes.draw do
   get    "/console/posts/new",           to: "console/posts#new",        as: :new_console_post
   get    "/console/posts/:id/edit",      to: "console/posts#edit",       as: :edit_console_post
   match  "/console/posts/:id",           to: "console/posts#update",     as: :console_post, via: %i[patch put]
+  get    "/console/posts/:id/blocks",    to: "console/posts#blocks",     as: :blocks_console_post # editor React island (DEV-012, D-3) initial load
   post   "/console/posts/:id/autosave",  to: "console/posts#autosave",   as: :autosave_console_post
   post   "/console/posts/:id/lock",      to: "console/posts#lock",       as: :lock_console_post
   delete "/console/posts/:id/lock",      to: "console/posts#unlock",     as: :unlock_console_post

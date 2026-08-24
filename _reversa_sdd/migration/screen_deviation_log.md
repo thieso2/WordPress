@@ -350,3 +350,35 @@ screen.
   and `spec/tenancy/per_site_role_enforcement_spec.rb` (which also asserts a stray
   site-scoped role does NOT leak into single-site evaluation, and that a site-A role grants
   capabilities only while site A is the served tenant).
+
+---
+
+### DEV-012 / D-3 — the React island is built (2026-08-24)
+
+The block editor React island (D-3) is **implemented and verified** for the post/page
+editor — `console.post` and `console.post-new`.
+
+**What was built**
+- `app/models/composition/serializer.rb` — the exact inverse of `Composition::Parser`
+  (ports `serialize_block`/`serialize_block_attributes`/`get_comment_delimited_block_content`
+  from wp-includes/blocks.php). Proven to round-trip all 22 corpus post bodies
+  **byte-identically** (`spec/models/composition/serializer_spec.rb`).
+- Blocks JSON API on `Console::PostsController` — `GET /console/posts/:id/blocks` hands the
+  parsed tree to the client; `PATCH` accepts a JSON block tree and serializes it
+  **server-side** through the one verified grammar, then runs the same Publishing::Post
+  commands the noscript form does (`spec/requests/console/editor_blocks_api_spec.rb`).
+- The React island itself — `app/frontend/editor/*` (React 18, esbuild → `app/assets/builds/
+  editor.js`, served by propshaft; `bin/build_editor.mjs`). A genuine block editor: live
+  contenteditable text blocks, recursive container blocks, honest labelled previews for
+  dynamic/server-rendered blocks, a grouped inserter, a block toolbar, and an inspector.
+  Progressive enhancement: the island hides the noscript `<form>`, which still works without
+  JS.
+- Behavioural proof (DEV-012's contract — verify by observation, no golden files):
+  `editor_e2e/interaction.mjs` drives the real island in Chromium — sign in, edit the title
+  and a paragraph, insert a Heading through the palette, publish — then reads the blocks API
+  back and asserts the server serialized and stored the edited tree. Passes.
+
+**Still a shell (not this pass): `console.site-editor`.** The Site Editor's template browser
+and Global Styles surface is a distinct, larger island over `Composition::Template` and the
+theme.json cascade; it remains the read-only shell. D-3 is resolved for the post/page editor;
+the Site Editor island is the remaining forward item.

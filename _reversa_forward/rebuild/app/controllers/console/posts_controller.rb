@@ -5,11 +5,11 @@ module Console
   # DEV-012). Origin: wp-admin/post-new.php and wp-admin/post.php, both of which include
   # wp-admin/edit-form-blocks.php.
   #
-  # ⚠️ SCOPE (owner ruling, this pass): the Gutenberg CANVAS and INSPECTOR are the React
-  # island DEV-012 defers — `deferred: react-island (DEV-012, D-3)`. This controller builds
-  # the server-side half DEV-012 § server_side enumerates, all of which already exists as
-  # models, and wires it to an HONEST placeholder canvas (a <textarea> over the post's raw
-  # block markup, saving through the real command path). It does NOT fake the block editor.
+  # SCOPE: the React island (DEV-012, D-3) is BUILT (app/frontend/editor/*). This controller
+  # is its server half: #edit renders the mount point + noscript fallback; #blocks hands the
+  # island the parsed block tree; #update accepts either a JSON block tree (island) or raw
+  # markup (fallback), serializing the tree SERVER-SIDE through Composition::Serializer — one
+  # verified grammar — before the same Publishing::Post commands run in both paths.
   #
   # Everything below is a thin surface over Publishing::Post's commands — the same commands
   # the Wave 3 differential specs already verified against the live oracle. The controller
@@ -32,8 +32,8 @@ module Console
     TITLE_PLACEHOLDER = "Add title"
     BODY_PLACEHOLDER = "Type / to choose a block"
 
-    before_action :load_post, only: %i[edit update autosave lock unlock steal]
-    before_action :authorize_edit!, only: %i[edit update autosave lock unlock steal]
+    before_action :load_post, only: %i[edit update blocks autosave lock unlock steal]
+    before_action :authorize_edit!, only: %i[edit update blocks autosave lock unlock steal]
 
     # GET /console/posts/new — get_default_post_to_edit( $post_type, true )
     # (wp-admin/includes/post.php:14-33): the legacy INSERTS an auto-draft immediately and
@@ -70,6 +70,15 @@ module Console
     # wp-admin/post.php `case 'editpost'` → edit_post() → wp_update_post(). A save by anyone
     # but the lock holder is refused, as the legacy's locked editor is read-only.
     def update
+      # The React island (DEV-012, D-3) PATCHes a JSON block tree; the noscript <form>
+      # PATCHes raw markup. Both converge on the same Publishing::Post commands. The JSON
+      # arm serializes the tree SERVER-SIDE through Composition::Serializer — the single,
+      # already-verified grammar — so the editor's output cannot drift from the parser the
+      # Wave 3 differential specs pinned against the live oracle.
+      if request.format.json? || island_payload.present?
+        return update_from_island
+      end
+
       if (@holder = @post.edit_lock_holder_if_live(actor: current_actor))
         return render :locked, status: :conflict
       end
@@ -83,6 +92,20 @@ module Console
       @errors = e.record.errors.full_messages
       @holder = nil
       render :edit, status: :unprocessable_content
+    end
+
+    # GET /console/posts/:id/blocks — the island's initial load. Hands over the post's
+    # content already parsed into the block tree (so the client shares the server's grammar
+    # rather than re-parsing markup in JS) plus the document fields the canvas edits.
+    def blocks
+      render json: {
+        id: @post.id,
+        title: @post.title.to_s,
+        excerpt: @post.excerpt.to_s,
+        status: @post.status,
+        published_at: @post.published_at&.iso8601,
+        blocks: tree_json(Composition::Parser.parse(@post.content.to_s))
+      }
     end
 
     # POST /console/posts/:id/autosave — wp_create_post_autosave() via the heartbeat
@@ -208,6 +231,71 @@ module Console
       else
         "#{noun} draft updated."                                                    # :186 / :10
       end
+    end
+
+    # The parsed body of an island PATCH: { command, title, excerpt, published_at, blocks }.
+    # Read from raw_post so arbitrary block attrs survive (strong-params would strip them);
+    # the request is already authenticated (EditorAuthGate) and row-authorized.
+    def island_payload
+      return @island_payload if defined?(@island_payload)
+      @island_payload =
+        if request.content_type.to_s.include?("json") && request.raw_post.present?
+          JSON.parse(request.raw_post) rescue nil
+        end
+    end
+
+    def update_from_island
+      if (holder = @post.edit_lock_holder_if_live(actor: current_actor))
+        return render json: { ok: false, lock_error: {
+          name: holder.display_name,
+          text: format("%s has taken over and is currently editing.", holder.display_name)
+        } }, status: :conflict
+      end
+
+      payload = island_payload || {}
+      @post.actor = current_actor
+      @post.title = payload["title"].to_s
+      @post.excerpt = payload["excerpt"].to_s
+      @post.content = Composition::Serializer.serialize(Array(payload["blocks"]))
+      @command = payload["command"].to_s
+      params[:published_at] = payload["published_at"] if payload.key?("published_at")
+      apply_command!(@command)
+      @post.lock_editing!(actor: current_actor)
+
+      render json: {
+        ok: true,
+        status: @post.status,
+        # The classic editor's own $messages snackbar copy (extractable half).
+        notice: island_saved_notice,
+        view_url: view_url_for(@post)
+      }
+    rescue ActiveRecord::RecordInvalid => e
+      render json: { ok: false, errors: e.record.errors.full_messages }, status: :unprocessable_content
+    end
+
+    # Parser::Block tree -> JSON-friendly hashes for the island. innerContent's nil markers
+    # are preserved (serialize_block walks them); the client renders innerHTML and recurses
+    # into innerBlocks, and hands the same shape back on save.
+    def tree_json(blocks)
+      blocks.map do |b|
+        {
+          name: b.block_name,
+          attrs: b.attrs || {},
+          innerHTML: b.inner_html.to_s,
+          innerContent: b.inner_content,
+          innerBlocks: tree_json(b.inner_blocks || [])
+        }
+      end
+    end
+
+    def island_saved_notice
+      params[:command] = @command
+      saved_notice
+    end
+
+    def view_url_for(post)
+      return nil unless post.published? && post.slug.present?
+      "/#{post.published_at&.strftime("%Y/%m")}/#{post.slug}"
     end
 
     # edit-form-advanced.php:185 `__( 'Post scheduled for: %s.' )`. The strong-wrapped date

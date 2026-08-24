@@ -15,6 +15,11 @@
     <meta name="referrer" content="strict-origin-when-cross-origin">
     <%= csrf_meta_tags %>
     <%= javascript_include_tag "turbo.min", type: "module" %>
+    <%# The block editor React island (DEV-012, D-3), built to app/assets/builds by
+        bin/build_editor.mjs and served by propshaft. Loaded only on the editor screens
+        (this layout). The rest of the console is importmap/no-build. %>
+    <%= stylesheet_link_tag "editor" if content_for?(:editor_island) || @editor_island %>
+    <%= javascript_include_tag "editor", type: "module", defer: true if content_for?(:editor_island) || @editor_island %>
     <style>
       :root { --ink:#1d2327; --muted:#50575e; --rule:#c3c4c7; --bg:#f0f0f1; --card:#fff; --accent:#2271b1; --error:#d63638; --ok:#00a32a; --bar:#fff; }
       @media (prefers-color-scheme: dark) { :root { --ink:#e8ebef; --muted:#98a2b3; --rule:#2a2f38; --bg:#14161a; --card:#1b1f26; --accent:#7fa2ff; --error:#f0868a; --ok:#68de8b; --bar:#1b1f26; } }

@@ -1,10 +1,21 @@
-<%# console.post / console.post-new — the editor SHELL (target_screens.md § The editor).
-    ⚠️ SERVER-SIDE HALF ONLY this pass (owner ruling). The block canvas below is an HONEST
-    placeholder — a <textarea> over the post's raw block markup, saving through the real
-    command path (Console::PostsController#update → Publishing::Post commands). The Gutenberg
-    canvas and inspector are the deferred React island:
-      deferred: react-island (DEV-012, D-3)
-    Do NOT mistake this for the block editor; it is the truthful stand-in DEV-012 permits. -%>
+<%# console.post / console.post-new — the block editor (target_screens.md § The editor).
+    The React island (DEV-012, D-3) is BUILT: app/frontend/editor/* → app/assets/builds/
+    editor.js, mounting into #editor-root below. It loads the post's block tree from the
+    blocks API, edits it as live blocks (canvas + inserter + inspector), and saves a
+    serialized tree through Console::PostsController#update — the same Publishing::Post
+    commands the fallback uses. The <form> below is the NOSCRIPT fallback: without JS it
+    still edits the raw block markup and saves through the identical command path. -%>
+
+<%# The block editor React island (DEV-012, D-3). The island mounts here and hides the
+    #editor-fallback form below; without JavaScript that form still edits the raw block
+    markup and saves through the identical command path (progressive enhancement). %>
+<% @editor_island = true %>
+<div id="editor-root"
+     data-post-id="<%= @post.id %>"
+     data-post-new="<%= @post.auto_draft? %>"
+     data-screen="<%= @screen %>"></div>
+
+<div id="editor-fallback">
 
 <%= form_with url: console_post_path(@post), method: :patch, data: { editor: "form" } do |f| %>
   <div class="edit-bar">
@@ -76,6 +87,7 @@
     </div>
   </main>
 <% end %>
+</div><%# /#editor-fallback %>
 
 <%# Autosave (edit-form-blocks.php heartbeat, wp_create_post_autosave) and the post-lock
     heartbeat (wp_refresh_post_lock). Vanilla, no external library. Autosave every 15 s
@@ -83,6 +95,11 @@
     taken over — surface the legacy's string and stop saving. %>
 <script>
   (function () {
+    // The legacy heartbeat drives the noscript fallback only. When the React island
+    // (DEV-012, D-3) takes over, it hides #editor-fallback and runs its own autosave/lock
+    // ticks — so this script must stand down to avoid double heartbeats.
+    var fallback = document.getElementById('editor-fallback');
+    if (fallback && fallback.hidden) return;
     var form = document.querySelector('[data-editor="form"]');
     if (!form) return;
     var status = document.querySelector('[data-editor="autosave-status"]');

@@ -1,0 +1,1 @@
+{"name":"editor-island-e2e","private":true,"type":"module","description":"Playwright interaction test for the block editor React island (DEV-012, D-3). Drives the real browser: sign in, edit blocks, insert, publish; asserts the serialized markup persisted.","dependencies":{"playwright":"^1.62.1"}}

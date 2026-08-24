@@ -159,9 +159,9 @@ Full detail in `ambiguity_log.md § DEFERRED TO CODING`. None blocks starting.
 |---|---|
 | D-1 | Correct three bookkeeping totals in `discard_log.md` and `target_business_rules.md` (no rule is missing — the tallies are) |
 | D-2 | ⚠️ Decide whether a **theme** fatal error needs a recovery mechanism — plugins are gone, themes are not |
-| D-3 | Scope the React island for the three editor screens (RISK-018) |
+| D-3 | ✅ **Post/page block editor React island BUILT & verified** (2026-08-24, see `screen_deviation_log.md` DEV-012). Remaining: the `console.site-editor` template/Global-Styles island. |
 | D-4 | Run the golden capture, then **remove the DEV-001 exception** |
-| D-5 | Author the editor's interaction specs by observing the oracle (DEV-012) |
+| D-5 | ◐ Editor interaction proof authored as a live-browser test (`editor_e2e/interaction.mjs`, DEV-012); broader oracle-observed interaction specs remain for the Site Editor. |
 | D-6 | Decide the typed settings registry |
 | D-7 | Cross-check the screen inventory — `reversa-visor` never ran, so 144 is one reading, not two |
 | D-8 | Specify production infrastructure — the brief records it as "not specified" |

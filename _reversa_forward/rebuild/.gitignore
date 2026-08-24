@@ -33,3 +33,9 @@
 # Ignore key files for decrypting credentials and more.
 /config/*.key
 
+
+# Editor island (DEV-012, D-3) build inputs — the bundled output in app/assets/builds IS committed.
+/node_modules
+
+# Editor island sourcemaps — regenerable by bin/build_editor.mjs, not committed.
+/app/assets/builds/*.map

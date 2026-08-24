@@ -83,6 +83,7 @@ Rails.application.config.to_prepare do
   # `match via: [:patch, :put]` registers BOTH verbs, so both are declared.
   Access::Declarations.declare("GET console/posts#new", mode: :authenticated, source: __FILE__)
   Access::Declarations.declare("GET console/posts#edit", mode: :authenticated, source: __FILE__)
+  Access::Declarations.declare("GET console/posts#blocks", mode: :authenticated, source: __FILE__)
   Access::Declarations.declare("PATCH console/posts#update", mode: :authenticated, source: __FILE__)
   Access::Declarations.declare("PUT console/posts#update", mode: :authenticated, source: __FILE__)
   Access::Declarations.declare("POST console/posts#autosave", mode: :authenticated, source: __FILE__)
