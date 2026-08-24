@@ -1,0 +1,203 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+# bin/link_check — does the site link to pages it can actually serve?
+#
+# WHY THIS EXISTS. A screen-content comparison cannot see a dead link: the PAGE matches the
+# oracle byte for byte while the URLs inside it point at the rebuild's own 404. That defect
+# class has now appeared four separate times in this project —
+#
+#   · core/query-pagination printed /page/2/ while no pagination route existed
+#   · presentation/head printed category/tag/author/search feed links with no routes behind them
+#   · the sitemap index listed taxonomy sitemaps that 404'd
+#   · every sitemap advertised an XSL stylesheet that 404'd
+#
+# — and every one was live while `bin/parity compare` sat green. So this walks the corpus
+# screens, extracts every same-origin URL they emit, and asks BOTH systems for it.
+#
+# The verdict that matters is COMPARATIVE, not absolute: a URL the oracle also 404s is
+# parity, not a defect. Only "oracle serves it, we do not" is a finding.
+#
+#   bin/link_check              # the whole corpus
+#   bin/link_check web.index    # one screen, or a prefix
+#
+# Env: ORACLE_URL (default http://127.0.0.1:8099), REBUILD_URL (default http://127.0.0.1:3100)
+#
+# ⚠️ ONE KNOWN FALSE POSITIVE, and it is worth understanding before you trust a run. This
+# corpus is SEEDED FROM the oracle, so the rebuild's `siteurl`/`home` settings hold the
+# ORACLE's host (:8099), not its own (:3100). Anything that GENERATES a URL from the request
+# host but VALIDATES it against the setting will therefore disagree with itself here and
+# nowhere else. The oEmbed discovery links are exactly that case: the rebuild emits
+# .../embed?url=<:3100 URL> in <head> and its own endpoint answers oembed_invalid_url,
+# while the same endpoint accepts the :8099 form. In a deployment where siteurl is the
+# site's own host, both agree. Treat oEmbed hits here as an environment artifact unless
+# you have first checked what `Configuration::Setting["siteurl"]` says.
+
+require "net/http"
+require "uri"
+require "set"
+require "erb"
+
+ORACLE  = ENV.fetch("ORACLE_URL",  "http://127.0.0.1:8099")
+REBUILD = ENV.fetch("REBUILD_URL", "http://127.0.0.1:3100")
+CORPUS  = File.expand_path("../spec/parity/corpus/requests.yml", __dir__)
+FILTER  = ARGV[0]
+
+# Attributes that name a URL the browser will actually fetch or follow.
+LINK_ATTRS = /(?:href|src|action)\s*=\s*["']([^"']+)["']/i
+# Sitemaps and feeds carry URLs in element text and in processing instructions too.
+XML_LOCS   = %r{<loc>\s*([^<\s]+)\s*</loc>}i
+XML_PI     = /<\?xml-stylesheet[^>]*href=["']([^"']+)["']/i
+
+# Never worth reporting: fragments, non-http schemes, and the two hosts' own equivalents of
+# each other (a link to the oracle's host from the oracle IS a same-origin link).
+SKIP_SCHEME = /\A(?:#|mailto:|tel:|javascript:|data:)/i
+
+def get(base, path, method: Net::HTTP::Head)
+  uri = URI.join(base, path)
+  http = Net::HTTP.new(uri.host, uri.port)
+  http.open_timeout = 5
+  http.read_timeout = 15
+  req = method.new(uri.request_uri)
+  res = http.request(req)
+  # Some servers refuse HEAD on generated documents; fall back once to GET.
+  return get(base, path, method: Net::HTTP::Get) if method == Net::HTTP::Head && res.code.to_i == 501
+  res
+rescue StandardError => e
+  Struct.new(:code, :err).new("ERR", e.class.name)
+end
+
+def body_of(base, path)
+  res = get(base, path, method: Net::HTTP::Get)
+  res.respond_to?(:body) ? res.body.to_s : ""
+end
+
+# Turn whatever a document said into a path we can ask either system for, or nil to skip.
+def normalise(raw, base_host_pattern)
+  s = raw.to_s.strip
+  return nil if s.empty? || s =~ SKIP_SCHEME
+
+  s = s.gsub("&amp;", "&")
+  if s.start_with?("http://", "https://")
+    u = begin URI.parse(s) rescue nil end
+    return nil if u.nil?
+    # Only same-origin links are ours to serve. Anything else (gravatar, w.org) is not.
+    return nil unless "#{u.host}:#{u.port}" =~ base_host_pattern
+    path = u.path.to_s
+    path = "/" if path.empty?
+    return u.query ? "#{path}?#{u.query}" : path
+  end
+  return nil unless s.start_with?("/")
+
+  s
+end
+
+def extract(body, host_pattern)
+  urls = Set.new
+  [LINK_ATTRS, XML_LOCS, XML_PI].each do |re|
+    body.scan(re) { |m| (p = normalise(m[0], host_pattern)) && urls << p }
+  end
+  urls
+end
+
+screens = []
+current = nil
+File.readlines(CORPUS).each do |line|
+  if (m = line.match(/^\s*- screen:\s*(\S+)/))
+    current = { screen: m[1] }
+    screens << current
+  elsif current && (m = line.match(/^\s{4}path:\s*(.+)$/))
+    current[:path] = m[1].strip
+  end
+end
+screens.select! { |s| s[:path] }
+screens.select! { |s| s[:screen].start_with?(FILTER) } if FILTER
+
+oracle_host  = Regexp.new(Regexp.escape(URI.parse(ORACLE).host  + ":" + URI.parse(ORACLE).port.to_s))
+rebuild_host = Regexp.new(Regexp.escape(URI.parse(REBUILD).host + ":" + URI.parse(REBUILD).port.to_s))
+
+puts "link_check — #{screens.size} corpus screens"
+puts "  oracle  #{ORACLE}"
+puts "  rebuild #{REBUILD}"
+puts
+
+# ⚠️ Each system is asked only for the links IT ITSELF emitted. Cross-checking would report
+# every autoincrement id as broken — the two systems legitimately assign different ids to the
+# same record (which is why the parity normalizer masks them), so the oracle's
+# /wp-json/wp/v2/pages/23 and the rebuild's /wp-json/wp/v2/pages/96 are the SAME link. The
+# question worth asking is not "does the rebuild serve the oracle's URLs" but "does either
+# system serve the URLs it advertises".
+o_emitted = Hash.new { |h, k| h[k] = [] }
+r_emitted = Hash.new { |h, k| h[k] = [] }
+screens.each do |s|
+  extract(body_of(ORACLE,  s[:path]), oracle_host).each  { |u| o_emitted[u] << s[:screen] }
+  extract(body_of(REBUILD, s[:path]), rebuild_host).each { |u| r_emitted[u] << s[:screen] }
+  print "."
+  $stdout.flush
+end
+puts "\n"
+
+puts "oracle emits #{o_emitted.size} distinct same-origin URLs; rebuild emits #{r_emitted.size}. Asking each for its own…"
+o_status = {}
+o_emitted.keys.sort.each_with_index { |p, i| o_status[p] = get(ORACLE, p).code.to_s; print(i % 50 == 49 ? "|" : "."); $stdout.flush }
+r_status = {}
+r_emitted.keys.sort.each_with_index { |p, i| r_status[p] = get(REBUILD, p).code.to_s; print(i % 50 == 49 ? "|" : "."); $stdout.flush }
+puts "\n"
+
+emitted_by = r_emitted
+
+# A URL is "the same link" across systems once its own host is masked — the parity
+# normalizer does this for the same reason. Without it the oEmbed discovery links, which
+# carry the site URL inside a query parameter, never match between systems and every one
+# reads as a rebuild-only defect.
+def comparison_key(path, base)
+  u = URI.parse(base)
+  host_plain = "#{u.host}:#{u.port}"
+  host_enc   = ERB::Util.url_encode("http://#{host_plain}")
+  path.to_s
+      .gsub("http://#{host_plain}", "http://SITE")
+      .gsub(host_enc, "SITE_ENC")
+      .gsub(host_enc.downcase, "SITE_ENC")
+      .gsub(host_plain, "SITE")
+end
+
+serves = ->(c) { c.to_i.between?(200, 399) }
+oracle_dead  = o_status.reject { |_, c| serves.call(c) }
+rebuild_dead = r_status.reject { |_, c| serves.call(c) }
+
+unless oracle_dead.empty?
+  # WordPress advertising a URL it does not serve is PARITY, not our defect — reproduce it
+  # rather than fix it. Printed first so nothing below is mistaken for it.
+  puts "·  #{oracle_dead.size} URL(s) the ORACLE itself advertises and does not serve — parity, not a defect:"
+  oracle_dead.sort.first(8).each { |p, c| puts format("   %-56s %s", p[0, 56], c) }
+  puts
+end
+
+if rebuild_dead.empty?
+  puts "✅ every URL the rebuild advertises, it serves."
+  exit 0
+end
+
+# Anything the oracle also fails on is reproduction, not regression.
+oracle_dead_keys = oracle_dead.keys.map { |p| comparison_key(p, ORACLE) }.to_set
+excused = rebuild_dead.select { |p, _| oracle_dead_keys.include?(comparison_key(p, REBUILD)) }
+real    = rebuild_dead.reject { |p, _| oracle_dead_keys.include?(comparison_key(p, REBUILD)) }
+
+unless excused.empty?
+  puts "·  #{excused.size} of the rebuild's dead links are dead on the oracle too — faithful."
+  puts
+end
+
+if real.empty?
+  puts "✅ every dead link the rebuild has is one WordPress has too."
+  exit 0
+end
+
+puts "❌ #{real.size} URL(s) the REBUILD advertises and cannot serve (the oracle serves its equivalent):"
+real.sort.each do |p, c|
+  puts format("   %-56s %s", p[0, 56], c)
+  puts format("       linked from: %s", emitted_by[p].uniq.first(4).join(", "))
+end
+puts
+puts "#{real.size} dead link(s). Each is a page the site advertises and cannot deliver."
+exit 1

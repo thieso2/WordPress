@@ -26,6 +26,7 @@ bin/parity_worker       172 scenarios, 168 passed, 4 pending
 bin/benchmark           latency + SQL profile against the oracle
 editor_e2e/run.sh       both editors driven in a real browser
 editor_e2e/gb_paths.mjs 13 editor write-path checks
+bin/link_check          does the site serve the URLs it advertises?  (19 dead today)
 ```
 
 ⚠️ **What "byte-identical" means.** The normalizer masks nonces, autoincrement ids, the UUID

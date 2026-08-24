@@ -162,9 +162,35 @@ which is open decision **D-2**.
 > entries. A screen-content comparison cannot see it, because the *page* matches — only the
 > links it contains are dead.
 
-**Add a link-integrity check to the gate.** Crawl every `href`/`src`/`<link>` the corpus
-screens emit and assert each resolves on both systems. That one check would have caught four
-separate defects on this project, and it is cheap.
+**`bin/link_check` now does exactly this** — it was built and run while writing this brief.
+It walks the corpus screens, extracts every same-origin URL each system emits, and asks each
+system for **its own** links (cross-checking would flag every autoincrement id, since the two
+assign different ids to the same record — which is why the parity normalizer masks them).
+
+**First run: 19 genuinely dead links, in three families.** Every one is a page the site
+advertises and cannot deliver, and every one was live at 53/53 green:
+
+| Family | Count | Detail |
+|---|---|---|
+| **Feeds** | 17 | Per-post comment feeds (`/2026/03/<post>/feed/`, `/feed/atom/`), plus category, tag, author, search and privacy-policy feeds. `presentation/head.rb:235-248` emits them; `routes.rb:217-218` routes only `/feed` and `/comments/feed`. |
+| **RSD** | 1 | `/xmlrpc.php?rsd` — emitted in every `<head>`, no route |
+| **Sitemap XSL** | 1 | `/wp-sitemap.xsl`, `/wp-sitemap-index.xsl` |
+
+⚠️ **A 22-link false positive you must understand before trusting a run.** The oEmbed
+discovery links also report dead, and they are an **environment artifact, not a defect**: this
+corpus is seeded FROM the oracle, so the rebuild's `siteurl`/`home` hold the ORACLE's host.
+The rebuild GENERATES the `<head>` link from the request host (`:3100`) but VALIDATES it
+against the setting (`:8099`), so it rejects its own URL — and accepts the `:8099` form.
+Confirmed: `/wp-json/oembed/1.0/embed?url=<:3100>` → 404, `url=<:8099>` → 200. In a deployment
+where `siteurl` is the site's own host, both agree. The tool documents this in its own header.
+
+That same root cause — `siteurl` pointing at the oracle — already bit once before, when the
+first Gutenberg mount sent every REST call to WordPress on :8099 instead of to the rebuild.
+**Anything that reads `siteurl` in this environment is suspect.**
+
+Also worth a look: **the oracle emits 142 distinct same-origin URLs across the corpus; the
+rebuild emits 97.** That 45-URL gap is not necessarily wrong — but nobody has explained it,
+and it is the sort of thing this project has learned to be curious about.
 
 ---
 
