@@ -158,6 +158,39 @@ module PublicApi
                                      current_actor ? 403 : 401)
     end
 
+    # ── kses_init(), wp-includes/kses.php:2605 — the post-write allowlist ─────────
+    #
+    # WordPress hangs wp_filter_post_kses on content_save_pre / excerpt_save_pre and
+    # wp_filter_kses on title_save_pre, so wp_insert_post()/wp_update_post() run every
+    # incoming field through wp_kses() — but ONLY when `kses_init()` registered the
+    # filters, which it does exclusively for a user WITHOUT `unfiltered_html`. AD-01
+    # removed the hook system and nothing replaced this (RISK-023 V1: any Author could
+    # store `<script>` that ran for anonymous visitors).
+    #
+    # The filter is therefore inlined here and applied by each WRITE action as it copies
+    # the request fields — at the moment of the authenticated HTTP write, against the
+    # REQUESTING user's capabilities, which is exactly when and how WordPress does it. It
+    # is NOT applied at render and NOT retroactively over stored content: WordPress does
+    # neither, and sanitising the seeded corpus would break the 53-screen byte comparison
+    # while still not matching the oracle.
+    #
+    #   content, excerpt -> wp_kses($v, 'post')             (Tables::ALLOWED_POST_TAGS)
+    #   title            -> wp_kses($v, 'title_save_pre')    (the default context, ALLOWED_TAGS)
+    def kses_post_content(value)
+      filter_kses? ? Sanitizing::Kses.wp_kses_post(value) : value
+    end
+
+    def kses_post_title(value)
+      filter_kses? ? Sanitizing::Kses.wp_kses(value, "title_save_pre") : value
+    end
+
+    # `! current_user_can( 'unfiltered_html' )`, the single gate kses_init() reads. False
+    # for an Editor/Administrator (and a multisite super admin); true for an Author,
+    # Contributor, Subscriber and the anonymous caller.
+    def filter_kses?
+      !Access::SitePolicy.new(current_actor, nil).permit?(:unfiltered_html)
+    end
+
     # An error envelope is never `_fields`-filtered: `{code, message, data}` is the whole
     # contract and a client asking for `_fields=id` still has to be able to read the
     # failure. (rest_filter_response_fields() runs on `rest_post_dispatch` in the legacy

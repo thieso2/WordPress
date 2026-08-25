@@ -34,17 +34,17 @@ module PublicApi
       post = parent_post
       if update_parent_draft_in_place?(post)
         post.actor = current_actor
-        post.title = params[:title].to_s if params.key?(:title)
-        post.content = params[:content].to_s if params.key?(:content)
-        post.excerpt = params[:excerpt].to_s if params.key?(:excerpt)
+        post.title = kses_post_title(params[:title].to_s) if params.key?(:title)
+        post.content = kses_post_content(params[:content].to_s) if params.key?(:content)
+        post.excerpt = kses_post_content(params[:excerpt].to_s) if params.key?(:excerpt)
         post.save!
         return render_item(AutosaveSerializer.new(post.reload, post: post).as_json)
       end
 
       revision = post.autosave!(
-        title: params.key?(:title) ? params[:title].to_s : post.title.to_s,
-        content: params.key?(:content) ? params[:content].to_s : post.content.to_s,
-        excerpt: params.key?(:excerpt) ? params[:excerpt].to_s : post.excerpt.to_s,
+        title: params.key?(:title) ? kses_post_title(params[:title].to_s) : post.title.to_s,
+        content: params.key?(:content) ? kses_post_content(params[:content].to_s) : post.content.to_s,
+        excerpt: params.key?(:excerpt) ? kses_post_content(params[:excerpt].to_s) : post.excerpt.to_s,
         actor: current_actor
       )
       # `autosave!` answers nil when the autosave has caught up with the record and was

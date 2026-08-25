@@ -380,6 +380,59 @@ RSpec.describe "REST API — the write surface", type: :request do
     end
   end
 
+  # ── kses on write (RISK-023 V1) ─────────────────────────────────────────────────
+  # kses_init() (kses.php:2605) registers content_save_pre/excerpt_save_pre ->
+  # wp_filter_post_kses and title_save_pre -> wp_filter_kses, but ONLY for a user WITHOUT
+  # `unfiltered_html` — so wp_insert_post()/wp_update_post() strips disallowed markup at
+  # the moment of an authenticated write, against the requesting user's capabilities.
+  # con_author (author) does not hold unfiltered_html; con_admin (administrator) does.
+  describe "kses on the post write path" do
+    it "strips <script> from an author's content on create (con_author lacks unfiltered_html)" do
+      post "/wp-json/wp/v2/posts",
+           params: { title: "Hi", content: "<p>ok</p><script>alert(1)</script>" }.to_json,
+           headers: bearer(actor("con_author")).merge("CONTENT_TYPE" => "application/json")
+      expect(response).to have_http_status(:created)
+      stored = Publishing::Article.find(json["id"]).content
+      expect(stored).to include("<p>ok</p>")
+      expect(stored).not_to include("<script")
+    end
+
+    it "strips <script> from an author's title (title_save_pre -> wp_filter_kses)" do
+      post "/wp-json/wp/v2/posts",
+           params: { title: "Hello<script>alert(1)</script>", content: "<p>x</p>" }.to_json,
+           headers: bearer(actor("con_author")).merge("CONTENT_TYPE" => "application/json")
+      expect(response).to have_http_status(:created)
+      expect(Publishing::Article.find(json["id"]).title).not_to include("<script")
+    end
+
+    it "strips <script> on an author's update as well as create" do
+      article = Publishing::Article.create!(author: actor("con_author"), title: "T", status: :draft)
+      patch "/wp-json/wp/v2/posts/#{article.id}",
+            params: { content: "<p>body</p><script>steal()</script>" }.to_json,
+            headers: bearer(actor("con_author")).merge("CONTENT_TYPE" => "application/json")
+      expect(response).to have_http_status(:ok)
+      expect(article.reload.content).not_to include("<script")
+    end
+
+    it "leaves an unfiltered_html holder's markup verbatim (con_admin)" do
+      post "/wp-json/wp/v2/posts",
+           params: { title: "Trusted", content: "<p>ok</p><script>ok()</script>" }.to_json,
+           headers: bearer(admin).merge("CONTENT_TYPE" => "application/json")
+      expect(response).to have_http_status(:created)
+      expect(Publishing::Article.find(json["id"]).content).to include("<script>ok()</script>")
+    end
+
+    it "preserves block delimiters when filtering an author's content" do
+      post "/wp-json/wp/v2/posts",
+           params: { title: "Blocks", content: "<!-- wp:paragraph --><p>hi</p><!-- /wp:paragraph -->" }.to_json,
+           headers: bearer(actor("con_author")).merge("CONTENT_TYPE" => "application/json")
+      expect(response).to have_http_status(:created)
+      stored = Publishing::Article.find(json["id"]).content
+      expect(stored).to include("wp:paragraph")
+      expect(stored).to include("<p>hi</p>")
+    end
+  end
+
   describe "pages" do
     let!(:page) { Publishing::Page.create!(author: admin, title: "About", status: :published, published_at: Time.current, slug: "about") }
 

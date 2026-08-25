@@ -236,9 +236,9 @@ module PublicApi
     # (WP_REST_Request only copies what was sent).
     def apply_writable_fields!(post)
       post.actor = current_actor
-      post.title = params[:title].to_s if params.key?(:title)
-      post.content = params[:content].to_s if params.key?(:content)
-      post.excerpt = params[:excerpt].to_s if params.key?(:excerpt)
+      post.title = kses_post_title(params[:title].to_s) if params.key?(:title)
+      post.content = kses_post_content(params[:content].to_s) if params.key?(:content)
+      post.excerpt = kses_post_content(params[:excerpt].to_s) if params.key?(:excerpt)
       post.slug = params[:slug].presence if params.key?(:slug)
       post.comment_status = params[:comment_status].to_s if params[:comment_status].present?
       post.template_slug = params[:template].to_s if params.key?(:template)
