@@ -270,4 +270,146 @@ RSpec.describe "console.edit (Posts list)", type: :request do
     expect(bubble["href"]).to include("/console/comments?p=#{p.id}")
     expect(bubble.text).to include("3")
   end
+
+  # ── ownership scope and private visibility (RISK-023 V4) ─────────────────────────
+  # Two SEPARATE rules that were both missing, and neither implies the other:
+  #
+  #   1. class-wp-posts-list-table.php:104 defaults `$_GET['author']` to the current user
+  #      for someone who cannot edit others' posts AND has posts of their own.
+  #   2. class-wp-query.php:2759 admits a private row only for a caller holding
+  #      read_private_posts, or for its own author.
+  #
+  # Rule 2 is what leaked: rule 1 does not fire for a user with NO posts, and that is
+  # exactly the caller who was being served the private article. Every expectation below
+  # was read off the oracle's edit.php with the seeded roles before it was written here.
+  describe "ownership scope and private visibility" do
+    def row_ids
+      doc.css('tr[id^="console.edit-"]').map { |tr| tr["id"].split("-").last.to_i }.sort
+    end
+
+    def private!(title, author:)
+      Publishing::Article.create!(author: author, title: title, status: :private)
+    end
+
+    it "scopes an author WITH posts to their own rows on the default view" do
+      mine = publish!("Mine alone", author: actor("con_author"))
+      publish!("Someone else's", author: actor("con_editor"))
+
+      login_as("con_author")
+      get "/console/posts"
+
+      expect(row_ids).to eq([mine.id])
+      expect(body_text).not_to include("Someone else's")
+    end
+
+    it "does NOT scope an editor — edit_others_posts is precisely this capability" do
+      mine = publish!("Mine alone", author: actor("con_author"))
+      theirs = publish!("Someone else's", author: actor("con_editor"))
+
+      login_as("con_editor")
+      get "/console/posts"
+
+      expect(row_ids).to eq([mine.id, theirs.id].sort)
+    end
+
+    # `$this->user_posts_count &&` — the guard reads like an oversight and is not. The
+    # oracle serves oracle_contributor, who owns nothing, all 14 readable rows.
+    it "does NOT scope a caller who owns nothing (user_posts_count is 0)" do
+      theirs = publish!("Someone else's", author: actor("con_editor"))
+
+      login_as("con_author")
+      get "/console/posts"
+
+      expect(row_ids).to eq([theirs.id])
+    end
+
+    it "lets ?all_posts=1 escape the scope — get_views' own All link" do
+      mine = publish!("Mine alone", author: actor("con_author"))
+      theirs = publish!("Someone else's", author: actor("con_editor"))
+
+      login_as("con_author")
+      get "/console/posts?all_posts=1"
+
+      expect(row_ids).to eq([mine.id, theirs.id].sort)
+    end
+
+    # Confirmed on the oracle: oracle_contributor sees the AUTHOR's draft on
+    # ?post_status=draft. A status tab bypasses the ownership scope in the legacy, so it
+    # bypasses it here.
+    it "lets a status tab bypass the scope, exactly as the legacy does" do
+      publish!("Mine alone", author: actor("con_author"))
+      theirs = Publishing::Article.create!(author: actor("con_editor"), title: "Their draft",
+                                           status: :draft)
+
+      login_as("con_author")
+      get "/console/posts?status=draft"
+
+      expect(row_ids).to eq([theirs.id])
+    end
+
+    # THE DISCLOSURE. The caller owns nothing, so rule 1 does not fire and rule 2 is the
+    # only thing standing between them and the private row.
+    it "withholds another's private post from a caller without read_private_posts" do
+      private!("Editor's secret", author: actor("con_editor"))
+      public_one = publish!("Public one", author: actor("con_editor"))
+
+      login_as("con_author")
+      get "/console/posts"
+
+      expect(row_ids).to eq([public_one.id])
+      expect(body_text).not_to include("Editor's secret")
+    end
+
+    it "shows an author their OWN private post" do
+      own = private!("My own secret", author: actor("con_author"))
+
+      login_as("con_author")
+      get "/console/posts"
+
+      expect(row_ids).to include(own.id)
+      expect(body_text).to include("My own secret")
+    end
+
+    it "shows every private post to an editor (read_private_posts)" do
+      private!("Author's secret", author: actor("con_author"))
+
+      login_as("con_editor")
+      get "/console/posts"
+
+      expect(body_text).to include("Author's secret")
+    end
+
+    it "withholds another's private post on the Private tab too" do
+      private!("Editor's secret", author: actor("con_editor"))
+
+      login_as("con_author")
+      get "/console/posts?status=private"
+
+      expect(body_text).not_to include("Editor's secret")
+    end
+
+    # wp_count_posts( $post_type, 'readable' ) (:300) — the tab counts are readable counts.
+    it "omits the Private tab entirely for a caller who can read no private rows" do
+      private!("Editor's secret", author: actor("con_editor"))
+      publish!("Public one", author: actor("con_editor"))
+
+      login_as("con_author")
+      get "/console/posts"
+
+      expect(doc.css("ul.subsubsub a").map(&:text).join(" ")).not_to include("Private")
+    end
+
+    it "puts all_posts=1 on the All link exactly when the Mine view is shown" do
+      publish!("Mine alone", author: actor("con_author"))
+      publish!("Someone else's", author: actor("con_editor"))
+
+      login_as("con_author")
+      get "/console/posts"
+
+      links = doc.css("ul.subsubsub a")
+      all_link = links.find { |a| a.text.include?("All") }
+      expect(links.map(&:text).join(" ")).to include("Mine")
+      expect(all_link["href"]).to include("all_posts=1")
+    end
+  end
 end

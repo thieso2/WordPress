@@ -23,7 +23,7 @@ module Console
       # search (params[:s], WP_Query 's') and the months/category filters (params[:m],
       # params[:cat]) and the Mine author view (params[:author]) all restrict the
       # relation before ordering — the controls actually narrow the list now.
-      relation = ordered(filtered(searched(author_scoped(status_scoped(base_scope)))))
+      relation = ordered(filtered(searched(author_scoped(status_scoped(readable(base_scope))))))
       page = list_page(relation, strategy: :exact)
       @list = build_list(page)
       render "console/posts_list/index"
@@ -87,11 +87,72 @@ module Console
     end
 
     # get_views 'mine' — the Mine view filters to the current user's posts (author=current).
+    #
+    # ⚠️ class-wp-posts-list-table.php:104-110 also DEFAULTS it, and that default is the
+    # ownership scope of this whole screen (RISK-023 V4):
+    #
+    #   if ( $this->user_posts_count
+    #        && ! current_user_can( $post_type_object->cap->edit_others_posts )
+    #        && empty( $_REQUEST['post_status'] ) && empty( $_REQUEST['all_posts'] )
+    #        && empty( $_REQUEST['author'] ) && empty( $_REQUEST['show_sticky'] ) )
+    #       $_GET['author'] = get_current_user_id();
+    #
+    # Verified against the oracle's own edit.php with the seeded roles: oracle_author owns
+    # 14 of the corpus's 15 posts and sees exactly those 14; oracle_admin sees 15.
     def author_scoped(scope)
-      return scope if params[:author].blank?
+      requested = params[:author].presence || default_author
+      return scope if requested.blank?
 
-      scope.where(author_id: params[:author])
+      scope.where(author_id: requested)
     end
+
+    # Every arm of that guard, and each one is load-bearing:
+    #
+    # · `user_posts_count &&` — a user with NO posts of their own is NOT scoped. It reads
+    #   like an oversight and is not: oracle_contributor owns nothing and sees all 14
+    #   readable posts, others' drafts included. Confirmed on the oracle before porting.
+    # · `empty($_REQUEST['post_status'])` — a status TAB bypasses the scope entirely, so
+    #   oracle_contributor sees the author's draft on `?post_status=draft`. Also confirmed.
+    # · `empty($_REQUEST['all_posts'])` — the All tab's own escape hatch, which is why
+    #   status_tabs has to emit `all_posts=1` on that link (get_views():340).
+    # · `show_sticky` needs no equivalent: this screen spells sticky `?status=sticky`, so
+    #   the post_status arm above already covers it.
+    def default_author
+      return nil unless current_actor
+      return nil if params[:status].present? || params[:all_posts].present?
+      return nil if site_can?(edit_others_cap)
+      return nil if own_posts_count.zero?
+
+      current_actor.id
+    end
+
+    # `$this->user_posts_count` (:92) — own rows of this type, excluding the statuses
+    # registered `show_in_admin_all_list => false` (trash, auto-draft).
+    def own_posts_count
+      @own_posts_count ||= base_scope.where.not(status: %w[trashed auto_draft])
+                                     .where(author_id: current_actor.id).count
+    end
+
+    # The private-status arm of WP_Query's status clause (class-wp-query.php:2759-2766):
+    #
+    #   current_user_can( $read_private_cap )
+    #     ? "post_status = 'private'"
+    #     : "(post_author = $user_id AND post_status = 'private')"
+    #
+    # SEPARATE from the ownership default above and not implied by it, which is the whole
+    # reason this was a disclosure: the ownership default does not fire for a user with no
+    # posts, so without this arm oracle_contributor was served the private article — one
+    # row the oracle withholds. Administrator and Editor hold read_private_posts; Author,
+    # Contributor and Subscriber do not.
+    def readable(scope)
+      return scope if site_can?(read_private_cap)
+      return scope.where.not(status: "private") unless current_actor
+
+      scope.where(scope.arel_table[:status].not_eq("private")
+                       .or(scope.arel_table[:author_id].eq(current_actor.id)))
+    end
+
+    def read_private_cap = content_class.hierarchical? ? "read_private_pages" : "read_private_posts"
 
     # WP_Query 's' — a title/content/excerpt search (edit.php:490, search_box feeds 's').
     # The rebuilt search box now actually restricts the relation instead of only echoing.
@@ -285,17 +346,27 @@ module Console
     STATUS_TAB_ORDER = %w[published scheduled draft pending private trashed].freeze
 
     def status_tabs
-      counts = base_scope.where.not(status: "auto_draft").group(:status).count
+      # `wp_count_posts( $post_type, 'readable' )` (:300) — the counts are READABLE counts,
+      # not raw ones, which is why oracle_contributor is shown All (14) and no Private tab
+      # at all while oracle_author sees All (15) and Private (1): the one private row counts
+      # for its own author and for nobody else.
+      counts = readable(base_scope).where.not(status: "auto_draft").group(:status).count
       all_count = counts.reject { |s, _| s == "trashed" }.values.sum
       current = params[:status].to_s
       author = params[:author].to_s
+      mine = mine_tab(all_count, author)
+      # get_views():340 — `$all_args['all_posts'] = 1` is added under EXACTLY the condition
+      # that shows the Mine view, and it has to be: that is the same moment the ownership
+      # default starts firing, and this link is the only way back out of it.
+      all_query = { "status" => nil, "author" => nil }
+      all_query["all_posts"] = 1 if mine
       tabs = [ListModel::Tab.new(
         key: "all", count: all_count,
         label: %(All <span class="count">(#{delimited(all_count)})</span>).html_safe,
-        query: { "status" => nil, "author" => nil },
+        query: all_query,
         current: (current.empty? || current == "all") && author.empty?
       )]
-      mine_tab(all_count, author)&.tap { |t| tabs << t }
+      tabs << mine if mine
       STATUS_TAB_ORDER.each do |status|
         n = counts[status].to_i
         next if n.zero?
@@ -337,7 +408,7 @@ module Console
     def mine_tab(all_count, author)
       return nil unless current_actor
 
-      mine_count = base_scope.where.not(status: %w[trashed auto_draft]).where(author_id: current_actor.id).count
+      mine_count = own_posts_count
       return nil if mine_count.zero? || mine_count == all_count
 
       ListModel::Tab.new(

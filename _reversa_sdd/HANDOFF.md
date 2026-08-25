@@ -149,12 +149,19 @@ ln -sfn "$SOCK" ~/.ssh/ssh_auth_sock && export SSH_AUTH_SOCK="$SOCK"
 reconnaissance and every claim carries a `file:line`, a number or a reproducing command. In
 priority order:
 
-1. 🔴 **Security (RISK-023).** Of the four defects, **V1 (stored XSS), V2 (arbitrary `author`
-   on REST writes) and V3 (`/comments/feed/` leaking private-post comments) are closed.**
-   **V4 — console lists unscoped by ownership — is open and is the next one to take**, along
-   with the lower-severity V5–V7. Note the pattern V3 established: it was *latent*, because
-   no comment in the corpus sits on a non-public post, so the 53-screen comparison was green
-   throughout and would have stayed green. V4 is the same shape.
+1. 🔴 **Security (RISK-023).** **All four of the headline defects are closed** — V1 stored
+   XSS, V2 arbitrary `author` on REST writes, V3 `/comments/feed/` leaking private-post
+   comments, V4 the Posts list serving rows the oracle withholds. **V5–V7 remain** (reflected
+   XSS in the multisite signup confirm view, the media upload's missing nonce check, the third
+   `blogname` write path); the brief has them.
+
+   Two habits paid for themselves here and are worth keeping. **The corpus's data, not just
+   its screens, decides what a green gate can see** — V3 was invisible because no comment sat
+   on a non-public post, and V4's private-row leak was invisible because nothing browses the
+   console as a Contributor. **And check the brief's claims against the oracle before
+   building to them**: V4's entry named two things that turned out not to be divergences at
+   all (a Contributor seeing others' drafts, and the comments list) and missed the rule that
+   actually leaked. The corrected account is in the brief.
 
 2. 🟠 **The 19 real dead links** `bin/link_check` reports — 17 feed URLs the site prints in
    its own `<head>` and answers with its own 404, the RSD link, and the sitemap stylesheets.

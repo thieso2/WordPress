@@ -44,7 +44,7 @@ attempt it serially — the security area alone has four independent fixes.
 
 ## AREA 1 — Security (RISK-023). Do this first.
 
-> **Status 2026-08-25: V1, V2 and V3 are closed; V4–V7 remain.** Each fix was checked
+> **Status 2026-08-25: V1, V2, V3 and V4 are closed; V5–V7 remain.** Each fix was checked
 > against the live oracle rather than against the source alone, and each carries specs that
 > were confirmed to FAIL against the unfixed code before they were trusted. Two things worth
 > carrying forward from V3: the leak was **latent** — no comment in the corpus sits on a
@@ -61,13 +61,41 @@ everything else in this brief.
 | ~~**V1**~~ | ✅ **CLOSED** f557b32bb9 | **Stored XSS.** The post write path never runs KSES. WordPress's `kses_init_filters()` hangs `wp_filter_post_kses` on `content_save_pre`; AD-01 removed the hook system and nothing replaced this. Any Author can store and publish `<script>` that executes for anonymous visitors. | `public_api/posts_controller.rb:239-241`, and the autosave path |
 | ~~**V2**~~ | ✅ **CLOSED** (this commit) | **Arbitrary `author` on REST writes.** WordPress refuses with `rest_cannot_edit_others` unless the caller holds `edit_others_posts`. The rebuild assigns whatever is sent. | `public_api/posts_controller.rb:246` |
 | ~~**V3**~~ | ✅ **CLOSED** (this commit) | **`/comments/feed/` leaks comments on non-public posts** to anonymous visitors, including the private post's title. Comment status is filtered; post status is not. | `syndication/feeds_controller.rb:36` |
-| **V4** | 🟠 HIGH | **Console lists are not ownership-scoped.** A Contributor sees every post in the site (including the private one and others' drafts) and every commenter's email. | `console/posts_list_controller.rb:77`, `comments_list_controller.rb:25` |
+| ~~**V4**~~ | ✅ **CLOSED** (this commit) | **The Posts list was not ownership-scoped, and did not gate private rows.** See the correction below — this row overstated the defect in two ways and understated it in one. | `console/posts_list_controller.rb:77` |
 
 Lower: **V5** reflected XSS in the multisite signup confirm view
 (`tenancy/signups/confirm.html.erb:19`), **V6** `POST /console/media` disables forgery
 protection with a comment promising a nonce check that never landed
 (`web/uploads_controller.rb:32`), **V7** a third write path to `blogname` skips the `esc_html`
 that makes the read side safe (`network/site_edit_controller.rb:129-140`).
+
+### V4 as it actually was — the row above got two things wrong
+
+Measured against the oracle's own `edit.php` with the seeded roles, id for id:
+
+| role | oracle | rebuild (before) |
+|---|---|---|
+| contributor (owns 0) | 14 — `1 4 5 6 8 10..18` | 15 — **also the private post** |
+| author (owns 14 of 15) | 14 — `4 5 6 7 8 10..18` | 15 — **also the admin's post** |
+| administrator | 15 | 15 ✓ |
+
+**Overstated 1 — "and others' drafts".** Not a divergence. The ownership default is guarded by
+`$this->user_posts_count &&`, so a Contributor who owns nothing is *not* scoped at all: the
+ORACLE serves them other people's drafts too, on the default view and on `?post_status=draft`
+alike. Reproducing that is correctness, not a hole.
+
+**Overstated 2 — "and every commenter's email".** Not a divergence either. `edit-comments.php`
+applies no ownership scope whatsoever; oracle_contributor, oracle_author and oracle_admin were
+each served the same 9 comments with the same addresses, and so were all three on the rebuild.
+`comments_list_controller.rb` was left alone. (The two systems number those comments
+differently — the oracle's spam/trash are 7/8, the rebuild's are 4/5 — which is ordinary ETL id
+assignment, and exactly what the parity normalizer masks.)
+
+**Understated — the private row was a SECOND, independent rule.** The ownership default
+(`class-wp-posts-list-table.php:104`) and the private-status gate (`class-wp-query.php:2759`)
+are different mechanisms, and the first does not imply the second. The caller who was served
+the private article is precisely the one the ownership default never fires for. Both are now
+ported, along with the readable tab counts and the `all_posts=1` escape hatch on the All link.
 
 ### Two important negatives — do not "fix" these
 
