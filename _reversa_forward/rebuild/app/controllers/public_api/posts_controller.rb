@@ -163,6 +163,9 @@ module PublicApi
 
     # create_item_permissions_check(), :714.
     def create_item
+      # :698 — BEFORE the create_posts arm, in the legacy's own order.
+      check_author_permission!("create")
+
       probe = model_scope.new(author: current_actor, status: :draft, title: "", content: "", excerpt: "")
       return true if policy_for(probe).permit?(:edit)
 
@@ -173,9 +176,38 @@ module PublicApi
 
     # update_item_permissions_check(), :899.
     def update_item
-      return true if policy_for(loaded_post).permit?(:edit)
+      unless policy_for(loaded_post).permit?(:edit)
+        raise PublicApi::RestError.new("rest_cannot_edit", "Sorry, you are not allowed to edit this post.",
+                                       current_actor ? 403 : 401)
+      end
 
-      raise PublicApi::RestError.new("rest_cannot_edit", "Sorry, you are not allowed to edit this post.",
+      # :909 — AFTER the edit arm, so somebody with no business touching the record at all
+      # is told THAT, rather than which byline they may not borrow.
+      check_author_permission!("update")
+      true
+    end
+
+    # The `author` arm of create_item_permissions_check() (:698) and
+    # update_item_permissions_check() (:909) — one test, two verbs in the message:
+    #
+    #   ! empty( $request['author'] ) && get_current_user_id() !== $request['author']
+    #     && ! current_user_can( $post_type->cap->edit_others_posts )
+    #
+    # Writing a post under SOMEBODY ELSE'S byline is `edit_others_posts`, never
+    # `edit_posts`: without this arm any Author could publish under an Editor's name, and
+    # any Contributor under an Administrator's (RISK-023 V2).
+    #
+    # `!empty()` is why 0 and an absent parameter behave alike — 0 is not "assign to user
+    # 0", it is "unspecified". Note that `present?` on the STRING "0" would disagree, which
+    # is why the test is `.to_i.zero?` and not `.blank?`.
+    def check_author_permission!(verb)
+      requested = params[:author].to_i
+      return if requested.zero?
+      return if current_actor&.id == requested
+      return if site_can?(post_type_object_cap("edit_others_posts"))
+
+      raise PublicApi::RestError.new("rest_cannot_edit_others",
+                                     "Sorry, you are not allowed to #{verb} posts as this user.",
                                      current_actor ? 403 : 401)
     end
 
@@ -243,10 +275,23 @@ module PublicApi
       post.comment_status = params[:comment_status].to_s if params[:comment_status].present?
       post.template_slug = params[:template].to_s if params.key?(:template)
       post.featured_asset_id = params[:featured_media].presence if params.key?(:featured_media)
-      post.author_id = params[:author] if params[:author].present?
+      apply_author!(post) unless params[:author].to_i.zero?
       apply_password!(post) if params.key?(:password)
       apply_page_fields!(post) if post.is_a?(Publishing::Page)
       apply_date!(post)
+    end
+
+    # prepare_item_for_database()'s author arm, :1394. The capability question was already
+    # settled by check_author_permission!; what is left is EXISTENCE, and the legacy skips
+    # even that when the id is the caller's own — get_userdata() on yourself cannot fail.
+    # An unknown id is a 400 on the parameter, not a 404 on the post.
+    def apply_author!(post)
+      requested = params[:author].to_i
+      if current_actor&.id != requested && !Identity::User.exists?(id: requested)
+        raise PublicApi::RestError.new("rest_invalid_author", "Invalid author ID.", 400)
+      end
+
+      post.author_id = requested
     end
 
     # `categories` / `tags` — the Post sidebar's taxonomy boxes. wp_set_object_terms() is

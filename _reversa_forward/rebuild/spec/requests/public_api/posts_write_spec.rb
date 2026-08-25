@@ -537,4 +537,106 @@ RSpec.describe "REST API — the write surface", type: :request do
                          "data" => { "status" => 401 })
     end
   end
+
+  # ── the `author` parameter (RISK-023 V2) ────────────────────────────────────────
+  # create_item_permissions_check():698 and update_item_permissions_check():909 share one
+  # test — `!empty($request['author']) && get_current_user_id() !== $request['author'] &&
+  # !current_user_can($post_type->cap->edit_others_posts)` — and differ only in the verb.
+  # Every code, message and status below was read off the live oracle at :8099 with the
+  # seeded role accounts, not inferred from the source.
+  describe "writing under another user's byline" do
+    let(:other) { actor("con_editor") }
+
+    it "refuses an author writing as somebody else: rest_cannot_edit_others / 403" do
+      post "/wp-json/wp/v2/posts",
+           params: { title: "Under a borrowed name", author: other.id }.to_json,
+           headers: bearer(actor("con_author")).merge("CONTENT_TYPE" => "application/json")
+
+      expect(response).to have_http_status(:forbidden)
+      expect(json).to eq("code" => "rest_cannot_edit_others",
+                         "message" => "Sorry, you are not allowed to create posts as this user.",
+                         "data" => { "status" => 403 })
+      expect(Publishing::Article.where(title: "Under a borrowed name")).to be_empty
+    end
+
+    it "allows an author to name THEMSELVES explicitly" do
+      me = actor("con_author")
+      post "/wp-json/wp/v2/posts",
+           params: { title: "My own", author: me.id }.to_json,
+           headers: bearer(me).merge("CONTENT_TYPE" => "application/json")
+
+      expect(response).to have_http_status(:created)
+      expect(Publishing::Article.find(json["id"]).author_id).to eq(me.id)
+    end
+
+    it "allows an EDITOR to write as somebody else — that is what edit_others_posts is" do
+      post "/wp-json/wp/v2/posts",
+           params: { title: "Assigned", author: actor("con_author").id }.to_json,
+           headers: bearer(actor("con_editor")).merge("CONTENT_TYPE" => "application/json")
+
+      expect(response).to have_http_status(:created)
+      expect(Publishing::Article.find(json["id"]).author_id).to eq(actor("con_author").id)
+    end
+
+    it "refuses the same move on UPDATE, with the update wording" do
+      mine = Publishing::Article.create!(author: actor("con_author"), title: "Mine", status: :draft)
+
+      patch "/wp-json/wp/v2/posts/#{mine.id}",
+            params: { author: other.id }.to_json,
+            headers: bearer(actor("con_author")).merge("CONTENT_TYPE" => "application/json")
+
+      expect(response).to have_http_status(:forbidden)
+      expect(json).to eq("code" => "rest_cannot_edit_others",
+                         "message" => "Sorry, you are not allowed to update posts as this user.",
+                         "data" => { "status" => 403 })
+      expect(mine.reload.author_id).to eq(actor("con_author").id)
+    end
+
+    # prepare_item_for_database():1394 — existence is a 400 on the PARAMETER, and it is
+    # reached only by a caller who cleared the capability arm first.
+    it "answers rest_invalid_author / 400 for an id that does not exist" do
+      post "/wp-json/wp/v2/posts",
+           params: { title: "Nobody", author: 999_999 }.to_json,
+           headers: bearer(admin).merge("CONTENT_TYPE" => "application/json")
+
+      expect(response).to have_http_status(:bad_request)
+      expect(json).to eq("code" => "rest_invalid_author",
+                         "message" => "Invalid author ID.",
+                         "data" => { "status" => 400 })
+    end
+
+    # `!empty()`, not `isset()`: 0 means "unspecified", and the caller keeps the byline
+    # they would have had. `present?` on the string "0" would have taken the other branch.
+    it "treats author=0 as unspecified rather than as user 0" do
+      me = actor("con_author")
+      post "/wp-json/wp/v2/posts",
+           params: { title: "Zero", author: 0 }.to_json,
+           headers: bearer(me).merge("CONTENT_TYPE" => "application/json")
+
+      expect(response).to have_http_status(:created)
+      expect(Publishing::Article.find(json["id"]).author_id).to eq(me.id)
+    end
+
+    # The legacy's ORDER, which decides WHICH refusal a caller sees: on create the author
+    # arm runs before the create_posts arm, so a subscriber hears about the byline first.
+    it "puts the author arm before rest_cannot_create on the create path" do
+      post "/wp-json/wp/v2/posts",
+           params: { title: "Neither allowed", author: other.id }.to_json,
+           headers: bearer(actor("con_subscriber")).merge("CONTENT_TYPE" => "application/json")
+
+      expect(json["code"]).to eq("rest_cannot_edit_others")
+    end
+
+    # ...and on update it runs AFTER, so an outsider is told they cannot edit the record
+    # at all rather than which byline is off limits.
+    it "puts the author arm after rest_cannot_edit on the update path" do
+      theirs = Publishing::Article.create!(author: other, title: "Theirs", status: :draft)
+
+      patch "/wp-json/wp/v2/posts/#{theirs.id}",
+            params: { author: actor("con_author").id }.to_json,
+            headers: bearer(actor("con_subscriber")).merge("CONTENT_TYPE" => "application/json")
+
+      expect(json["code"]).to eq("rest_cannot_edit")
+    end
+  end
 end

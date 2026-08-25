@@ -44,14 +44,23 @@ attempt it serially — the security area alone has four independent fixes.
 
 ## AREA 1 — Security (RISK-023). Do this first.
 
+> **Status 2026-08-25: V1, V2 and V3 are closed; V4–V7 remain.** Each fix was checked
+> against the live oracle rather than against the source alone, and each carries specs that
+> were confirmed to FAIL against the unfixed code before they were trusted. Two things worth
+> carrying forward from V3: the leak was **latent** — no comment in the corpus sits on a
+> non-public post, so `bin/parity compare` was green at 53/53 for the whole life of the
+> defect and would have stayed green — and it took a probe comment on the oracle's private
+> post to see it at all. **V4 is next**, and it is the same shape: an ownership scope that
+> the corpus's data never exercises.
+
 The recon found **four real defects**, one with a working public exploit. This outranks
 everything else in this brief.
 
 | # | Severity | Defect | Where |
 |---|---|---|---|
-| **V1** | 🔴 **CRITICAL** | **Stored XSS.** The post write path never runs KSES. WordPress's `kses_init_filters()` hangs `wp_filter_post_kses` on `content_save_pre`; AD-01 removed the hook system and nothing replaced this. Any Author can store and publish `<script>` that executes for anonymous visitors. | `public_api/posts_controller.rb:239-241`, and the autosave path |
-| **V2** | 🟠 HIGH | **Arbitrary `author` on REST writes.** WordPress refuses with `rest_cannot_edit_others` unless the caller holds `edit_others_posts`. The rebuild assigns whatever is sent. | `public_api/posts_controller.rb:246` |
-| **V3** | 🟠 HIGH | **`/comments/feed/` leaks comments on non-public posts** to anonymous visitors, including the private post's title. Comment status is filtered; post status is not. | `syndication/feeds_controller.rb:36` |
+| ~~**V1**~~ | ✅ **CLOSED** f557b32bb9 | **Stored XSS.** The post write path never runs KSES. WordPress's `kses_init_filters()` hangs `wp_filter_post_kses` on `content_save_pre`; AD-01 removed the hook system and nothing replaced this. Any Author can store and publish `<script>` that executes for anonymous visitors. | `public_api/posts_controller.rb:239-241`, and the autosave path |
+| ~~**V2**~~ | ✅ **CLOSED** (this commit) | **Arbitrary `author` on REST writes.** WordPress refuses with `rest_cannot_edit_others` unless the caller holds `edit_others_posts`. The rebuild assigns whatever is sent. | `public_api/posts_controller.rb:246` |
+| ~~**V3**~~ | ✅ **CLOSED** (this commit) | **`/comments/feed/` leaks comments on non-public posts** to anonymous visitors, including the private post's title. Comment status is filtered; post status is not. | `syndication/feeds_controller.rb:36` |
 | **V4** | 🟠 HIGH | **Console lists are not ownership-scoped.** A Contributor sees every post in the site (including the private one and others' drafts) and every commenter's email. | `console/posts_list_controller.rb:77`, `comments_list_controller.rb:25` |
 
 Lower: **V5** reflected XSS in the multisite signup confirm view

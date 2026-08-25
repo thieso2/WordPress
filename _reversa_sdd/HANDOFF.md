@@ -94,7 +94,7 @@ covers. It is not a proof of equivalence.
 
 ---
 
-## Five traps that will cost you hours
+## Six traps that will cost you hours
 
 1. **`GET /console/posts/new` WRITES TO THE DATABASE.** It inserts an `auto_draft` and
    redirects. *Opening the editor mutates the parity corpus.* Re-run `./bin/parity compare`
@@ -119,6 +119,20 @@ covers. It is not a proof of equivalence.
    (`app/views/layouts/editor.html.erb`), not the console chrome. To exercise a REST write,
    fetch `/console/posts/<id>/edit` first and scrape `window.wpApiSettings`.
 
+6. **A dev-server code reload can leave the AD-04 registry HALF BUILT, and it looks exactly
+   like a regression.** `config/initializers/authorization_declarations.rb` runs inside
+   `to_prepare`, which begins with `Access::Declarations.reset!` — so every reload empties the
+   registry and refills it. A request served in that window gets
+   `Access::Declarations::Undeclared … has no authorization declaration (AD-04)` → **500**, and
+   the partial registry PERSISTS until the next reload. The tell is that two identifiers
+   declared by the *same* `.each` disagree: `POST public_api/posts#create` answered while
+   `POST public_api/posts#update` 500'd. Nothing is wrong with the code — it 500s on routes you
+   never touched (`themes#index`, `options#show`, `templates#lookup`). It bites when you edit
+   files (or `git stash`/`pop`) while traffic is flowing, which is exactly what a browser suite
+   does. **Cure: restart the server, let it settle, send ONE warm-up request, then run the
+   suite — and touch no files while it runs.** Cost here: one full `editor_e2e/run.sh` read as
+   a failure before the cause was found.
+
 Environment: the **ssh-agent dies regularly**. When a push fails with "correct access
 rights", find a live socket and repoint it:
 ```bash
@@ -135,11 +149,12 @@ ln -sfn "$SOCK" ~/.ssh/ssh_auth_sock && export SSH_AUTH_SOCK="$SOCK"
 reconnaissance and every claim carries a `file:line`, a number or a reproducing command. In
 priority order:
 
-1. 🔴 **Security (RISK-023).** Four real defects, one with a working public exploit: the post
-   write path runs **no KSES**, so any Author can store `<script>` that executes for anonymous
-   visitors. WordPress hangs `wp_filter_post_kses` on `content_save_pre`; AD-01 removed the
-   hook system and nothing replaced it. Plus arbitrary `author` on REST writes,
-   `/comments/feed/` leaking private-post comments, and console lists unscoped by ownership.
+1. 🔴 **Security (RISK-023).** Of the four defects, **V1 (stored XSS), V2 (arbitrary `author`
+   on REST writes) and V3 (`/comments/feed/` leaking private-post comments) are closed.**
+   **V4 — console lists unscoped by ownership — is open and is the next one to take**, along
+   with the lower-severity V5–V7. Note the pattern V3 established: it was *latent*, because
+   no comment in the corpus sits on a non-public post, so the 53-screen comparison was green
+   throughout and would have stayed green. V4 is the same shape.
 
 2. 🟠 **The 19 real dead links** `bin/link_check` reports — 17 feed URLs the site prints in
    its own `<head>` and answers with its own 404, the RSD link, and the sitemap stylesheets.
