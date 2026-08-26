@@ -1,0 +1,22 @@
+<%#-
+  Byte-level transcription of xmlrpc.php:31-63 against the captured golden. The WP-API line
+  is indented one level deeper than its siblings because it is not in this template at all:
+  core hangs rest_output_rsd() on the `rsd_apis` action (wp-includes/rest-api.php) and that
+  function carries its own leading tabs. The closing </apis> is at THREE tabs for the same
+  reason. Both are reproduced, not tidied — RISK-008 forbids copy editing.
+-%><% site = Composition::Renderers::PostBlocks::Site -%>
+<?xml version="1.0" encoding="UTF-8"?><rsd version="1.0" xmlns="http://archipelago.phrasewise.com/rsd">
+	<service>
+		<engineName>WordPress</engineName>
+		<engineLink>https://wordpress.org/</engineLink>
+		<homePageLink><%== site.home_url %></homePageLink>
+		<apis>
+			<api name="WordPress" blogID="1" preferred="true" apiLink="<%== site.site_url %>/xmlrpc.php" />
+			<api name="Movable Type" blogID="1" preferred="false" apiLink="<%== site.site_url %>/xmlrpc.php" />
+			<api name="MetaWeblog" blogID="1" preferred="false" apiLink="<%== site.site_url %>/xmlrpc.php" />
+			<api name="Blogger" blogID="1" preferred="false" apiLink="<%== site.site_url %>/xmlrpc.php" />
+				<api name="WP-API" blogID="1" preferred="false" apiLink="<%== PublicApi::Url.rest_root %>/" />
+			</apis>
+	</service>
+</rsd>
+	

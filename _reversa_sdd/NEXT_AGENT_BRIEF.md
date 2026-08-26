@@ -226,8 +226,29 @@ It walks the corpus screens, extracts every same-origin URL each system emits, a
 system for **its own** links (cross-checking would flag every autoincrement id, since the two
 assign different ids to the same record — which is why the parity normalizer masks them).
 
-**First run: 19 genuinely dead links, in three families.** Every one is a page the site
-advertises and cannot deliver, and every one was live at 53/53 green:
+✅ **All 19 are now CLOSED** (2026-08-26), byte-identical to the oracle and added to the
+corpus, which is why it went 53 → 65 screens. `bin/link_check` reports 22 today and all 22
+are the oEmbed `siteurl` artifact below — the number to watch is not the total but whether a
+NON-oEmbed entry ever appears again.
+
+Three things that cost a diff each, and would cost the next person the same:
+
+- **A feed is the same query with two vars changed.** `posts_per_page` becomes
+  `posts_per_rss`, and search RELEVANCE ordering is SUPPRESSED — `class-wp-query.php:2561`
+  gates the relevance prefix on `! $this->is_feed`, so `/search/x/feed/rss2/` is plain
+  `post_date DESC` while `/?s=x` ranks by match quality. The two orders genuinely differ.
+- **`feed-rss2-comments.php:49` is `is_single()`, not `is_singular()`.** A POST's comment
+  feed links to its permalink; a PAGE's links to the site home.
+- **PHP's `?>`-swallows-one-newline rule is load-bearing in these templates.** When
+  `the_category_rss()` prints nothing — a page, which has no categories — the two tabs on its
+  line run straight onto the `<guid>` line and the two become ONE line. Likewise the tab
+  before `</channel>` is the last loop iteration's, so an EMPTY feed closes at column 0.
+  Both arms only appear once a feed contains a page or no items at all, which `/feed/` never
+  does. None of this is visible in the PHP; all of it came out of diffing the oracle.
+
+**The original finding, for the record — 19 genuinely dead links in three families.** Every
+one was a page the site advertised and could not deliver, and every one was live at 53/53
+green:
 
 | Family | Count | Detail |
 |---|---|---|

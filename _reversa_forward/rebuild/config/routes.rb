@@ -217,6 +217,27 @@ Rails.application.routes.draw do
   get "/feed(/:variant)", to: "syndication/feeds#show", as: :feed, defaults: { format: "xml" }
   get "/comments/feed", to: "syndication/feeds#comments", as: :comments_feed, defaults: { format: "xml" }
 
+  # ⚠️ EVERY permastruct carries a feed endpoint (class-wp-rewrite.php:1150 appends
+  # `feed/(feed|rdf|rss|rss2|atom)` to each one), and presentation/head.rb prints those URLs
+  # in the <head> of every archive and every singular screen. Until these routes existed the
+  # rebuild advertised 18 of them and answered all 18 with its own 404 — invisible to
+  # `bin/parity compare`, because the PAGE matched while the links inside it were dead.
+  #
+  # Declared BEFORE the archive routes below: `/category/*path` is a glob and would happily
+  # swallow `uncategorized/feed` as a category path, and `/tag/:slug` would read `feed` as a
+  # second segment. Rails matches in declaration order, so declaration order is precedence —
+  # the same precedence WP's rewrite array gives the literal `feed` segment.
+  get "/author/:login/feed(/:variant)", to: "syndication/feeds#author", as: :author_feed,
+      defaults: { format: "xml" }
+  get "/category/*path/feed(/:variant)", to: "syndication/feeds#category", as: :category_feed,
+      defaults: { format: "xml" }
+  get "/tag/:slug/feed(/:variant)", to: "syndication/feeds#tag", as: :tag_feed,
+      defaults: { format: "xml" }
+  # `search/(.+)/feed/(feed|rdf|rss|rss2|atom)/?$`. The search SCREEN is reached as `/?s=…`
+  # and has no pretty route, but the rewrite gives its feed one and the head prints it.
+  get "/search/:term/feed(/:variant)", to: "syndication/feeds#search", as: :search_feed,
+      defaults: { format: "xml" }
+
   # Front-end read path -- Wave 2.
   #
   # ⚠️ PAGINATION. `$wp_rewrite->pagination_base` ("page") is appended to EVERY archive
@@ -265,6 +286,12 @@ Rails.application.routes.draw do
   # rules give the literal `embed` segment precedence over an attachment slug.
   get "/:year/:monthnum/:slug/embed", to: "web/embeds#show", as: :post_embed,
       constraints: { year: /\d{4}/, monthnum: /\d{2}/ }, format: false
+  # `<permalink>/feed/` is the post's COMMENT feed (is_comment_feed + is_singular). Declared
+  # before the attachment route for the same reason `embed` is: the literal segment wins over
+  # an attachment slug in WP's rewrite array.
+  get "/:year/:monthnum/:slug/feed(/:variant)", to: "syndication/feeds#post_comments",
+      as: :post_comments_feed, constraints: { year: /\d{4}/, monthnum: /\d{2}/ },
+      defaults: { format: "xml" }
   # An attachment's permalink nests under its parent post's (get_attachment_link,
   # link-template.php). It never renders: web/attachments#show 301-redirects to the file
   # (canonical.php:553, `wp_attachment_pages_enabled` = '0').
@@ -285,6 +312,11 @@ Rails.application.routes.draw do
   # `wp-comments-post.php` — the comment form's `action` is `site_url('/wp-comments-post.php')`
   # (comment-template.php:2516), which every golden records, so the route is the literal
   # legacy path. :8-18 of the script answers anything but POST with 405 `Allow: POST`.
+  # `/xmlrpc.php?rsd` — the RSD discovery document every <head> advertises (xmlrpc.php:31).
+  # The literal legacy path, for the same reason wp-comments-post.php is: the URL is printed
+  # into every golden. A GET without `rsd` answers the legacy's 405 + Allow: POST.
+  get "/xmlrpc.php", to: "syndication/rsd#show", as: :rsd, format: false
+
   post "/wp-comments-post.php", to: "web/comments#create", as: :comments_post, format: false
   get "/wp-comments-post.php", to: "web/comments#method_not_allowed", format: false
 
@@ -459,6 +491,10 @@ Rails.application.routes.draw do
   # so every page URL has an embed variant. Declared BEFORE the page glob, which would
   # otherwise swallow `embed` as a (non-existent) child-page slug.
   get "/*path/embed", to: "web/embeds#page", as: :page_embed, format: false
+  # `<page path>/feed/` — the page's comment feed. Same precedence argument as the embed
+  # endpoint above: declared before the glob, which would read `feed` as a child-page slug.
+  get "/*path/feed(/:variant)", to: "syndication/feeds#page_comments", as: :page_comments_feed,
+      defaults: { format: "xml" }
   # Hierarchical pages: /parent-page/child-page/ -- BR-MIGRATE-033's (type, parent) scope.
   get "/*path", to: "web/pages#show", as: :page_permalink, format: false
 

@@ -67,7 +67,160 @@ module Syndication
                                       content_type: feed_content_type("rss2")
     end
 
+    # ── Archive feeds ───────────────────────────────────────────────────────────────
+    #
+    # class-wp-rewrite.php:1150 appends a `feed/(feed|rdf|rss|rss2|atom)` endpoint to EVERY
+    # permastruct, and `presentation/head.rb:235-248` duly prints those URLs in the <head>
+    # of every archive the corpus renders. Nothing served them: the rebuild advertised 18
+    # feed URLs and answered all 18 with its own 404 — the exact defect class bin/link_check
+    # was built to find, and one a screen-content comparison can never see, because the PAGE
+    # matched the oracle byte for byte while the links inside it were dead.
+    #
+    # A feed is not a different QUERY, it is a different RENDERER: template-loader.php
+    # branches to do_feed() before the template hierarchy is consulted. So each action below
+    # resolves its queried object exactly as Web::ArchivesController does and then renders
+    # feed-rss2.php's transcription instead of a template.
+    #
+    # The two things that DO differ from the site feed:
+    #   · the page size — WP_Query swaps posts_per_page for get_option('posts_per_rss')
+    #   · `wp_title_rss()` resolves to wp_get_document_title() for the archive, which is
+    #     why a category feed is titled "Uncategorized &#8211; <site>" and the site feed is
+    #     titled "<site>". Presentation::DocumentTitle already computes exactly that string
+    #     for the matching web screen, so the feed asks it rather than reimplementing it.
+    def author
+      user = Identity::User.find_by(login: params[:login])
+      return not_found unless user
+
+      archive_feed(build_feed_query(author: user.id), :author, author: user)
+    end
+
+    def category
+      # A hierarchical path addresses the LEAF, as on the archive screen.
+      slug = encoded(params[:path].to_s.split("/").last)
+      term = find_term(slug, "category")
+      return not_found unless term
+
+      archive_feed(build_feed_query(category_name: slug), :category, term: term)
+    end
+
+    def tag
+      slug = encoded(params[:slug])
+      term = find_term(slug, "post_tag")
+      return not_found unless term
+
+      archive_feed(build_feed_query(tag: slug), :tag, term: term)
+    end
+
+    # `search/(.+)/feed/(feed|rdf|rss|rss2|atom)/?$`. The SCREEN is reached as `/?s=…`, but
+    # the rewrite gives the feed a pretty URL and the head prints that form, so this route
+    # exists even though its non-feed sibling does not.
+    def search
+      term = params[:term].to_s
+      archive_feed(build_feed_query(s: term), :search, search_query: term)
+    end
+
+    # ── Comment feeds on a single record ────────────────────────────────────────────
+    #
+    # `<permalink>/feed/` is a COMMENT feed, not a post feed: WP_Query sets is_comment_feed
+    # with is_singular and class-wp-query.php:3487 swaps the post loop for the comment one.
+    # feed-rss2-comments.php then branches on is_singular() in three places — the channel
+    # title ("Comments on: %s" vs "Comments for %s"), the channel link (the permalink vs the
+    # site home) and each item's title ("By: %s" vs "Comment on %1$s by %2$s").
+    def post_comments
+      record = Publishing::Article.find_by(slug: encoded(params[:slug]))
+      singular_comment_feed(record)
+    end
+
+    def page_comments
+      singular_comment_feed(walk_page_path(params[:path].to_s))
+    end
+
     private
+
+    # Two query vars a feed sets differently from the screen it shadows:
+    #
+    #   · posts_per_page becomes get_option('posts_per_rss').
+    #   · SEARCH RELEVANCE ORDERING IS SUPPRESSED. class-wp-query.php:2561 gates the
+    #     relevance prefix on `empty($query_vars['orderby']) && ! $this->is_feed`, so a
+    #     search FEED falls back to the default post_date DESC while the search SCREEN
+    #     ranks by match quality. Confirmed on the oracle: /?s=article lists the matching
+    #     post first, /search/article/feed/rss2/ lists Privacy Policy first — purely by
+    #     date. Naming an `orderby` is how Retrieval::PostQuery's search_order_clause is
+    #     suppressed (post_query.rb:250), and `date` is already its default column, so this
+    #     changes nothing for a feed that was not searching.
+    #
+    # An explicit `?orderby=` still wins, exactly as the legacy's `empty()` test allows.
+    def build_feed_query(**vars)
+      merged = request.query_parameters.merge(vars)
+      merged[:orderby] = "date" if merged[:orderby].blank? && merged["orderby"].blank?
+      Retrieval::PostQuery.from_request(merged.merge(posts_per_page: posts_per_rss))
+    end
+
+    def archive_feed(query, kind, **facts)
+      screen = Presentation::Screen.new(kind: kind, paged: query.page,
+                                        found_posts: query.records.length, **facts)
+      @posts = query.records.to_a
+      @comment_counts = @posts.to_h { |p| [p.id, FeedText.comments_number(p)] }
+      @build_date = @posts.map(&:modified_at).compact.max || Time.current
+      @feed_title = Presentation::DocumentTitle.new(screen).to_s
+      variant = params[:variant].presence || "rss2"
+      template = variant == "atom" ? "atom" : "rss2"
+      render_with_legacy_content_type "syndication/feeds/#{template}", formats: [:xml],
+                                      content_type: feed_content_type(template)
+    end
+
+    def singular_comment_feed(record)
+      return not_found if record.nil? || !record.status.to_s.eql?("published")
+
+      @singular = record
+      @comments = Discussion::Comment.where(status: "approved", post_id: record.id)
+                                     .order(submitted_at: :desc)
+                                     .limit(posts_per_rss)
+                                     .includes(:post)
+                                     .to_a
+      @parents = Discussion::Comment.where(id: @comments.map(&:parent_id).compact)
+                                    .includes(:post).index_by(&:id)
+      @build_date = (@comments.map(&:submitted_at) + [record.modified_at]).compact.max || Time.current
+      render_with_legacy_content_type "syndication/feeds/comments", formats: [:xml],
+                                      content_type: feed_content_type("rss2")
+    end
+
+    # BR-MIGRATE-033: a page's slug is unique only within (type, parent), so the full path
+    # is what disambiguates. The same walk Web::PagesController does, one segment at a time
+    # against the scope the unique index enforces.
+    def walk_page_path(path)
+      segments = path.to_s.split("/").reject(&:empty?)
+      return nil if segments.empty?
+
+      parent_id = nil
+      node = nil
+      segments.each do |segment|
+        node = Publishing::Page.where(status: %w[published], parent_id: parent_id)
+                               .find_by(slug: segment)
+        return nil if node.nil?
+
+        parent_id = node.id
+      end
+      node
+    end
+
+    # utf8_uri_encode()'s output shape — the same re-encoding Web::ArchivesController,
+    # Web::SingularController and Web::AttachmentsController each do, and for the same
+    # reason: slugs are stored percent-encoded in lowercase hex and Rails hands the request
+    # segment over decoded.
+    def encoded(segment)
+      segment.to_s.gsub(/[^\x00-\x7F]/) do |char|
+        char.bytes.map { |byte| format("%%%02x", byte) }.join
+      end
+    end
+
+    def find_term(slug, taxonomy)
+      Classification::Term.joins(:taxonomy).find_by(slug: slug, taxonomies: { name: taxonomy })
+    end
+
+    def not_found
+      render_screen(Presentation::Screen.new(kind: :not_found), status: :not_found)
+    end
 
     # get_option('posts_per_rss'), default 10.
     def posts_per_rss

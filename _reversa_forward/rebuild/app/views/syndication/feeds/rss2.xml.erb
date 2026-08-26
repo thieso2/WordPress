@@ -16,7 +16,7 @@
 	>
 
 <channel>
-	<title><%== t.wp_title_rss %></title>
+	<title><%== @feed_title || t.wp_title_rss %></title>
 	<atom:link href="<%== request.original_url %>" rel="self" type="application/rss+xml" />
 	<link><%== home %></link>
 	<description><%== t.bloginfo_rss(Configuration::Setting.display("blogdescription")) %></description>
@@ -33,14 +33,24 @@
 <%== i.zero? ? "\t" : "\t\t" %><item>
 		<title><%== t.the_title_rss(post) %></title>
 		<link><%== links.permalink(post) %></link>
+<%#- feed-rss2.php:91-93. The `\t\t` before `<?php if` and the blank line after
+     `<?php endif; ?>` are OUTSIDE the conditional and are emitted either way; only the
+     <comments> element itself is conditional. A post whose comments are open always took
+     the true arm, so the false arm went unexercised until a PAGE appeared in a feed — which
+     only happens on a search feed, since /feed/ is posts-only. -%>
 <% if n.positive? || post.comment_status.to_s == "open" -%>
 					<comments><%== t.comments_link(post, n) %></comments>
-		<%= "" %>
 <% end -%>
+		<%= "" %>
 		<dc:creator><![CDATA[<%== post.author&.display_name %>]]></dc:creator>
 		<pubDate><%== t.rfc2822(post.published_at) %></pubDate>
-		<%== t.category_rss(post, "rss2").chomp %>
-		<guid isPermaLink="false"><%== post.guid %></guid>
+<%#- :96-97. `\t\t<?php the_category_rss( 'rss2' ); ?>` is followed by a newline that PHP's
+     `?>` SWALLOWS, so when the call prints nothing — a page, which has no categories — the
+     two tabs run straight onto the <guid> line and the whole thing is ONE line. With
+     categories the call's own leading newline restores the break. Posts always had at least
+     one category, so only a page in a feed reaches the empty arm. -%>
+<% cats = t.category_rss(post, "rss2").chomp -%>
+<%== "\t\t#{cats}#{cats.empty? ? '' : "\n"}\t\t" %><guid isPermaLink="false"><%== post.guid %></guid>
 
 					<description><![CDATA[<%== t.the_excerpt_rss(post, ctx) %>]]></description>
 										<content:encoded><![CDATA[<%== t.the_content_feed(post, ctx) %>]]></content:encoded>
@@ -53,5 +63,8 @@
 		<%= "" %>
 			</item>
 <% end -%>
-	</channel>
+<%#- Same rule as feed-rss2-comments.php: `\t<?php endwhile; ?>` sits INSIDE the loop body,
+     so the tab before </channel> is the last iteration's and an EMPTY feed closes at column
+     0. Reached by an author archive with no posts, and by a search feed that matches none. -%>
+<%== @posts.any? ? "\t" : "" %></channel>
 </rss>

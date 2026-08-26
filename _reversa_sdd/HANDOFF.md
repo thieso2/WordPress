@@ -8,7 +8,7 @@ updated: 2026-08-25
 
 You are picking up a **reverse-engineered rebuild of WordPress 7.2-alpha-63330 in Ruby on
 Rails 8.1 / PostgreSQL 17**, produced under the Reversa framework. It is not a prototype: the
-public site is byte-identical to a live WordPress instance across 53 screens, the admin works,
+public site is byte-identical to a live WordPress instance across 65 screens, the admin works,
 and the editors run the real upstream Gutenberg against the rebuild's own REST API.
 
 This document orients you. Two others carry the detail:
@@ -70,13 +70,14 @@ repeatedly.
 
 ```bash
 cd _reversa_forward/rebuild
-./bin/parity compare          # 53/53 — run it 3x, it must be STABLE, not green once
+./bin/parity compare          # 65/65 — run it 3x, it must be STABLE, not green once
 ./bin/parity determinism 2    # full oracle rebuilds produce byte-identical goldens
 ./bin/check_cycles            # acyclic; the 3 packs stay zero-dependency leaves
-./bin/rspec_worker            # 1822 examples, 0 failures, 6 pending
+./bin/rspec_worker            # 1872 examples, 0 failures, 6 pending
 ./bin/parity_worker           # 172 scenarios, 168 passed
 ./bin/link_check              # does the site serve the URLs it advertises?
-                              #   reports 41 today: 19 real + 22 siteurl artifacts (trap 4)
+                              #   reports 22 today, and ALL 22 are the siteurl artifact
+                              #   (trap 4). Any non-oEmbed entry is a real regression.
 ./editor_e2e/run.sh           # both editors, in a real browser
 (cd editor_e2e && node gb_paths.mjs)   # 13 editor write-path checks
 ./bin/benchmark all           # only if you touched performance
@@ -94,7 +95,7 @@ covers. It is not a proof of equivalence.
 
 ---
 
-## Six traps that will cost you hours
+## Seven traps that will cost you hours
 
 1. **`GET /console/posts/new` WRITES TO THE DATABASE.** It inserts an `auto_draft` and
    redirects. *Opening the editor mutates the parity corpus.* Re-run `./bin/parity compare`
@@ -133,6 +134,15 @@ covers. It is not a proof of equivalence.
    suite — and touch no files while it runs.** Cost here: one full `editor_e2e/run.sh` read as
    a failure before the cause was found.
 
+7. **`editor_e2e` restores post CONTENT but not `modified_at`.** The Gutenberg save round
+   trip snapshots and restores the post body — trap 2's fix — but the timestamp it bumped
+   stays bumped. `hello-world` in the rebuild reads *today* where the oracle reads
+   2026-03-15. Nothing caught it because the parity normalizer masks timestamps and no
+   corpus screen prints a modified date. It surfaced only when the new feed work put
+   `lastBuildDate` (which is derived from `modified_at`) under a raw diff. Harmless for the
+   gate as it stands; worth knowing before you trust a raw byte comparison of anything
+   date-derived, and worth fixing if a screen ever renders a modified date.
+
 Environment: the **ssh-agent dies regularly**. When a push fails with "correct access
 rights", find a live socket and repoint it:
 ```bash
@@ -170,10 +180,24 @@ priority order:
    drifted; V4 missed the private-status rule entirely. Fixing what a row SAYS, rather than
    what the oracle shows, would have broken parity in at least two places.
 
-2. 🟠 **The 19 real dead links** `bin/link_check` reports — 17 feed URLs the site prints in
-   its own `<head>` and answers with its own 404, the RSD link, and the sitemap stylesheets.
-   The tool prints **41**; the other 22 are the `siteurl` artifact in trap 4, and its header
-   explains how to tell them apart. Do not "fix" those.
+2. ✅ **The 19 dead links are CLOSED.** Eighteen were the feed endpoint that every
+   permastruct carries (category, tag, author, search, and the per-post/per-page COMMENT
+   feeds), the nineteenth was the RSD document. All nineteen are now served **byte-identical
+   to the oracle** and all are in the corpus, which is why it went 53 → 65 screens.
+   `bin/link_check` now reports 22, and **all 22 are the `siteurl` artifact of trap 4** —
+   so the number to watch is not the total but whether any NON-oEmbed entry appears. One
+   would be a regression.
+
+   Three things learned closing them, each of which cost a diff and is worth inheriting:
+   **a feed is the same query with two vars changed** — `posts_per_rss` for the page size,
+   and search RELEVANCE ordering suppressed (`class-wp-query.php:2561` gates it on
+   `! $this->is_feed`), so a search feed is plain date order while the search screen is not.
+   **`feed-rss2-comments.php:49` is `is_single()`, not `is_singular()`**, so a PAGE's comment
+   feed links to the site home where a POST's links to the permalink. And **PHP's
+   `?>`-swallows-one-newline rule is load-bearing in these templates**: when
+   `the_category_rss()` prints nothing — a page, which has no categories — the tabs run onto
+   the `<guid>` line and the two become one. Every one of those was found by diffing against
+   the oracle, not by reading the PHP.
 
 3. 🟡 **Performance (RISK-022).** The headline "1.99×" is misattributed: 26% is Rails
    development-mode overhead, and the biggest application cost is the global stylesheet
@@ -217,5 +241,5 @@ Push it first:
 git push github reversa/wp-7.2-to-rails-migration
 ```
 
-Everything else is green as of this writing: parity 53/53, RSpec 1822/0, Cucumber 168 passed,
+Everything else is green as of this writing: parity 65/65, RSpec 1872/0, Cucumber 168 passed,
 both editors driven in a browser, determinism reproducible, topology acyclic.

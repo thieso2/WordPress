@@ -18,9 +18,11 @@ Rails.application.config.to_prepare do
     web/archives#tag web/archives#author web/archives#day
     web/singular#show web/pages#show web/embeds#show web/embeds#page web/attachments#show
     syndication/feeds#show syndication/feeds#comments
+    syndication/feeds#author syndication/feeds#category syndication/feeds#tag
+    syndication/feeds#search syndication/feeds#post_comments syndication/feeds#page_comments
     syndication/sitemaps#index syndication/sitemaps#posts syndication/sitemaps#users
     syndication/sitemaps#taxonomies
-    syndication/robots#show
+    syndication/robots#show syndication/rsd#show
   ].each { |action| Access::Declarations.declare("GET #{action}", mode: :public, source: __FILE__) }
 
   # Wave 3 -- Library write path. The upload needs an actor (wp_ajax_upload_attachment()

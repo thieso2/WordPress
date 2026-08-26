@@ -13,10 +13,14 @@
 	<%= "" %>
 	>
 <channel>
+<%#- feed-rss2-comments.php:19 — `is_singular()` picks the title, and :24 the link. -%>
 	<title>
-	Comments for <%== t.wp_title_rss %>	</title>
+	<%== @singular ? "Comments on: #{t.the_title_rss(@singular)}" : "Comments for #{t.wp_title_rss}" %>	</title>
 	<atom:link href="<%== request.original_url %>" rel="self" type="application/rss+xml" />
-	<link><%== home %></link>
+<%#- :49 is `is_single()`, NOT is_singular(): a POST's comment feed links to the permalink,
+     a PAGE's links to the site home. Confirmed on the oracle — /privacy-policy/feed/ emits
+     the home URL while /2026/03/hello-world/feed/ emits the post's. -%>
+	<link><%== @singular.is_a?(Publishing::Article) ? links.permalink(@singular) : home %></link>
 	<description><%== t.bloginfo_rss(Configuration::Setting.display("blogdescription")) %></description>
 	<lastBuildDate><%== t.rfc2822(@build_date) %></lastBuildDate>
 	<sy:updatePeriod>
@@ -27,8 +31,9 @@
 <% @comments.each_with_index do |comment, i| -%>
 <% parent = comment.parent_id && @parents[comment.parent_id] -%>
 <%== i.zero? ? "\t" : "\t\t" %><item>
+<%#- :52 — "By: %s" on a singular feed, "Comment on %1$s by %2$s" otherwise. -%>
 		<title>
-		Comment on <%== t.the_title_rss(comment.post) %> by <%== comment.author_name %>		</title>
+		<%== @singular ? "By: #{comment.author_name}" : "Comment on #{t.the_title_rss(comment.post)} by #{comment.author_name}" %>		</title>
 		<link><%== links.permalink(comment.post) %>#comment-<%== comment.id %></link>
 
 		<dc:creator><![CDATA[<%== comment.author_name %>]]></dc:creator>
@@ -40,5 +45,8 @@
 		<%= "" %>
 			</item>
 <% end -%>
-	</channel>
+<%#- The tab is the LAST ITERATION's: `\t<?php endwhile; ?>` sits inside the loop body, so a
+     feed with no comments at all closes </channel> at column 0. Only a singular feed on an
+     uncommented record reaches that arm, which is why it went unnoticed. -%>
+<%== @comments.any? ? "\t" : "" %></channel>
 </rss>

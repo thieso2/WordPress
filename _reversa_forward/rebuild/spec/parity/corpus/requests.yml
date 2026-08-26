@@ -96,6 +96,66 @@ requests:
   - screen: syndication.feed_comments
     path: /comments/feed/
     content_type: xml
+
+  # ── The feed endpoint on every permastruct ────────────────────────────────────────
+  # class-wp-rewrite.php:1150 appends `feed/(feed|rdf|rss|rss2|atom)` to each permastruct,
+  # and presentation/head.rb PRINTS those URLs on every archive and singular screen. The
+  # rebuild advertised 18 of them and answered all 18 with its own 404 for the life of the
+  # project — invisible to a screen comparison, because the PAGE matched while its links
+  # were dead (bin/link_check exists for exactly this). They are in the corpus now so the
+  # next one cannot come back unnoticed.
+  #
+  # One representative per ARM rather than all 18: the arms are the queried-object kinds
+  # (author / category / tag / search) and the two singular ones (post, page), plus the
+  # hierarchy and percent-encoding cases that have bitten before.
+  - screen: syndication.feed_category
+    path: /category/uncategorized/feed/
+    content_type: xml
+  - screen: syndication.feed_category_deep
+    path: /category/top-category/middle-category/feed/
+    content_type: xml
+  - screen: syndication.feed_tag
+    path: /tag/flat-tag-one/feed/
+    content_type: xml
+  # The slug is stored percent-encoded in lowercase hex (utf8_uri_encode); Rails hands the
+  # segment over decoded. Same re-encoding the archive screens needed.
+  - screen: syndication.feed_tag_percent_encoded
+    path: /tag/tag-with-%f0%9f%98%80-emoji/feed/
+    content_type: xml
+  - screen: syndication.feed_author
+    path: /author/oracle_author/feed/
+    content_type: xml
+  # An author with no posts — the empty-archive arm.
+  - screen: syndication.feed_author_no_posts
+    path: /author/oracle_editor/feed/
+    content_type: xml
+  # The search feed has a pretty URL even though the search SCREEN is reached as /?s=…
+  - screen: syndication.feed_search
+    path: /search/article/feed/rss2/
+    content_type: xml
+  - screen: syndication.feed_search_no_results
+    path: /search/zzzznotfoundzzzz/feed/rss2/
+    content_type: xml
+  # `<permalink>/feed/` is a COMMENT feed (is_comment_feed + is_singular), not a post feed.
+  - screen: syndication.feed_post_comments
+    path: /2026/03/hello-world/feed/
+    content_type: xml
+  # A post with NO comments: the arm where </channel> closes at column 0 because the tab
+  # before it is the last loop iteration's, not a literal.
+  - screen: syndication.feed_post_comments_empty
+    path: /2026/03/sticky-front-page-article/feed/
+    content_type: xml
+  # A PAGE's comment feed. feed-rss2-comments.php:49 is `is_single()`, NOT is_singular(),
+  # so this one links to the site HOME where the post feed links to the permalink.
+  - screen: syndication.feed_page_comments
+    path: /privacy-policy/feed/
+    content_type: xml
+  # The RSD discovery document, printed into the <head> of every screen and answered with
+  # the rebuild's own 404 until now (xmlrpc.php:31). NOT the XML-RPC server — that is still
+  # unimplemented, and gaps.md G-01 is still open.
+  - screen: syndication.rsd
+    path: /xmlrpc.php?rsd
+    content_type: xml
   - screen: syndication.sitemap_index
     path: /wp-sitemap.xml
     content_type: xml

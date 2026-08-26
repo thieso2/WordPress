@@ -1,0 +1,4 @@
+# Playwright and its browser bundle — installed by editor_e2e/run.sh, never committed.
+# Without this, a `git add -A` anywhere above this directory sweeps ~50 MB of vendored
+# JavaScript into the tree; it happened once and was caught only by reading the index.
+node_modules/
