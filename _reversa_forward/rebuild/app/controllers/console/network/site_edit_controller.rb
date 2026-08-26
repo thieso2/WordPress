@@ -137,7 +137,7 @@ module Console
             existing = Configuration::Setting.find_by(name: name.to_s)
             next if existing.nil? # only options the screen actually rendered are writable
 
-            Configuration::Setting.set(name.to_s, cast_like(existing.value, value))
+            Configuration::Setting.set(name.to_s, sanitize_option(name.to_s, cast_like(existing.value, value)))
           end
         end
         redirect_after_submit("/console/network/sites/#{@site.id}/settings",
@@ -250,6 +250,25 @@ module Console
 
       # A form posts strings; the stored value has a shape. Preserve it rather than turning
       # every option into a string (AD-06: settings are typed, not a serialized blob).
+      # ⚠️ RISK-023 V7. site-settings.php:60 writes each submitted option through
+      # `update_option()`, and update_option() runs `sanitize_option()` — whose
+      # blogname/blogdescription arm is `esc_html( $value )` (formatting.php:5006). That is
+      # not cosmetic: it is the reason those two options are HTML-ESCAPED AT REST, and the
+      # reason `Configuration::Setting.display` is allowed to hand them to a view as
+      # `html_safe` (see the note on Setting::SANITIZED_ON_WRITE).
+      #
+      # This screen reached `Setting.set` directly — the equivalent of a raw DB write, not
+      # of update_option() — so a `blogname` submitted here was stored UNESCAPED and then
+      # printed as trusted HTML by every surface that shows the site title, `site_name`
+      # among them. The other two write paths (console/settings_controller via
+      # SettingsRegistry field casts, and public_api/settings_controller:175) both apply it;
+      # this was the third and it did not.
+      def sanitize_option(name, value)
+        return value unless Configuration::Setting::SANITIZED_ON_WRITE.include?(name)
+
+        Configuration::SettingsRegistry::ESC_HTML.call(value)
+      end
+
       def cast_like(existing, submitted)
         case existing
         when Integer then submitted.to_s.to_i

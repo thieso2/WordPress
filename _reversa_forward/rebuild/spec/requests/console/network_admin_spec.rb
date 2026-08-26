@@ -443,6 +443,49 @@ RSpec.describe "Console network admin", type: :request do
         Tenancy::Provisioner.deprovision!(@other)
       end
 
+      # ── RISK-023 V7 ──────────────────────────────────────────────────────────────
+      # site-settings.php:60 writes through update_option(), and update_option() runs
+      # sanitize_option(), whose blogname/blogdescription arm is `esc_html( $value )`
+      # (formatting.php:5006). That is what makes those two options HTML-ESCAPED AT REST,
+      # and it is the premise Configuration::Setting.display relies on when it hands them to
+      # a view as `html_safe`. This screen wrote them RAW, so a title submitted here became
+      # trusted markup on every surface that prints the site name.
+      it "HTML-escapes blogname and blogdescription on write, as sanitize_option does" do
+        Tenancy::Provisioner.provision!(@other)
+        @other.switch do
+          Configuration::Setting.set("blogname", "Tenant Title")
+          Configuration::Setting.set("blogdescription", "A tenant")
+        end
+
+        post "/console/network/sites/#{@other.id}/settings",
+             params: { option: { "blogname" => "<script>alert(1)</script>",
+                                 "blogdescription" => %(a "quoted" & <b>bold</b>) } }
+
+        @other.switch do
+          expect(Configuration::Setting["blogname"]).to eq("&lt;script&gt;alert(1)&lt;/script&gt;")
+          expect(Configuration::Setting["blogname"]).not_to include("<script")
+          expect(Configuration::Setting["blogdescription"])
+            .to eq("a &quot;quoted&quot; &amp; &lt;b&gt;bold&lt;/b&gt;")
+        end
+      ensure
+        Tenancy::Provisioner.deprovision!(@other)
+      end
+
+      # ...and ONLY those two. sanitize_option dispatches per option name; every other
+      # option is raw at rest and gets ordinary escaping at the point of display, so
+      # escaping it here would corrupt the stored value.
+      it "leaves options WordPress does not sanitize exactly as submitted" do
+        Tenancy::Provisioner.provision!(@other)
+        @other.switch { Configuration::Setting.set("date_format", "F j, Y") }
+
+        post "/console/network/sites/#{@other.id}/settings",
+             params: { option: { "date_format" => "a < b & c" } }
+
+        @other.switch { expect(Configuration::Setting["date_format"]).to eq("a < b & c") }
+      ensure
+        Tenancy::Provisioner.deprovision!(@other)
+      end
+
       it "refuses to edit options for a site whose schema was never provisioned" do
         # The footgun this guard closes: search_path is `<tenant>, public`, so an
         # unprovisioned tenant would resolve `settings` to the GLOBAL table.

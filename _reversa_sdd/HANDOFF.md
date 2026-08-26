@@ -149,19 +149,26 @@ ln -sfn "$SOCK" ~/.ssh/ssh_auth_sock && export SSH_AUTH_SOCK="$SOCK"
 reconnaissance and every claim carries a `file:line`, a number or a reproducing command. In
 priority order:
 
-1. 🔴 **Security (RISK-023).** **All four of the headline defects are closed** — V1 stored
-   XSS, V2 arbitrary `author` on REST writes, V3 `/comments/feed/` leaking private-post
-   comments, V4 the Posts list serving rows the oracle withholds. **V5–V7 remain** (reflected
-   XSS in the multisite signup confirm view, the media upload's missing nonce check, the third
-   `blogname` write path); the brief has them.
+1. ✅ **Security (RISK-023) is CLOSED — all seven.** V1 stored XSS, V2 arbitrary `author` on
+   REST writes, V3 `/comments/feed/` leaking private-post comments, V4 the Posts list serving
+   rows the oracle withholds, V5 the signup confirm screen trusting a query parameter, V6 the
+   media upload's forgery tripwire, V7 the third `blogname` write path storing raw HTML.
+   **The next work is the 19 dead links, then the performance backlog** — see below.
 
-   Two habits paid for themselves here and are worth keeping. **The corpus's data, not just
-   its screens, decides what a green gate can see** — V3 was invisible because no comment sat
-   on a non-public post, and V4's private-row leak was invisible because nothing browses the
-   console as a Contributor. **And check the brief's claims against the oracle before
-   building to them**: V4's entry named two things that turned out not to be divergences at
-   all (a Contributor seeing others' drafts, and the comments list) and missed the rule that
-   actually leaked. The corrected account is in the brief.
+   Two habits paid for themselves across all seven and are worth keeping.
+
+   **The corpus's data, not just its screens, decides what a green gate can see.** V3 was
+   invisible because no comment sat on a non-public post; V4's private-row leak was invisible
+   because nothing browses the console as a Contributor; V5 sits behind multisite, which is
+   off here. Each was green at 53/53 throughout and would have stayed green.
+
+   **Check every claim against the oracle before building to it.** Of the seven rows, five
+   were real and two were not — V6, and the comments half of V4 — and in both of those the
+   finding was that the ORACLE does the same thing, so the code was left alone. Three of the
+   five real ones had a cause or a location different from the one the row named: V5's raw
+   print is WordPress's own and the bug was a controller deviation; V7's line numbers had
+   drifted; V4 missed the private-status rule entirely. Fixing what a row SAYS, rather than
+   what the oracle shows, would have broken parity in at least two places.
 
 2. 🟠 **The 19 real dead links** `bin/link_check` reports — 17 feed URLs the site prints in
    its own `<head>` and answers with its own 404, the RSD link, and the sitemap stylesheets.

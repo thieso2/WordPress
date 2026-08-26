@@ -59,18 +59,33 @@ module Tenancy
       # ⚠️ No email is sent (Action Mailer is out of this track's scope); the activation_key
       # is surfaced to the confirmation screen so the flow is walkable end-to-end. Recorded
       # as a deferred wiring point.
-      redirect_to signup_confirm_path(email: signup.user_email, key: signup.activation_key),
-                  status: :see_other
+      # The key alone identifies the signup; the address is READ BACK from the row rather
+      # than carried in the URL. See the note on #confirm — RISK-023 V5.
+      redirect_to signup_confirm_path(key: signup.activation_key), status: :see_other
     end
 
     # tenancy.signup_confirm — the "almost ready / check your inbox" message.
     # wp-signup.php:700-725 (user) and :860-885 (blog).
+    #
+    # ⚠️ RISK-023 V5. confirm_blog_signup() prints the address RAW —
+    # `printf( __( '...You have entered %s...' ), $user_email )`, wp-signup.php:893, no
+    # esc_html — and the view reproduces that faithfully. What made it exploitable was a
+    # DEVIATION on this side: the legacy hands confirm_*_signup() the address it validated
+    # microseconds earlier in the same request, whereas this action redirected and then read
+    # the address back out of the QUERY STRING, where anybody can put anything. Registration
+    # is disabled on a single site, so the screen is only reachable under multisite — which
+    # is a configuration, not a mitigation.
+    #
+    # So the address is recovered from the PERSISTED signup, the one value that has been
+    # through `validate`. `params[:email]` is not read here and is no longer emitted into
+    # the redirect. Do not reintroduce it: the raw print in the view is WordPress's own and
+    # is only safe while what reaches it is trusted.
     def confirm
-      @user_email = params[:email].to_s
       @activation_key = params[:key].to_s
       # The confirmation copy differs by signup kind (confirm_user_signup vs
       # confirm_blog_signup). Recover the persisted signup by its activation_key.
       @signup = Tenancy::Signup.find_by(activation_key: @activation_key)
+      @user_email = @signup&.user_email.to_s
       @signup_kind = @signup&.kind || "user"
       @user_login = @signup&.user_login.to_s
       @blog_domain = @signup&.domain.to_s

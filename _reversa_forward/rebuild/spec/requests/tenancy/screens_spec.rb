@@ -76,5 +76,35 @@ RSpec.describe "Tenancy signup/activation screens", type: :request do
       expect(response).to have_http_status(:unprocessable_content)
       expect(response.body).to include("A key value mismatch has been detected")
     end
+
+    # ── RISK-023 V5 ────────────────────────────────────────────────────────────────
+    # confirm_blog_signup() prints the address RAW (wp-signup.php:893, no esc_html) and the
+    # view reproduces that faithfully. What made it exploitable was this side: the action
+    # redirected and then read the address back out of the QUERY STRING. The legacy hands
+    # confirm_*_signup() the address it validated in the same request; nothing in it ever
+    # travels through a URL.
+    it "renders the PERSISTED email, never what the query string carries" do
+      signup = Tenancy::Signup.create!(kind: "blog", user_login: "victim", user_email: "victim@example.com",
+                                       domain: "victim.example", path: "/", title: "Victim")
+
+      get "/signup/confirm", params: { key: signup.activation_key,
+                                       email: "<script>alert(1)</script>" }
+
+      expect(response).to have_http_status(:ok)
+      expect(response.body).not_to include("<script>alert(1)</script>")
+      expect(response.body).to include("victim@example.com")
+    end
+
+    # The same for the user branch, which reaches the address through content_tag and was
+    # never injectable — pinned so it stays that way.
+    it "renders the persisted email on the user-signup branch too" do
+      signup = Tenancy::Signup.create!(kind: "user", user_login: "solo", user_email: "solo@example.com")
+
+      get "/signup/confirm", params: { key: signup.activation_key,
+                                       email: "<script>alert(1)</script>" }
+
+      expect(response.body).not_to include("<script>alert(1)</script>")
+      expect(response.body).to include("solo@example.com")
+    end
   end
 end

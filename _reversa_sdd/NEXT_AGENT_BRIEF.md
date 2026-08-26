@@ -44,7 +44,7 @@ attempt it serially — the security area alone has four independent fixes.
 
 ## AREA 1 — Security (RISK-023). Do this first.
 
-> **Status 2026-08-25: V1, V2, V3 and V4 are closed; V5–V7 remain.** Each fix was checked
+> **Status 2026-08-26: RISK-023 is CLOSED — V1 through V7.** Each fix was checked
 > against the live oracle rather than against the source alone, and each carries specs that
 > were confirmed to FAIL against the unfixed code before they were trusted. Two things worth
 > carrying forward from V3: the leak was **latent** — no comment in the corpus sits on a
@@ -63,11 +63,33 @@ everything else in this brief.
 | ~~**V3**~~ | ✅ **CLOSED** (this commit) | **`/comments/feed/` leaks comments on non-public posts** to anonymous visitors, including the private post's title. Comment status is filtered; post status is not. | `syndication/feeds_controller.rb:36` |
 | ~~**V4**~~ | ✅ **CLOSED** (this commit) | **The Posts list was not ownership-scoped, and did not gate private rows.** See the correction below — this row overstated the defect in two ways and understated it in one. | `console/posts_list_controller.rb:77` |
 
-Lower: **V5** reflected XSS in the multisite signup confirm view
-(`tenancy/signups/confirm.html.erb:19`), **V6** `POST /console/media` disables forgery
-protection with a comment promising a nonce check that never landed
-(`web/uploads_controller.rb:32`), **V7** a third write path to `blogname` skips the `esc_html`
-that makes the read side safe (`network/site_edit_controller.rb:129-140`).
+~~Lower: **V5**, **V6**, **V7**~~ — ✅ **all three CLOSED.** What they turned out to be:
+
+- **V5 — real, and the cause was not where the row pointed.** The raw print in
+  `tenancy/signups/confirm.html.erb:19` is WordPress's own (`printf( __( '...%s...' ),
+  $user_email )`, wp-signup.php:893, no `esc_html`) and is faithful. The defect was a
+  *deviation on the controller side*: `#confirm` redirected and then read the address back
+  out of the QUERY STRING, which the legacy never does — it hands `confirm_*_signup()` the
+  address it validated microseconds earlier. Fixed by sourcing the address from the
+  persisted signup; `params[:email]` is no longer read or emitted. Reachable only under
+  multisite, which is a configuration, not a mitigation.
+- **V6 — NOT a live vulnerability.** `#current_actor`'s cookie arm is
+  `ApplicationController#current_actor`, which is `nil`, so no cookie-authenticated caller
+  can reach the action and there is no ambient authority to forge with. Verified against
+  the running app: a cookie-bearing cross-site-shaped POST answers **403**. The skip was a
+  *tripwire* — the note on `#current_actor` invites exactly the change that would arm it —
+  so it is now conditional on the request having no ambient authority. Two traps found while
+  doing it, both worth knowing: `skip_before_action` folds `only:` and `if:` into one
+  condition set and inverts the lot, so `only: :create, if: <cond>` skips unconditionally and
+  the `if:` does nothing; and Rails renders `InvalidAuthenticityToken` as a **422 response**
+  rather than propagating the exception, so assert on the status, not on a raise.
+- **V7 — real, and the row's line numbers had drifted.** It is `#update_settings`
+  (`console/network/site_edit_controller.rb:140`), which reached `Setting.set` directly —
+  the equivalent of a raw DB write, not of `update_option()`. `update_option()` runs
+  `sanitize_option()`, whose blogname/blogdescription arm is `esc_html`, and that is the
+  premise `Configuration::Setting.display` relies on when it hands those two to a view as
+  `html_safe`. The other two write paths both apply it; this third one did not, so a title
+  submitted here became trusted markup wherever the site name is printed.
 
 ### V4 as it actually was — the row above got two things wrong
 

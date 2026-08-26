@@ -24,12 +24,41 @@ module Web
   # directory — lib/active_storage/service/uploads_service.rb).
   class UploadsController < ApplicationController
     # The legacy gates this POST with a nonce (`check_ajax_referer( 'media-form' )`,
-    # ajax-actions.php:2597), not a CSRF token. The nonce check lands with the console's
-    # cookie session in Wave 4 (Identity::Nonce exists for it); the token-authenticated
-    # callers this wave serves — a session token or an application password — carry no
-    # cookie for a forgery to ride on, which is also why the legacy's REST media endpoint
-    # accepts application passwords without one.
-    skip_forgery_protection only: :create
+    # ajax-actions.php:2597), not a CSRF token. The token-authenticated callers this
+    # endpoint serves — a session token as a bearer, or an application password over Basic —
+    # carry no cookie for a forgery to ride on, which is also why the legacy's REST media
+    # endpoint accepts application passwords without one.
+    #
+    # ⚠️ RISK-023 V6, and it is a TRIPWIRE rather than a live hole. The skip on its own says
+    # "no forgery check on this write"; what actually keeps it safe is that
+    # `#current_actor`'s cookie arm is `ApplicationController#current_actor`, which is nil —
+    # so a cookie-authenticated caller cannot reach the action at all, and a cross-site POST
+    # bearing the victim's cookies is refused by the AD-04 :authenticated gate (verified
+    # against the running app: 403). The danger is that the note on #current_actor invites
+    # exactly the change that would arm it — "`super` stays first so a cookie session, once
+    # it exists, wins unchanged" — and wiring that in would silently make this a real CSRF
+    # hole with nothing left to catch it.
+    #
+    # So the skip is now conditional on the request actually being token-authenticated.
+    # Every caller today sends an Authorization header, so this changes nothing observable;
+    # a cookie caller, if one is ever wired up, must present the token (the standing in for
+    # `check_ajax_referer( 'media-form' )` until Identity::Nonce is threaded through).
+    #
+    # The condition is AMBIENT AUTHORITY, which is what check_ajax_referer actually defends:
+    # a request is made to prove itself only when it carries cookies the browser attached on
+    # its own AND brings no credential of its own. A token caller is exempt (nothing to
+    # ride), and so is a cookie-less caller — which keeps the legacy's answer for a plain
+    # credential-less API call: `wp_die( -1, 403 )` for the nonce, and the AD-04 gate's 403
+    # here. Widening this to every credential-less request would turn that 403 into a 422.
+    #
+    # NOTE the absent `only:`. `skip_before_action` folds `only:` and `if:` into ONE
+    # condition set and then inverts the lot, so `only: :create, if: <cond>` reads as "skip
+    # whenever the action is create OR <cond>" — the skip fires unconditionally on create
+    # and the `if:` does nothing at all. Dropping `only:` is what makes the condition bite;
+    # `#show` is a GET, and a GET is a verified request by definition, so it is unaffected.
+    skip_forgery_protection if: lambda {
+      request.authorization.present? || request.cookies.empty?
+    }
 
     NOT_ALLOWED = "Sorry, you are not allowed to upload files."                  # ajax-actions.php:2609
     NOT_ALLOWED_TO_ATTACH = "Sorry, you are not allowed to attach files to this post." # ajax-actions.php:2626

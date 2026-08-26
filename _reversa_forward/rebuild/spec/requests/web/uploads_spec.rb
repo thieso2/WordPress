@@ -115,4 +115,49 @@ RSpec.describe "POST /console/media", type: :request do
     get "/wp-content/uploads/2026/08/nope.png"
     expect(response).to have_http_status(:not_found)
   end
+
+  # ── forgery protection on the write (RISK-023 V6) ────────────────────────────────
+  # The legacy runs `check_ajax_referer( 'media-form' )` here (ajax-actions.php:2597).
+  # This endpoint skips Rails' token instead — but ONLY for a request that authenticates
+  # with an Authorization header, which is a credential a cross-site form cannot set. The
+  # test env disables forgery protection globally, so these two turn it on to observe the
+  # callback at all.
+  describe "forgery protection" do
+    around do |example|
+      previous = ActionController::Base.allow_forgery_protection
+      ActionController::Base.allow_forgery_protection = true
+      example.run
+    ensure
+      ActionController::Base.allow_forgery_protection = previous
+    end
+
+    it "still skips the token for a bearer-authenticated caller — no cookie to ride on" do
+      author = user("author")
+      body = upload("oracle-image.png", headers: bearer(author))
+      expect(response).to have_http_status(:ok)
+      expect(body["success"]).to be(true)
+    end
+
+    # Without the condition this skip was unconditional: a write with no credential of its
+    # own bypassed the forgery check entirely, and the only thing left standing between a
+    # cross-site POST and an upload was that `current_actor` happens not to read cookies.
+    # The CSRF shape: cookies the browser attached by itself, no credential of its own, no
+    # token. 422 rather than the endpoint's 403 because the forgery check runs ahead of the
+    # AD-04 gate — the write is refused before WHO is asking is ever reached.
+    it "ENFORCES the token for a cookie-bearing caller with no Authorization header" do
+      cookies["wordpress_test_cookie"] = "WP Cookie check"
+      upload("small.png")
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(Library::Asset.count).to eq(0)
+    end
+
+    # ...and a cookie-less credential-less call keeps the legacy's answer. There is no
+    # ambient authority to forge with, so the question is WHO is asking, and AD-04 answers
+    # it — 403, exactly as before. Widening the guard would have turned this into a 422.
+    it "still answers a cookie-less credential-less call with the AD-04 403" do
+      upload("small.png")
+      expect(response).to have_http_status(:forbidden)
+      expect(Library::Asset.count).to eq(0)
+    end
+  end
 end
